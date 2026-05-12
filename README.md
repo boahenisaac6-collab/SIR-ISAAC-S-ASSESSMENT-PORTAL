@@ -1,8 +1,80 @@
-{
-  "name": "isaacs-assessment-portal-live-password-toggle",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "start": "npx serve ."
-  }
-}
+# Isaac's Assessment Portal - Live Supabase/Vercel Version
+
+This folder contains the live-ready assessment portal.
+
+## New additions
+- Each student has an individual password.
+- Admin can set or generate a password for each student.
+- Admin can add telephone numbers.
+- Students can update their own telephone numbers.
+- Admin can quickly share/copy each student's password message.
+- Admin can turn student password login ON or OFF globally in Settings.
+- Supabase live sync shares submissions and updates across devices.
+
+## Student password ON/OFF control
+In Admin Mode, open **Settings**. You will see **Student password control**.
+
+- **Turn Password ON**: each student must use the personal password assigned by the teacher.
+- **Turn Password OFF for All Students**: students can enter their portals after selecting their names, without typing a password.
+
+This setting is saved and synced live through Supabase.
+
+## Supabase setup
+1. Create a Supabase project.
+2. Open SQL Editor.
+3. Run all SQL inside `supabase/schema.sql`.
+4. Open Project Settings > API.
+5. Copy Project URL and anon public key.
+6. Paste them into `app-config.js`.
+7. Enable Realtime for the `app_state` table if needed.
+
+## GitHub and Vercel setup
+1. Create a new GitHub repository.
+2. Upload all files in this folder to the repository root.
+3. Go to Vercel.
+4. Add New Project.
+5. Import the GitHub repository.
+6. Deploy.
+7. Open the Vercel link.
+
+
+## Quiz Control / Reset
+
+In Admin Mode, open **Quiz Control / Reset**.
+
+Use it to:
+- Clear all quizzes from student portals without deleting them. This changes all quizzes to Draft/Hidden.
+- Delete one quiz completely, including its submissions.
+- Delete all quizzes and all submissions completely.
+- Reset one student’s submissions.
+- Publish only the new quiz you want students to see.
+
+If old quizzes appear in students' portals, click **Clear All Quizzes from Student Portals**.
+
+
+## Student and class management
+
+Admin Mode > Students now supports:
+- Create another class and assign it to Mathematics or Additional Mathematics.
+- Add one student manually.
+- Bulk import names for a class by pasting names line by line.
+- Edit student names.
+- Change a student's class.
+- Delete a student and that student's submissions.
+- Upload/change/remove student pictures.
+- Students can update their own telephone number.
+- Student interface is more mobile-friendly.
+
+
+## Simple Vercel static deployment version
+
+This package intentionally has no `package.json`, no `vercel.json`, no build command, and no `dist` folder.
+Vercel should deploy it as a plain static HTML project from the root `index.html`.
+
+In Vercel Project Settings > Build and Deployment:
+- Framework Preset: Other
+- Build Command: leave empty
+- Output Directory: leave empty
+- Install Command: leave empty
+
+Then redeploy.
