@@ -1242,468 +1242,355 @@ img, canvas, iframe, video{
 
 
 /* =========================================================
-   ADMIN STUDENTS TABLE VISIBILITY FIX
-   This makes wide admin tables scroll sideways clearly so
-   no student details are hidden on laptop or phone.
+   FINAL FIT-TO-SCREEN ADMIN STUDENTS DESIGN
+   This replaces the wide student table with responsive cards.
+   Nothing is hidden; every field fits within the screen.
    ========================================================= */
-.tableWrap,
-.card .tableWrap,
-#view .tableWrap{
-  width:100%!important;
-  max-width:100%!important;
-  display:block!important;
-  overflow-x:auto!important;
-  overflow-y:visible!important;
-  -webkit-overflow-scrolling:touch!important;
-  padding-bottom:16px!important;
-  margin-top:10px!important;
-  border-radius:14px!important;
-  border:1px solid #d9e7f3!important;
-  background:#ffffff!important;
-}
-
-/* Always show a clear horizontal scrollbar where the table is wide */
-.tableWrap::-webkit-scrollbar{
-  height:14px!important;
-}
-.tableWrap::-webkit-scrollbar-track{
-  background:#edf4fb!important;
-  border-radius:999px!important;
-}
-.tableWrap::-webkit-scrollbar-thumb{
-  background:#0a2342!important;
-  border-radius:999px!important;
-  border:3px solid #edf4fb!important;
-}
-.tableWrap{
-  scrollbar-width:auto!important;
-  scrollbar-color:#0a2342 #edf4fb!important;
-}
-
-/* Wide tables must not squeeze and hide fields */
-.tableWrap table{
-  width:max-content!important;
-  min-width:1450px!important;
-  table-layout:auto!important;
-  border-collapse:separate!important;
-  border-spacing:0!important;
-}
-
-.tableWrap th,
-.tableWrap td{
-  white-space:nowrap!important;
-  overflow:visible!important;
-  text-overflow:clip!important;
-  vertical-align:top!important;
-  padding:10px 12px!important;
-}
-
-/* Make form fields in admin table readable */
-.tableWrap input,
-.tableWrap select,
-.tableWrap textarea,
-.tableWrap .input,
-.tableWrap .select{
-  width:auto!important;
-  max-width:none!important;
-  min-width:150px!important;
-  font-size:14px!important;
-}
-
-.tableWrap .studentEditInput{
-  min-width:260px!important;
-  width:260px!important;
-}
-
-.tableWrap .phoneInputSmall,
-.tableWrap .passwordInputSmall{
-  min-width:170px!important;
-  width:170px!important;
-}
-
-.tableWrap .studentActionBar,
-.tableWrap .shareButtonGroup{
-  display:flex!important;
-  flex-wrap:nowrap!important;
-  gap:6px!important;
-  align-items:center!important;
-  min-width:max-content!important;
-}
-
-.tableWrap .btn,
-.tableWrap button{
-  white-space:nowrap!important;
-  width:auto!important;
-  min-width:max-content!important;
-  padding:8px 10px!important;
-  font-size:13px!important;
-}
-
-/* Keep table headers readable */
-.tableWrap thead th{
-  position:sticky!important;
-  top:0!important;
-  z-index:2!important;
-  background:#f6f9fc!important;
-  color:#0a2342!important;
-}
-
-/* On phone/tablet, do not hide cards containing admin tables */
-@media(max-width:900px){
-  .card:has(.tableWrap),
-  #view .card:has(.tableWrap){
-    overflow:visible!important;
-    padding-left:10px!important;
-    padding-right:10px!important;
-  }
-
-  .tableWrap{
-    margin-left:0!important;
-    margin-right:0!important;
-    max-width:100vw!important;
-  }
-
-  .tableWrap table{
-    min-width:1550px!important;
-  }
-
-  .tableWrap th,
-  .tableWrap td{
-    font-size:13px!important;
-    padding:9px 10px!important;
-  }
-}
-
-.adminScrollInstruction{
-  background:#f6fbff;
-  border:1px solid #cfe5f7;
-  color:#123a66;
-  border-radius:14px;
-  padding:11px 13px;
-  margin:10px 0;
-  font-weight:800;
-  line-height:1.45;
-}
-.adminScrollInstruction b{
-  color:#0a2342;
-}
-
-
-/* =========================================================
-   FINAL ADMIN STUDENTS PROFESSIONAL VIEWER
-   Wide table with true horizontal/vertical scrolling, zoom,
-   full-screen mode, and card view. Nothing is hidden.
-   ========================================================= */
-.adminStudentsPanel,
-.adminStudentsPanel *{
+.fitStudentsWrap,
+.fitStudentsWrap *{
   box-sizing:border-box!important;
 }
 
-.adminStudentsPanel{
+.fitStudentsWrap{
   width:100%!important;
   max-width:100%!important;
-  overflow:visible!important;
+  overflow:hidden!important;
 }
 
-.adminStudentTools{
-  position:sticky!important;
-  top:0!important;
-  z-index:50!important;
+.fitTopControls{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
+  gap:10px!important;
+  width:100%!important;
+  margin:10px 0!important;
+}
+
+.fitPanel{
+  border:1px solid #d9e7f3!important;
+  background:linear-gradient(180deg,#ffffff,#f8fbff)!important;
+  border-radius:18px!important;
+  padding:14px!important;
+  margin:12px 0!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+}
+
+.fitPanel h3{
+  margin:0 0 8px!important;
+  color:#0a2342!important;
+  font-size:17px!important;
+  line-height:1.25!important;
+}
+
+.fitPanel p{
+  margin:4px 0 12px!important;
+  color:#667085!important;
+  line-height:1.45!important;
+  overflow-wrap:anywhere!important;
+}
+
+.fitStudentsTools{
   display:flex!important;
   flex-wrap:wrap!important;
   gap:8px!important;
   align-items:center!important;
-  padding:12px!important;
-  margin:10px 0!important;
+  justify-content:space-between!important;
   background:#ffffff!important;
   border:1px solid #d9e7f3!important;
   border-radius:16px!important;
-  box-shadow:0 10px 24px rgba(10,35,66,.08)!important;
+  padding:10px!important;
+  margin:12px 0!important;
 }
 
-.adminStudentTools .btn,
-.adminStudentTools button{
-  white-space:nowrap!important;
-  min-height:40px!important;
-  padding:9px 12px!important;
+.fitStudentsTools .left,
+.fitStudentsTools .right{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  align-items:center!important;
 }
 
-.adminStudentTools .zoomLabel{
+.fitStudentsTools .btn,
+.fitStudentsTools button{
+  min-height:38px!important;
+  padding:8px 11px!important;
+  white-space:normal!important;
+  line-height:1.25!important;
+}
+
+.fitZoomBadge{
   display:inline-flex!important;
   align-items:center!important;
-  min-height:40px!important;
-  padding:8px 12px!important;
-  border-radius:999px!important;
+  justify-content:center!important;
   border:1px solid #d9e7f3!important;
   background:#f8fbff!important;
   color:#123a66!important;
+  border-radius:999px!important;
+  padding:8px 12px!important;
+  min-height:38px!important;
   font-weight:900!important;
 }
 
-.adminStudentScrollNote{
+.fitStudentsGrid{
+  --fitScale:1;
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(330px,1fr))!important;
+  gap:14px!important;
+  width:100%!important;
+  max-width:100%!important;
+  transform:scale(var(--fitScale))!important;
+  transform-origin:top left!important;
+}
+
+.fitStudentCard{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  border:1px solid #d9e7f3!important;
+  background:#fff!important;
+  border-radius:20px!important;
+  padding:14px!important;
+  box-shadow:0 8px 22px rgba(10,35,66,.07)!important;
+  overflow:hidden!important;
+}
+
+.fitStudentHead{
+  display:grid!important;
+  grid-template-columns:58px minmax(0,1fr)!important;
+  gap:12px!important;
+  align-items:center!important;
+  margin-bottom:12px!important;
+  padding-bottom:10px!important;
+  border-bottom:1px solid #eef3f7!important;
+}
+
+.fitStudentHead .studentPhoto{
+  width:56px!important;
+  height:56px!important;
+}
+
+.fitStudentHead h3{
+  margin:0!important;
+  font-size:15px!important;
+  line-height:1.22!important;
+  color:#0a2342!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+}
+
+.fitStudentHead small{
+  display:block!important;
+  color:#667085!important;
+  line-height:1.35!important;
+  overflow-wrap:anywhere!important;
+}
+
+.fitStudentFields{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  width:100%!important;
+}
+
+.fitField{
+  min-width:0!important;
+  width:100%!important;
+}
+
+.fitField.full{
+  grid-column:1 / -1!important;
+}
+
+.fitField label{
+  display:block!important;
+  font-size:11px!important;
+  line-height:1.2!important;
+  font-weight:900!important;
+  text-transform:uppercase!important;
+  color:#475467!important;
+  margin-bottom:4px!important;
+}
+
+.fitField input,
+.fitField select,
+.fitField textarea,
+.fitField .input,
+.fitField .select{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:40px!important;
+  height:40px!important;
+  font-size:14px!important;
+  border:1px solid #cbd9e8!important;
+  border-radius:11px!important;
+  padding:8px 10px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+.fitReadOnly{
+  display:flex!important;
+  align-items:center!important;
+  min-height:40px!important;
+  width:100%!important;
+  max-width:100%!important;
+  border:1px solid #e4edf6!important;
+  background:#f8fbff!important;
+  color:#123a66!important;
+  border-radius:11px!important;
+  padding:8px 10px!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  overflow-wrap:anywhere!important;
+  word-break:break-word!important;
+}
+
+.fitActions{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+  margin-top:12px!important;
+  width:100%!important;
+}
+
+.fitActions .btn,
+.fitActions button{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:40px!important;
+  white-space:normal!important;
+  line-height:1.2!important;
+  padding:8px!important;
+  font-size:13px!important;
+  border-radius:11px!important;
+}
+
+.fitActions .full{
+  grid-column:1 / -1!important;
+}
+
+.fitCompactList{
+  display:grid!important;
+  gap:8px!important;
+  width:100%!important;
+  max-width:100%!important;
+}
+
+.fitCompactRow{
+  display:grid!important;
+  grid-template-columns:48px minmax(0,1fr)!important;
+  gap:10px!important;
+  align-items:center!important;
+  border:1px solid #d9e7f3!important;
+  border-radius:16px!important;
+  padding:10px!important;
+  background:#fff!important;
+}
+
+.fitCompactRow .studentPhoto{
+  width:46px!important;
+  height:46px!important;
+}
+
+.fitCompactRow b,
+.fitCompactRow small{
+  display:block!important;
+  overflow-wrap:anywhere!important;
+}
+
+.fitNotice{
   background:#f6fbff!important;
   border:1px solid #cfe5f7!important;
   color:#123a66!important;
   border-radius:14px!important;
-  padding:12px 14px!important;
+  padding:11px 13px!important;
   margin:10px 0!important;
   font-weight:800!important;
   line-height:1.45!important;
-}
-
-.adminStudentsViewport{
-  width:100%!important;
-  max-width:100%!important;
-  height:72vh!important;
-  min-height:480px!important;
-  overflow:auto!important;
-  resize:both!important;
-  border:2px solid #cfe5f7!important;
-  border-radius:18px!important;
-  background:#ffffff!important;
-  padding:0!important;
-  margin:12px 0!important;
-  box-shadow:inset 0 0 0 1px rgba(10,35,66,.04)!important;
-  -webkit-overflow-scrolling:touch!important;
-  overscroll-behavior:contain!important;
-  scrollbar-width:auto!important;
-  scrollbar-color:#0a2342 #edf4fb!important;
-}
-
-.adminStudentsViewport::-webkit-scrollbar{
-  width:16px!important;
-  height:16px!important;
-}
-.adminStudentsViewport::-webkit-scrollbar-track{
-  background:#edf4fb!important;
-  border-radius:999px!important;
-}
-.adminStudentsViewport::-webkit-scrollbar-thumb{
-  background:#0a2342!important;
-  border-radius:999px!important;
-  border:3px solid #edf4fb!important;
-}
-.adminStudentsViewport::-webkit-scrollbar-corner{
-  background:#edf4fb!important;
-}
-
-.adminStudentsZoomCanvas{
-  width:max-content!important;
-  min-width:2100px!important;
-  transform-origin:top left!important;
-  padding:0!important;
-}
-
-.adminStudentsTable{
-  width:max-content!important;
-  min-width:2100px!important;
-  border-collapse:separate!important;
-  border-spacing:0!important;
-  table-layout:auto!important;
-  background:#fff!important;
-  color:#101828!important;
-}
-
-.adminStudentsTable th,
-.adminStudentsTable td{
-  white-space:nowrap!important;
-  overflow:visible!important;
-  text-overflow:clip!important;
-  vertical-align:middle!important;
-  padding:10px 12px!important;
-  border-bottom:1px solid #e7eef5!important;
-  border-right:1px solid #eef3f7!important;
-  background:#fff!important;
-  font-size:14px!important;
-}
-
-.adminStudentsTable th{
-  position:sticky!important;
-  top:0!important;
-  z-index:5!important;
-  background:#0a2342!important;
-  color:#fff!important;
-  font-weight:900!important;
-  text-align:left!important;
-}
-
-.adminStudentsTable td:first-child,
-.adminStudentsTable th:first-child{
-  position:sticky!important;
-  left:0!important;
-  z-index:6!important;
-}
-.adminStudentsTable td:first-child{
-  background:#f8fbff!important;
-}
-.adminStudentsTable th:first-child{
-  background:#061426!important;
-  z-index:8!important;
-}
-
-.adminStudentsTable input,
-.adminStudentsTable select,
-.adminStudentsTable textarea,
-.adminStudentsTable .input,
-.adminStudentsTable .select{
-  width:auto!important;
-  max-width:none!important;
-  min-width:150px!important;
-  height:40px!important;
-  min-height:40px!important;
-  font-size:14px!important;
-  padding:8px 10px!important;
-  border:1px solid #cbd9e8!important;
-  border-radius:10px!important;
-}
-
-.adminStudentsTable .nameInput{
-  width:300px!important;
-  min-width:300px!important;
-}
-.adminStudentsTable .classSelect{
-  width:190px!important;
-  min-width:190px!important;
-}
-.adminStudentsTable .phoneInput{
-  width:180px!important;
-  min-width:180px!important;
-}
-.adminStudentsTable .passwordInput{
-  width:180px!important;
-  min-width:180px!important;
-}
-
-.adminStudentsTable .photoCell{
-  text-align:center!important;
-  min-width:92px!important;
-}
-.adminStudentsTable .studentPhoto{
-  width:54px!important;
-  height:54px!important;
-}
-
-.adminStudentsTable .actionGroup{
-  display:flex!important;
-  flex-wrap:nowrap!important;
-  align-items:center!important;
-  gap:7px!important;
-  min-width:max-content!important;
-}
-
-.adminStudentsTable .btn,
-.adminStudentsTable button{
-  width:auto!important;
-  min-width:max-content!important;
-  min-height:38px!important;
-  height:38px!important;
-  padding:8px 10px!important;
-  font-size:13px!important;
-  white-space:nowrap!important;
-  border-radius:10px!important;
-}
-
-.adminStudentCards{
-  display:grid!important;
-  grid-template-columns:repeat(auto-fit,minmax(290px,1fr))!important;
-  gap:14px!important;
-  margin-top:14px!important;
-}
-
-.adminStudentCard{
-  border:1px solid #d9e7f3!important;
-  background:#fff!important;
-  border-radius:18px!important;
-  padding:14px!important;
-  box-shadow:0 8px 22px rgba(10,35,66,.07)!important;
-}
-
-.adminStudentCardHead{
-  display:flex!important;
-  gap:12px!important;
-  align-items:center!important;
-  margin-bottom:12px!important;
-}
-.adminStudentCardHead .studentPhoto{
-  width:64px!important;
-  height:64px!important;
-}
-.adminStudentCardHead h3{
-  margin:0!important;
-  color:#0a2342!important;
-  font-size:16px!important;
-  line-height:1.25!important;
   overflow-wrap:anywhere!important;
 }
-.adminStudentCard .fieldBlock{
-  margin:9px 0!important;
-}
-.adminStudentCard label{
-  display:block!important;
-  font-size:12px!important;
-  font-weight:900!important;
-  color:#475467!important;
-  margin-bottom:4px!important;
-}
-.adminStudentCard input,
-.adminStudentCard select{
-  width:100%!important;
-  max-width:100%!important;
+
+.fitStudentsWrap input,
+.fitStudentsWrap select,
+.fitStudentsWrap textarea{
+  font-family:inherit!important;
 }
 
-.adminStudentsFullscreen{
-  position:fixed!important;
-  inset:0!important;
-  z-index:1000000!important;
-  background:#f7fbff!important;
-  padding:12px!important;
-  overflow:hidden!important;
-}
-.adminStudentsFullscreen .adminStudentsViewport{
-  height:calc(100vh - 115px)!important;
-  max-height:none!important;
-  resize:none!important;
-}
+/* Phone view: every card becomes one neat column */
+@media(max-width:820px){
+  .fitPanel{
+    padding:12px!important;
+    border-radius:16px!important;
+  }
 
-body.adminStudentsLock{
-  overflow:hidden!important;
-}
-
-@media(max-width:900px){
-  .adminStudentTools{
-    position:relative!important;
-    top:auto!important;
-    display:grid!important;
-    grid-template-columns:1fr 1fr!important;
-    gap:8px!important;
-  }
-  .adminStudentTools .btn,
-  .adminStudentTools button,
-  .adminStudentTools .zoomLabel{
-    width:100%!important;
-    justify-content:center!important;
-    text-align:center!important;
-  }
-  .adminStudentsViewport{
-    height:68vh!important;
-    min-height:430px!important;
-    max-width:100vw!important;
-  }
-  .adminStudentsZoomCanvas,
-  .adminStudentsTable{
-    min-width:2200px!important;
-  }
-}
-
-@media(max-width:520px){
-  .adminStudentTools{
+  .fitTopControls{
     grid-template-columns:1fr!important;
   }
-  .adminStudentsViewport{
-    height:65vh!important;
-    min-height:380px!important;
+
+  .fitStudentsTools{
+    display:grid!important;
+    grid-template-columns:1fr!important;
   }
-  .adminStudentCards{
+
+  .fitStudentsTools .left,
+  .fitStudentsTools .right{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    width:100%!important;
+  }
+
+  .fitStudentsTools .btn,
+  .fitStudentsTools button,
+  .fitZoomBadge{
+    width:100%!important;
+  }
+
+  .fitStudentsGrid{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+
+  .fitStudentCard{
+    padding:12px!important;
+    border-radius:18px!important;
+  }
+
+  .fitStudentFields{
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+  }
+
+  .fitActions{
+    grid-template-columns:1fr!important;
+  }
+
+  .fitField input,
+  .fitField select,
+  .fitField textarea{
+    font-size:16px!important;
+  }
+}
+
+@media(max-width:430px){
+  .fitStudentHead{
+    grid-template-columns:46px minmax(0,1fr)!important;
+    gap:9px!important;
+  }
+
+  .fitStudentHead .studentPhoto{
+    width:44px!important;
+    height:44px!important;
+  }
+
+  .fitStudentHead h3{
+    font-size:14px!important;
+  }
+
+  .fitStudentsTools .left,
+  .fitStudentsTools .right{
     grid-template-columns:1fr!important;
   }
 }
@@ -4169,51 +4056,6 @@ saveMarks = function(subid){
   window.addEventListener('resize', applyMobileClass);
   document.addEventListener('DOMContentLoaded', applyMobileClass);
   setTimeout(applyMobileClass, 200);
-})();
-</script>
-
-
-<script>
-/* Admin students table helper: adds a visible scroll instruction without changing app data. */
-(function(){
-  function addAdminScrollHints(){
-    try{
-      if(role !== 'admin') return;
-      const pageTitle = (document.getElementById('pageTitle')?.textContent || '').toLowerCase();
-      const view = document.getElementById('view');
-      if(!view) return;
-      const tables = view.querySelectorAll('.tableWrap');
-      if(!tables.length) return;
-
-      tables.forEach((wrap, index)=>{
-        if(wrap.previousElementSibling && wrap.previousElementSibling.classList && wrap.previousElementSibling.classList.contains('adminScrollInstruction')) return;
-        const note = document.createElement('div');
-        note.className = 'adminScrollInstruction';
-        note.innerHTML = 'This table is wide. <b>Slide left or right</b> on the scrollbar below the table to see all student details. On a phone, swipe the table sideways.';
-        wrap.parentNode.insertBefore(note, wrap);
-      });
-    }catch(e){
-      console.warn('Scroll hint helper skipped:', e);
-    }
-  }
-
-  const oldShowAdminScroll = window.show || show;
-  window.show = function(v){
-    const result = oldShowAdminScroll(v);
-    setTimeout(addAdminScrollHints, 120);
-    return result;
-  };
-
-  const oldStudentsAdminScroll = window.students || students;
-  if(typeof oldStudentsAdminScroll === 'function'){
-    window.students = function(){
-      const result = oldStudentsAdminScroll();
-      setTimeout(addAdminScrollHints, 80);
-      return result;
-    };
-  }
-
-  setTimeout(addAdminScrollHints, 500);
 })();
 </script>
 
