@@ -1240,6 +1240,154 @@ img, canvas, iframe, video{
   }
 }
 
+
+/* =========================================================
+   ADMIN STUDENTS TABLE VISIBILITY FIX
+   This makes wide admin tables scroll sideways clearly so
+   no student details are hidden on laptop or phone.
+   ========================================================= */
+.tableWrap,
+.card .tableWrap,
+#view .tableWrap{
+  width:100%!important;
+  max-width:100%!important;
+  display:block!important;
+  overflow-x:auto!important;
+  overflow-y:visible!important;
+  -webkit-overflow-scrolling:touch!important;
+  padding-bottom:16px!important;
+  margin-top:10px!important;
+  border-radius:14px!important;
+  border:1px solid #d9e7f3!important;
+  background:#ffffff!important;
+}
+
+/* Always show a clear horizontal scrollbar where the table is wide */
+.tableWrap::-webkit-scrollbar{
+  height:14px!important;
+}
+.tableWrap::-webkit-scrollbar-track{
+  background:#edf4fb!important;
+  border-radius:999px!important;
+}
+.tableWrap::-webkit-scrollbar-thumb{
+  background:#0a2342!important;
+  border-radius:999px!important;
+  border:3px solid #edf4fb!important;
+}
+.tableWrap{
+  scrollbar-width:auto!important;
+  scrollbar-color:#0a2342 #edf4fb!important;
+}
+
+/* Wide tables must not squeeze and hide fields */
+.tableWrap table{
+  width:max-content!important;
+  min-width:1450px!important;
+  table-layout:auto!important;
+  border-collapse:separate!important;
+  border-spacing:0!important;
+}
+
+.tableWrap th,
+.tableWrap td{
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  vertical-align:top!important;
+  padding:10px 12px!important;
+}
+
+/* Make form fields in admin table readable */
+.tableWrap input,
+.tableWrap select,
+.tableWrap textarea,
+.tableWrap .input,
+.tableWrap .select{
+  width:auto!important;
+  max-width:none!important;
+  min-width:150px!important;
+  font-size:14px!important;
+}
+
+.tableWrap .studentEditInput{
+  min-width:260px!important;
+  width:260px!important;
+}
+
+.tableWrap .phoneInputSmall,
+.tableWrap .passwordInputSmall{
+  min-width:170px!important;
+  width:170px!important;
+}
+
+.tableWrap .studentActionBar,
+.tableWrap .shareButtonGroup{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:6px!important;
+  align-items:center!important;
+  min-width:max-content!important;
+}
+
+.tableWrap .btn,
+.tableWrap button{
+  white-space:nowrap!important;
+  width:auto!important;
+  min-width:max-content!important;
+  padding:8px 10px!important;
+  font-size:13px!important;
+}
+
+/* Keep table headers readable */
+.tableWrap thead th{
+  position:sticky!important;
+  top:0!important;
+  z-index:2!important;
+  background:#f6f9fc!important;
+  color:#0a2342!important;
+}
+
+/* On phone/tablet, do not hide cards containing admin tables */
+@media(max-width:900px){
+  .card:has(.tableWrap),
+  #view .card:has(.tableWrap){
+    overflow:visible!important;
+    padding-left:10px!important;
+    padding-right:10px!important;
+  }
+
+  .tableWrap{
+    margin-left:0!important;
+    margin-right:0!important;
+    max-width:100vw!important;
+  }
+
+  .tableWrap table{
+    min-width:1550px!important;
+  }
+
+  .tableWrap th,
+  .tableWrap td{
+    font-size:13px!important;
+    padding:9px 10px!important;
+  }
+}
+
+.adminScrollInstruction{
+  background:#f6fbff;
+  border:1px solid #cfe5f7;
+  color:#123a66;
+  border-radius:14px;
+  padding:11px 13px;
+  margin:10px 0;
+  font-weight:800;
+  line-height:1.45;
+}
+.adminScrollInstruction b{
+  color:#0a2342;
+}
+
 </style></head>
 <body>
 <div id="login" class="login"><div class="loginCard"><section class="hero"><div><img id="loginLogo"><h1>Isaac's Assessment Portal</h1><p>Student Assessment Portal for Mathematics / Additional Mathematics. Prepared by Sir Isaac Boahen.</p></div><p><span class="badge gold">Simple</span> <span class="badge green">Working</span></p></section><section class="panel"><div class="kicker">Secure login</div><h2 style="margin:0;color:var(--navy)">Choose portal</h2><div class="roleSwitch"><button id="adminRole" class="active" onclick="switchRole('admin')">Admin</button><button id="studentRole" onclick="switchRole('student')">Student</button></div><div id="adminLogin"><label class="label">Admin passcode</label><input id="adminPass" class="input" type="password" placeholder="Admin passcode"><button class="btn green" style="width:100%;margin-top:12px" onclick="loginAdmin()">Open Admin</button></div><div id="studentLogin" class="hidden"><label class="label">Student name or code</label><input id="studentSearch" class="input" list="studentList" placeholder="Start typing your name"><datalist id="studentList"></datalist><label class="label">Student access code</label><input id="studentCode" class="input" type="password" placeholder="Student code"><button class="btn green" style="width:100%;margin-top:12px" onclick="loginStudent()">Open Student Portal</button></div><p class="notice" style="margin-top:16px">Students use their personal password</p></section></div></div>
@@ -3701,6 +3849,51 @@ saveMarks = function(subid){
   window.addEventListener('resize', applyMobileClass);
   document.addEventListener('DOMContentLoaded', applyMobileClass);
   setTimeout(applyMobileClass, 200);
+})();
+</script>
+
+
+<script>
+/* Admin students table helper: adds a visible scroll instruction without changing app data. */
+(function(){
+  function addAdminScrollHints(){
+    try{
+      if(role !== 'admin') return;
+      const pageTitle = (document.getElementById('pageTitle')?.textContent || '').toLowerCase();
+      const view = document.getElementById('view');
+      if(!view) return;
+      const tables = view.querySelectorAll('.tableWrap');
+      if(!tables.length) return;
+
+      tables.forEach((wrap, index)=>{
+        if(wrap.previousElementSibling && wrap.previousElementSibling.classList && wrap.previousElementSibling.classList.contains('adminScrollInstruction')) return;
+        const note = document.createElement('div');
+        note.className = 'adminScrollInstruction';
+        note.innerHTML = 'This table is wide. <b>Slide left or right</b> on the scrollbar below the table to see all student details. On a phone, swipe the table sideways.';
+        wrap.parentNode.insertBefore(note, wrap);
+      });
+    }catch(e){
+      console.warn('Scroll hint helper skipped:', e);
+    }
+  }
+
+  const oldShowAdminScroll = window.show || show;
+  window.show = function(v){
+    const result = oldShowAdminScroll(v);
+    setTimeout(addAdminScrollHints, 120);
+    return result;
+  };
+
+  const oldStudentsAdminScroll = window.students || students;
+  if(typeof oldStudentsAdminScroll === 'function'){
+    window.students = function(){
+      const result = oldStudentsAdminScroll();
+      setTimeout(addAdminScrollHints, 80);
+      return result;
+    };
+  }
+
+  setTimeout(addAdminScrollHints, 500);
 })();
 </script>
 
