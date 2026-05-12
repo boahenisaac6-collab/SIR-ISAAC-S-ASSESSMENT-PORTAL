@@ -955,6 +955,291 @@
 }
 @media(max-width:430px){.mobilePortalTiles{grid-template-columns:1fr}.mobileStudentHeader h2{font-size:20px}}
 
+
+/* =========================================================
+   EXTRA MOBILE-FRIENDLY STUDENT VIEW FIX
+   This section improves phone display without changing app logic.
+   ========================================================= */
+html, body{
+  max-width:100%;
+  overflow-x:hidden!important;
+}
+*{
+  box-sizing:border-box;
+}
+img, canvas, iframe, video{
+  max-width:100%;
+}
+@media(max-width:820px){
+  body{
+    font-size:15px!important;
+    line-height:1.45!important;
+  }
+
+  .app, .layout, .shell, .mainWrap, .portal, .dashboard{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+  }
+
+  .main{
+    padding:10px!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  .sidebar{
+    width:100%!important;
+    max-width:100%!important;
+    padding:10px!important;
+    position:relative!important;
+  }
+
+  .brand, .hero{
+    border-radius:16px!important;
+    padding:14px!important;
+  }
+
+  .brand h1, .brand h2, .portalTitle, h1{
+    font-size:20px!important;
+    line-height:1.2!important;
+    word-break:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  h2{
+    font-size:18px!important;
+    line-height:1.25!important;
+  }
+
+  h3{
+    font-size:16px!important;
+    line-height:1.25!important;
+  }
+
+  p, small, label, .notice, .quickSearchHint{
+    overflow-wrap:anywhere!important;
+  }
+
+  .card, .qCard, .questionCard, .studentManagePanel{
+    width:100%!important;
+    max-width:100%!important;
+    padding:13px!important;
+    border-radius:16px!important;
+    overflow:hidden!important;
+  }
+
+  .grid, .grid.two, .grid.three, .grid.four,
+  .subjectPortalGrid, .mobilePortalTiles, .quizShell,
+  .reviewGrid, .profileCard, .markingStudentHeader{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    width:100%!important;
+    gap:10px!important;
+  }
+
+  .nav{
+    display:flex!important;
+    overflow-x:auto!important;
+    white-space:nowrap!important;
+    gap:8px!important;
+    padding-bottom:6px!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+
+  .nav button{
+    flex:0 0 auto!important;
+    padding:9px 12px!important;
+    font-size:13px!important;
+    border-radius:999px!important;
+  }
+
+  .toolbar{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    width:100%!important;
+  }
+
+  .toolbar .btn, .btn, button{
+    min-height:42px!important;
+    font-size:14px!important;
+    line-height:1.25!important;
+    white-space:normal!important;
+    text-align:center!important;
+  }
+
+  input, select, textarea, .input, .select, math-field{
+    width:100%!important;
+    max-width:100%!important;
+    min-height:42px!important;
+    font-size:16px!important; /* prevents phone zoom on input */
+  }
+
+  textarea{
+    min-height:90px!important;
+  }
+
+  .subjectPortalCard{
+    width:100%!important;
+    min-height:auto!important;
+    padding:14px!important;
+  }
+
+  .studentPickPanel{
+    max-height:62vh!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    padding:8px!important;
+    border-radius:16px!important;
+  }
+
+  .studentPickBtn,
+  .studentPickBtn.loginRow{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:48px minmax(0,1fr)!important;
+    gap:10px!important;
+    align-items:center!important;
+    padding:12px!important;
+    margin-bottom:9px!important;
+    border-radius:16px!important;
+    text-align:left!important;
+  }
+
+  .studentPickBtn .stuMeta{
+    min-width:0!important;
+    display:block!important;
+  }
+
+  .studentPickBtn .stuMeta b{
+    display:block!important;
+    font-size:14px!important;
+    line-height:1.25!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  .studentPickBtn .stuMeta small{
+    display:block!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+    line-height:1.35!important;
+  }
+
+  .studentPasswordInline,
+  .studentPickBtn.selected .studentPasswordInline{
+    display:grid!important;
+    grid-column:1 / -1!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    width:100%!important;
+    margin-top:8px!important;
+  }
+
+  .studentPasswordInline .btn,
+  .studentPasswordInline button{
+    width:100%!important;
+  }
+
+  .goPortalInline{
+    width:100%!important;
+    justify-content:center!important;
+    margin-top:7px!important;
+    grid-column:1 / -1!important;
+  }
+
+  .studentPhoto{
+    width:44px!important;
+    height:44px!important;
+  }
+
+  .studentPhoto.large,
+  .studentProfileBig,
+  .markingStudentPhoto{
+    width:96px!important;
+    height:96px!important;
+    margin:auto!important;
+  }
+
+  .mobileStudentHeader{
+    border-radius:18px!important;
+    padding:15px!important;
+  }
+
+  .mobileStudentHeader h2{
+    font-size:20px!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  .mobileActionBtn{
+    width:100%!important;
+    min-height:48px!important;
+    font-size:16px!important;
+  }
+
+  .tableWrap{
+    width:100%!important;
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+
+  table{
+    min-width:760px!important;
+  }
+
+  .answerPair, .answerCompare, .resultSummaryGrid, .autoScoreSummary{
+    grid-template-columns:1fr!important;
+  }
+
+  .mathDecor, .hero:after{
+    display:none!important;
+  }
+
+  .topbar, .pageHeader{
+    display:block!important;
+    width:100%!important;
+  }
+
+  .pageSub, .pageTitle{
+    overflow-wrap:anywhere!important;
+  }
+
+  .supportFooter{
+    font-size:13px!important;
+    padding:10px!important;
+    border-radius:14px!important;
+  }
+}
+
+@media(max-width:420px){
+  body{
+    font-size:14px!important;
+  }
+  .main{
+    padding:8px!important;
+  }
+  .card, .qCard, .questionCard{
+    padding:11px!important;
+  }
+  .studentPickBtn,
+  .studentPickBtn.loginRow{
+    grid-template-columns:42px minmax(0,1fr)!important;
+    padding:10px!important;
+  }
+  .studentPhoto{
+    width:40px!important;
+    height:40px!important;
+  }
+  .brand h1, .brand h2, .portalTitle, h1{
+    font-size:18px!important;
+  }
+  .nav button{
+    font-size:12px!important;
+    padding:8px 10px!important;
+  }
+}
+
 </style></head>
 <body>
 <div id="login" class="login"><div class="loginCard"><section class="hero"><div><img id="loginLogo"><h1>Isaac's Assessment Portal</h1><p>Student Assessment Portal for Mathematics / Additional Mathematics. Prepared by Sir Isaac Boahen.</p></div><p><span class="badge gold">Simple</span> <span class="badge green">Working</span></p></section><section class="panel"><div class="kicker">Secure login</div><h2 style="margin:0;color:var(--navy)">Choose portal</h2><div class="roleSwitch"><button id="adminRole" class="active" onclick="switchRole('admin')">Admin</button><button id="studentRole" onclick="switchRole('student')">Student</button></div><div id="adminLogin"><label class="label">Admin passcode</label><input id="adminPass" class="input" type="password" placeholder="Admin passcode"><button class="btn green" style="width:100%;margin-top:12px" onclick="loginAdmin()">Open Admin</button></div><div id="studentLogin" class="hidden"><label class="label">Student name or code</label><input id="studentSearch" class="input" list="studentList" placeholder="Start typing your name"><datalist id="studentList"></datalist><label class="label">Student access code</label><input id="studentCode" class="input" type="password" placeholder="Student code"><button class="btn green" style="width:100%;margin-top:12px" onclick="loginStudent()">Open Student Portal</button></div><p class="notice" style="margin-top:16px">Students use their personal password</p></section></div></div>
@@ -3403,6 +3688,19 @@ saveMarks = function(subid){
   };
 
   setTimeout(()=>{ if(role === 'admin') buildNav && buildNav(); }, 500);
+})();
+</script>
+
+
+<script>
+/* Mobile display helper: no app logic is changed. */
+(function(){
+  function applyMobileClass(){
+    document.body.classList.toggle('phone-view', window.innerWidth <= 820);
+  }
+  window.addEventListener('resize', applyMobileClass);
+  document.addEventListener('DOMContentLoaded', applyMobileClass);
+  setTimeout(applyMobileClass, 200);
 })();
 </script>
 
