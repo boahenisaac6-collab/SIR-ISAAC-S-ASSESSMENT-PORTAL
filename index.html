@@ -2761,6 +2761,25 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== ALL STUDENTS VISIBLE LIST AND CLICKABLE PHOTOS ===== */
+.allStudentsPanel{background:#fff;border:2px solid #d9e7f3;border-left:7px solid #071f3d;border-radius:20px;padding:14px;box-shadow:0 8px 24px rgba(7,31,61,.08);margin:14px 0}
+.allStudentsPanel h2,.allStudentsPanel h3{margin:0 0 8px;color:#071f3d}.allStudentsPanel p{margin:0 0 10px;color:#667085;line-height:1.45}
+.studentFullListGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;max-height:72vh;overflow:auto;padding:4px;scroll-behavior:smooth}
+.studentFullListItem{border:1px solid #d9e7f3;border-radius:18px;background:#fff;padding:10px;display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:center;box-shadow:0 6px 18px rgba(7,31,61,.05);cursor:pointer}
+.studentFullListItem:hover{border-color:#f4c430;background:#fffdf0;transform:translateY(-1px)}
+.clickablePhoto,.clickableAvatar{cursor:pointer!important;transition:transform .15s ease, box-shadow .15s ease}.clickablePhoto:hover,.clickableAvatar:hover{transform:scale(1.04);box-shadow:0 0 0 4px rgba(244,196,48,.22)}
+.studentFullListItem img,.studentFullListItem .clickableAvatar{width:64px;height:64px;border-radius:16px;object-fit:cover;border:3px solid #f4c430;background:#eef5fc}
+.studentFullListItem .clickableAvatar{display:grid;place-items:center;color:#071f3d;font-size:17px;font-weight:950}.studentFullInfo{min-width:0}.studentFullInfo b{display:block;color:#071f3d;font-size:15px;line-height:1.2;overflow-wrap:anywhere}.studentFullInfo small{display:block;color:#667085;line-height:1.35;margin-top:2px}.studentFullInfo .openLine{color:#0f7b4f;font-weight:950}
+.adminStudentDirectory{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-top:12px}.adminStudentDirectoryCard{border:1px solid #d9e7f3;background:#fff;border-radius:18px;padding:12px;box-shadow:0 8px 22px rgba(7,31,61,.06)}
+.adminStudentDirectoryHead{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:center;margin-bottom:10px}
+.adminStudentDirectoryHead img,.adminStudentDirectoryHead .clickableAvatar{width:72px;height:72px;border-radius:18px;object-fit:cover;border:3px solid #f4c430;background:#eef5fc}.adminStudentDirectoryHead .clickableAvatar{display:grid;place-items:center;color:#071f3d;font-size:18px;font-weight:950}
+.adminStudentDirectoryHead h3{margin:0;color:#071f3d;font-size:17px;line-height:1.2}.adminStudentDirectoryHead small{display:block;color:#667085;line-height:1.35}
+.adminDetailGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.adminDetailCell{border:1px solid #edf2f7;border-radius:11px;padding:7px;background:#f8fbff}.adminDetailCell span{display:block;font-size:10px;text-transform:uppercase;color:#667085;font-weight:950;margin-bottom:3px}.adminDetailCell b{color:#071f3d;overflow-wrap:anywhere}
+.photoOpenHint{font-size:10px;color:#0f7b4f!important;font-weight:950;margin-top:3px}.profilePhotoLargeBox{display:grid;grid-template-columns:130px minmax(0,1fr);gap:14px;align-items:center;margin:12px 0;padding:12px;border:1px solid #d9e7f3;border-radius:18px;background:#fff}
+.profilePhotoLargeBox img,.profilePhotoLargeBox .clickableAvatar{width:130px;height:130px;border-radius:24px;border:4px solid #f4c430;object-fit:cover;background:#eef5fc}.profilePhotoLargeBox .clickableAvatar{display:grid;place-items:center;color:#071f3d;font-weight:950;font-size:28px}
+@media(max-width:760px){.studentFullListGrid{grid-template-columns:1fr;max-height:none}.adminStudentDirectory{grid-template-columns:1fr}.profilePhotoLargeBox{grid-template-columns:1fr;text-align:center}.profilePhotoLargeBox img,.profilePhotoLargeBox .clickableAvatar{margin:auto}.adminDetailGrid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -5947,6 +5966,156 @@ function selectStudentLogin(id){
   }
   $("studentPassBox").innerHTML = `<div class="card"><h3>Password Required</h3><p>Selected: <b>${esc(s.name)}</b></p><input id="studentPass" class="input" type="password" placeholder="Enter your password"><button class="btn green full" onclick="studentEnter()">Open Portal</button></div>`;
 }
+
+
+/* ===== FINAL OVERRIDE: DISPLAY ALL STUDENTS BY DEFAULT AND OPEN PHOTOS BY CLICK ===== */
+function allListInitials(name){return String(name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";}
+function clickableStudentPhoto(studentId, sizeClass=""){
+  const s = student(studentId); if(!s) return "";
+  if(s.photo){return `<img class="clickablePhoto ${sizeClass}" src="${s.photo}" alt="${esc(s.name)}" onclick="event.stopPropagation();viewStudentPicture('${s.id}')">`;}
+  return `<div class="clickableAvatar ${sizeClass}" onclick="event.stopPropagation();viewStudentPicture('${s.id}')">${esc(allListInitials(s.name))}</div>`;
+}
+function viewStudentPicture(studentId){
+  const s = student(studentId); if(!s) return alert("Student not found.");
+  const old = document.getElementById("pictureModalOverlay"); if(old) old.remove();
+  document.body.insertAdjacentHTML("beforeend", `<div id="pictureModalOverlay" class="pictureModalOverlay">
+    <div class="pictureModal">
+      <div class="pictureModalHead"><h2>Student Picture</h2><button onclick="closeStudentPicture()">Close</button></div>
+      <div class="pictureModalBody">
+        ${s.photo ? `<img class="pictureLarge" src="${s.photo}" alt="${esc(s.name)}">` : `<div class="pictureMissing">No picture has been uploaded for this student.</div>`}
+        <div style="margin-top:10px;color:#071f3d;font-weight:900;line-height:1.4">${esc(s.name)}<br><small>${esc(s.code || "")} • ${esc(s.className || "")}<br>${esc(s.phone || "No phone number")}</small></div>
+      </div>
+    </div>
+  </div>`);
+}
+function closeStudentPicture(){const o=document.getElementById("pictureModalOverlay"); if(o) o.remove();}
+function buildStudentVisibleList(list, mode="student"){
+  return `<div class="studentFullListGrid">
+    ${list.map(s=>`<div class="studentFullListItem" onclick="${mode==='student' ? `selectStudentLogin('${s.id}')` : `adminShowStudentProfileAll('${s.id}')`}" ondblclick="${mode==='student' ? `quickOpenStudentPortal('${s.id}')` : `adminShowStudentProfileAll('${s.id}')`}">
+      ${clickableStudentPhoto(s.id)}
+      <div class="studentFullInfo">
+        <b>${esc(s.name)}</b>
+        <small>${esc(s.phone || "No phone number")}</small>
+        <small>${esc(s.code || "")} • ${esc(s.className || "")} • ${esc(subjectForClass(s.className)||"")}</small>
+        <small class="openLine">${mode==='student' ? 'Double-click name to open portal' : 'Click to view full profile'}</small>
+      </div>
+    </div>`).join("") || `<div class="empty">No student found.</div>`}
+  </div>`;
+}
+function studentQuickSearch(){
+  const subj = $("studentQuickSubject")?.value || "ALL";
+  const cls = $("studentQuickClass")?.value || "ALL";
+  const q = ($("studentQuickName")?.value || "").trim().toLowerCase();
+  const box = $("studentQuickResults"); if(!box) return;
+  const list = (state.students || []).filter(s =>
+    (subj==="ALL" || subjectForClass(s.className)===subj) &&
+    (cls==="ALL" || s.className===cls) &&
+    (!q || String(s.name||"").toLowerCase().includes(q) || String(s.code||"").toLowerCase().includes(q) || String(s.phone||"").toLowerCase().includes(q))
+  ).slice(0,250);
+  box.innerHTML = buildStudentVisibleList(list, "student");
+}
+function studentLogin(){
+  const subjects = ["ALL", ...(state.subjects || []).map(x=>x.name)];
+  const subj = $("studentQuickSubject")?.value || "ALL";
+  const cls = $("studentQuickClass")?.value || "ALL";
+  const classList = ["ALL", ...(state.classes || [])];
+  const all = (state.students || []).filter(s => (subj==="ALL" || subjectForClass(s.className)===subj) && (cls==="ALL" || s.className===cls)).slice(0,250);
+  $("view").innerHTML = `<div class="studentQuickSearchHero">
+    <h2>${typeof FORMAL_PORTAL_NAME !== 'undefined' ? FORMAL_PORTAL_NAME : 'Akuse Methodist SHTS Mathematics Assessment Portal'}</h2>
+    <p>All student names are listed below. Scroll to find your name, use quick search, or tap your photo to view it clearly.</p>
+  </div>
+  ${typeof formalContactHTML === 'function' ? formalContactHTML() : `<div class="formalContactBlock"><b>SIR ISAAC BOAHEN • 0248481762 • AKUSE METHODIST SHTS</b></div>`}
+  <div class="studentQuickSearchBox">
+    <h3>All Students List</h3>
+    <input id="studentQuickName" class="input" placeholder="Optional: type your name, code, or phone to filter quickly..." oninput="studentQuickSearch()">
+    <div class="studentLoginFilters">
+      <select id="studentQuickSubject" class="select" onchange="studentQuickSearch()">${subjects.map(s=>`<option value="${esc(s)}" ${subj===s?'selected':''}>${s==="ALL"?"All Subjects":esc(s)}</option>`).join("")}</select>
+      <select id="studentQuickClass" class="select" onchange="studentQuickSearch()">${classList.map(c=>`<option value="${esc(c)}" ${cls===c?'selected':''}>${c==="ALL"?"All Classes":esc(c)}</option>`).join("")}</select>
+    </div>
+    <div class="notice">Tap the photo icon to view the picture clearly. Double-click the student’s name card to open the student portal.</div>
+    <div id="studentQuickResults" class="studentQuickResults">${buildStudentVisibleList(all, "student")}</div>
+  </div>
+  <div id="studentPassBox"></div>`;
+}
+function studentHome(){
+  const s=student(currentStudentId);
+  if(!s){role="guest";route="studentLogin";return renderShell()}
+  if(typeof ensurePortalExtras === "function") ensurePortalExtras();
+  const canPhoto = !!state.settings.allowStudentPhotoUpload;
+  const calc = typeof calculateReportScore==="function" ? calculateReportScore(s.id) : {examRaw:"-", exam70:"-", finalScore:"-", grade:"-"};
+  const examPublished = typeof isExamScorePublished === "function" ? isExamScorePublished(s.id) : false;
+  $("view").innerHTML=`<div class="card">
+    <div class="profilePhotoLargeBox">
+      ${clickableStudentPhoto(s.id)}
+      <div><h2>${esc(s.name)}</h2><p>${esc(s.className)} • ${esc(subjectForClass(s.className))}<br>Student Code: ${esc(s.code || "")}<br>Phone: ${esc(s.phone || "No phone number")}</p>
+      <div class="toolbar"><button class="btn light" onclick="viewStudentPicture('${s.id}')">View Picture Clearly</button></div></div>
+    </div>
+    <div class="cards"><div class="card stat"><span>Available Assignments / Quizzes</span><b>${availableQuizzes().length}</b></div><div class="card stat"><span>Submitted Work</span><b>${state.submissions.filter(x=>x.studentId===s.id).length}</b></div><div class="card stat"><span>Report Card</span><b>${isReportPublished(s.id) ? 'Open' : 'Locked'}</b></div></div>
+    <div class="studentProfileBox">
+      <h3>My Phone Number</h3><p>Type or update your phone number here. The teacher will see it in admin mode.</p>
+      <div class="phoneUpdateGrid"><input id="selfPhone" class="input" value="${esc(s.phone || '')}" placeholder="Enter phone number"><button class="btn green" onclick="saveStudentPhoneSelf()">Save Phone</button></div>
+    </div>
+    <div class="card" style="margin-top:12px"><h3>My Picture</h3><p>${canPhoto ? 'You can upload, change, take, view, or delete your own profile picture.' : 'Picture upload is currently disabled by the teacher.'}</p>
+      ${canPhoto ? `<div class="studentPhotoControls">
+        <label class="btn light">Upload / Change<input type="file" accept="image/*" hidden onchange="uploadStudentPhoto('${s.id}',this.files[0]);setTimeout(()=>studentHome(),300)"></label>
+        <button class="btn gold" onclick="openCameraCapture('${s.id}')">Take Picture</button>
+        <button class="btn light" onclick="viewStudentPicture('${s.id}')">View Picture</button>
+        <button class="btn red" onclick="studentDeleteOwnPhoto()">Delete Picture</button>
+      </div>` : `<button class="btn light" onclick="viewStudentPicture('${s.id}')">View Picture</button>`}
+    </div>
+    <div class="examScoreCard"><h3>My Examination Score</h3>
+      ${examPublished ? `<div class="examScoreGrid"><div class="examScoreItem"><span>Exam Raw Score</span><b>${calc.examRaw}/100</b></div><div class="examScoreItem"><span>Exam Contribution</span><b>${calc.exam70}/70</b></div><div class="examScoreItem"><span>Final Grade</span><b>${calc.grade}</b></div></div>` : `<div class="notice">Your examination score has not been published yet.</div>`}
+    </div>
+    <div class="toolbar" style="margin-top:12px"><button class="btn green" onclick="setRoute('studentQuizzes')">Open Assignments / Quizzes</button><button class="btn light" onclick="setRoute('studentResults')">View Scores / Report</button></div>
+  </div>`;
+}
+function adminDirectoryCard(s){
+  const calc = typeof calculateReportScore==="function" ? calculateReportScore(s.id) : {};
+  return `<div class="adminStudentDirectoryCard" onclick="adminShowStudentProfileAll('${s.id}')">
+    <div class="adminStudentDirectoryHead">${clickableStudentPhoto(s.id)}<div><h3>${esc(s.name)}</h3><small>${esc(s.phone || "No phone number")}<br>${esc(s.code || "")} • ${esc(s.className || "")}</small><small class="photoOpenHint">Click photo to open largely</small></div></div>
+    <div class="adminDetailGrid"><div class="adminDetailCell"><span>Subject</span><b>${esc(subjectForClass(s.className)||"")}</b></div><div class="adminDetailCell"><span>Class Raw</span><b>${calc.classRaw ?? "-"} /100</b></div><div class="adminDetailCell"><span>Exam</span><b>${calc.examRaw ?? "-"} /100</b></div><div class="adminDetailCell"><span>Final</span><b>${calc.finalScore ?? "-"}%</b></div></div>
+    <div class="fixedActionGrid"><button class="btn light" onclick="event.stopPropagation();viewStudentPicture('${s.id}')">View Picture</button><button class="btn navy" onclick="event.stopPropagation();adminAssignMarks && adminAssignMarks('${s.id}')">CA Marks</button><button class="btn gold" onclick="event.stopPropagation();adminShowStudentProfileAll('${s.id}')">Full Profile</button></div>
+  </div>`;
+}
+function students(){
+  const subj = document.getElementById("stSubj")?.value || "ALL";
+  const cls = document.getElementById("stClass")?.value || "ALL";
+  const q = (document.getElementById("stSearch")?.value || "").toLowerCase();
+  const list = (state.students || []).filter(s => (subj==="ALL" || subjectForClass(s.className)===subj) && (cls==="ALL" || s.className===cls) && (!q || String(s.name||"").toLowerCase().includes(q) || String(s.code||"").toLowerCase().includes(q) || String(s.phone||"").toLowerCase().includes(q)));
+  $("view").innerHTML = `<div class="allStudentsPanel">
+      <h2>All Students Directory</h2>
+      <p>All students are listed below with their photo, name, telephone number, class, and assessment summary. Click any picture to open it largely, or click a card to view the full profile.</p>
+      <div class="grid four">
+        <select id="stSubj" class="select" onchange="students()"><option value="ALL">All Subjects</option>${subjectOptions(subj==="ALL"?"Mathematics":subj)}</select>
+        <select id="stClass" class="select" onchange="students()"><option value="ALL">All Classes</option>${classOptions(cls==="ALL"?(state.classes[0]||""):cls)}</select>
+        <input id="stSearch" class="input" value="${esc(q)}" oninput="students()" placeholder="Filter by name, phone, or code">
+        <button class="btn gold" onclick="openClassPrintModal && openClassPrintModal()">Print Class List</button>
+      </div>
+      <div id="adminSelectedStudentProfile"></div>
+      <div class="adminStudentDirectory">${list.map(adminDirectoryCard).join("") || `<div class="empty">No students found.</div>`}</div>
+    </div>
+    <div class="studentWorkspace">
+      <section>
+        <div class="card"><h3>Create Class</h3><div class="grid"><input id="newClass" class="input" placeholder="New class name"><select id="newClassSubject" class="select">${subjectOptions("Mathematics")}</select><button class="btn green full" onclick="addClass()">Add Class</button></div></div>
+        <div class="card"><h3>Add One Student</h3><div class="grid"><input id="newStudentName" class="input" placeholder="Student full name"><select id="newStudentClass" class="select">${classOptions(state.classes[0]||"")}</select><input id="newStudentPhone" class="input" placeholder="Phone optional"><button class="btn green full" onclick="addStudent()">Add Student</button></div></div>
+        <div class="card"><h3>Bulk Import</h3><p>Paste names one per line or separated by commas.</p><select id="bulkClass" class="select">${classOptions(state.classes[0]||"")}</select><textarea id="bulkNames" placeholder="Paste names here"></textarea><button class="btn gold full" onclick="bulkImport()">Import Names into Selected Class</button></div>
+      </section>
+      <section><div class="card"><h3>Quick Help</h3><p>Use the directory above to see every student clearly. Use the filter box to narrow the list quickly.</p></div></section>
+    </div>`;
+}
+function adminShowStudentProfileAll(studentId){
+  const s = student(studentId); if(!s) return;
+  const calc = typeof calculateReportScore==="function" ? calculateReportScore(s.id) : {};
+  const box = document.getElementById("adminSelectedStudentProfile") || document.getElementById("adminSmartProfile");
+  if(!box) return;
+  box.innerHTML = `<div class="adminProfilePanel">
+    <div class="adminProfileHead">${clickableStudentPhoto(s.id)}<div><h2 style="margin:0;color:#071f3d">${esc(s.name)}</h2><p style="margin:4px 0 8px;color:#667085">${esc(s.phone || "No phone number")}<br>${esc(s.code||"")} • ${esc(s.className||"")} • ${esc(subjectForClass(s.className)||"")}</p><div class="toolbar"><button class="btn light" onclick="viewStudentPicture('${s.id}')">View Profile Picture</button><button class="btn navy" onclick="adminAssignMarks && adminAssignMarks('${s.id}')">Assign / Edit CA Marks</button></div></div></div>
+    <div class="profileInfoGrid"><div class="profileInfo"><span>Telephone</span><b>${esc(s.phone || "No phone number")}</b></div><div class="profileInfo"><span>Class Raw</span><b>${calc.classRaw ?? "-"} /100</b></div><div class="profileInfo"><span>30% Class</span><b>${calc.class30 ?? "-"}</b></div><div class="profileInfo"><span>Exam Raw</span><b>${calc.examRaw ?? "-"} /100</b></div><div class="profileInfo"><span>Exam 70%</span><b>${calc.exam70 ?? "-"}</b></div><div class="profileInfo"><span>Final Score</span><b>${calc.finalScore ?? "-"}%</b></div><div class="profileInfo"><span>Grade</span><b>${calc.grade ?? "-"}</b></div><div class="profileInfo"><span>Remark</span><b>${calc.remark ?? "-"}</b></div></div>
+    <div class="phoneUpdateGrid"><input id="adminPhoneEditFixed" class="input" value="${esc(s.phone || '')}" placeholder="Edit phone number"><button class="btn green" onclick="adminSavePhoneFixed ? adminSavePhoneFixed('${s.id}') : editStudent('${s.id}','phone',document.getElementById('adminPhoneEditFixed').value)">Save Phone</button></div>
+  </div>`;
+  box.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function sideOpenStudent(id){role = "admin"; route = "students"; renderShell(); setTimeout(()=>{adminShowStudentProfileAll(id);},120);}
 
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
