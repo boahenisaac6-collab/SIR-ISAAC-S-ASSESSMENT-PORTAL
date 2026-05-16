@@ -3086,6 +3086,51 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== COMMUNICATION ACTION FIXES: DELETE MESSAGE / WORKING ANNOUNCEMENT BUTTONS ===== */
+.comm2BubbleDelete{
+  display:inline-flex;
+  margin-top:7px;
+  border:0;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:10px;
+  font-weight:950;
+  cursor:pointer;
+  background:#fff1f0;
+  color:#b42318;
+}
+.comm2Bubble.admin .comm2BubbleDelete{
+  background:rgba(255,255,255,.16);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.35);
+}
+.comm2Bubble.broadcast .comm2BubbleDelete{
+  background:#fff;
+  color:#b42318;
+  border:1px solid #ffd4d0;
+}
+.comm2AnnDelete{
+  margin-top:7px;
+  border:0;
+  border-radius:10px;
+  padding:6px 9px;
+  font-size:11px;
+  font-weight:950;
+  cursor:pointer;
+  background:#fff1f0;
+  color:#b42318;
+}
+.comm2SentNotice{
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:900;
+  margin-top:8px;
+}
+
 </style>
 </head>
 <body>
@@ -6873,6 +6918,213 @@ function sideOpenStudent(id){role = "admin"; route = "students"; renderShell(); 
   // Make the names available to inline onclick handlers in all browsers.
   try{
     eval("comm2OpenChat = window.comm2OpenChat; comm2SendMessage = window.comm2SendMessage; comm2CloseChat = window.comm2CloseChat;");
+  }catch(e){}
+})();
+
+
+/* ===== COMMUNICATION ACTIONS FIX: ANNOUNCE, CLASS MESSAGE, DELETE/RESEND ===== */
+(function(){
+  function ensure(){
+    state.messages = Array.isArray(state.messages) ? state.messages : [];
+    state.announcements = Array.isArray(state.announcements) ? state.announcements : [];
+    state.classMessages = Array.isArray(state.classMessages) ? state.classMessages : [];
+  }
+  function time(){
+    try{return new Date().toLocaleString();}catch(e){return typeof now==="function" ? now() : "";}
+  }
+  function id(prefix){
+    return typeof uid==="function" ? uid(prefix) : (prefix + "_" + Date.now() + "_" + Math.random().toString(16).slice(2));
+  }
+  function safeSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote === "function") pushRemote();
+      else if(typeof save === "function") save();
+    }catch(e){ console.warn("Communication live save skipped", e); }
+  }
+  window.comm2SafeSave = safeSave;
+
+  function activeAnnouncements(){
+    ensure();
+    return [...state.announcements].filter(a=>a.active !== false).sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  }
+  window.comm2ActiveAnnouncements = activeAnnouncements;
+
+  window.comm2AnnouncementHTML = function(limit=5){
+    const list = activeAnnouncements().slice(0,limit);
+    return `<div class="comm2Banner" id="comm2AnnouncementTop">
+      <h2>📢 Announcements</h2>
+      ${list.length ? `<div class="comm2AnnGrid">${list.map(a=>`<div class="comm2AnnCard"><b>${esc(a.title || "Announcement")}</b><p>${esc(a.body || "")}</p><small>${esc(a.createdAt || "")}</small>${role==="admin"?`<br><button class="comm2AnnDelete" onclick="comm2DeleteAnnouncement('${a.id}')">Delete</button>`:""}</div>`).join("")}</div>` : `<p>No announcement has been posted yet.</p>`}
+    </div>`;
+  };
+
+  window.comm2PostAnnouncement = function(){
+    ensure();
+    const title = (document.getElementById("comm2AnnTitle")?.value || "").trim() || "General Announcement";
+    const body = (document.getElementById("comm2AnnBody")?.value || "").trim();
+    if(!body) return alert("Type the announcement message before posting.");
+    state.announcements.push({id:id("ann"), title, body, createdAt:time(), active:true});
+    safeSave();
+    alert("Announcement posted successfully.");
+    if(typeof dashboard==="function" && role==="admin" && route==="dashboard") dashboard();
+    if(typeof comm2InjectSide==="function") setTimeout(comm2InjectSide,80);
+  };
+
+  window.comm2ClearAnnouncements = function(){
+    ensure();
+    if(!confirm("Do you want to clear all announcements?")) return;
+    state.announcements = [];
+    safeSave();
+    alert("All announcements cleared.");
+    if(typeof dashboard==="function" && role==="admin" && route==="dashboard") dashboard();
+    if(typeof comm2InjectSide==="function") setTimeout(comm2InjectSide,80);
+  };
+
+  window.comm2DeleteAnnouncement = function(annId){
+    ensure();
+    if(!confirm("Delete this announcement?")) return;
+    state.announcements = state.announcements.filter(a=>a.id!==annId);
+    safeSave();
+    if(typeof dashboard==="function" && role==="admin" && route==="dashboard") dashboard();
+    if(typeof comm2InjectSide==="function") setTimeout(comm2InjectSide,80);
+  };
+
+  window.comm2SendClassMessage = function(){
+    ensure();
+    const className = document.getElementById("comm2ClassSelect")?.value || "ALL";
+    const text = (document.getElementById("comm2ClassMsg")?.value || "").trim();
+    if(!text) return alert("Type the class message before sending.");
+    state.classMessages.push({
+      id:id("clsmsg"),
+      className,
+      text,
+      createdAt:time(),
+      readByStudents:[]
+    });
+    const input = document.getElementById("comm2ClassMsg");
+    if(input) input.value = "";
+    safeSave();
+    alert(className==="ALL" ? "Message sent to all students." : "Message sent to " + className + ".");
+    if(typeof dashboard==="function" && role==="admin" && route==="dashboard") dashboard();
+  };
+
+  window.comm2MessagesForStudent = function(studentId){
+    ensure();
+    const s = student(studentId);
+    const direct = state.messages.filter(m=>m.studentId===studentId).map(m=>({...m, kind:"direct"}));
+    const classMsgs = (state.classMessages||[])
+      .filter(m=>s && (m.className==="ALL" || m.className===s.className))
+      .map(m=>({...m, kind:"class", from:"admin"}));
+    return [...direct, ...classMsgs].sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
+  };
+
+  window.comm2ChatBody = function(studentId){
+    const msgs = window.comm2MessagesForStudent(studentId);
+    if(!msgs.length) return `<div class="empty">No message yet. Start the conversation.</div>`;
+    return msgs.map(m=>{
+      const cls = m.kind==="class" ? "broadcast" : (m.from==="admin" ? "admin" : "student");
+      const sender = m.kind==="class" ? "Class Message from Teacher" : (m.from==="admin" ? "Sir Isaac Boahen" : "Student");
+      const canDelete = (role==="admin" && (m.from==="admin" || m.kind==="class")) || (role==="student" && m.from==="student" && m.kind!=="class");
+      const delBtn = canDelete ? `<button class="comm2BubbleDelete" onclick="comm2DeleteMessage('${m.kind}','${m.id}','${studentId}')">Delete</button>` : "";
+      return `<div class="comm2Bubble ${cls}">${esc(m.text||"")}<small>${sender} • ${esc(m.createdAt||"")}</small>${delBtn}</div>`;
+    }).join("");
+  };
+
+  window.comm2DeleteMessage = function(kind, messageId, studentId){
+    ensure();
+    if(!confirm("Delete this message?")) return;
+    if(kind === "class"){
+      if(role !== "admin") return alert("Only the teacher can delete a class message.");
+      state.classMessages = state.classMessages.filter(m=>m.id !== messageId);
+    }else{
+      state.messages = state.messages.filter(m=>{
+        if(m.id !== messageId) return true;
+        if(role==="admin" && m.from==="admin") return false;
+        if(role==="student" && m.from==="student") return false;
+        return true;
+      });
+    }
+    safeSave();
+    const box = document.getElementById("comm2Messages");
+    if(box){
+      box.innerHTML = window.comm2ChatBody(studentId);
+      setTimeout(()=>box.scrollTop=box.scrollHeight,30);
+    }
+  };
+
+  window.comm2SendMessage = function(studentId){
+    ensure();
+    const input = document.getElementById("comm2Text");
+    const text = (input?.value || "").trim();
+    if(!text) return;
+    state.messages.push({
+      id:id("msg"),
+      studentId,
+      from: role==="admin" ? "admin" : "student",
+      text,
+      createdAt:time(),
+      readByAdmin: role==="admin",
+      readByStudent: role!=="admin"
+    });
+    if(input) input.value = "";
+    const box = document.getElementById("comm2Messages");
+    if(box){
+      box.innerHTML = window.comm2ChatBody(studentId);
+      setTimeout(()=>box.scrollTop=box.scrollHeight,30);
+    }
+    safeSave();
+  };
+
+  window.comm2StudentListHTML = function(list){
+    return list.slice(0,120).map(s=>{
+      const unread = typeof comm2UnreadAdmin==="function" ? comm2UnreadAdmin(s.id) : 0;
+      const avatar = typeof comm2Avatar==="function" ? comm2Avatar(s) : (s.photo?`<img src="${s.photo}" alt="">`:`<div class="avatar">${String(s.name||"ST").slice(0,2)}</div>`);
+      return `<button class="comm2StudentBtn" onclick="comm2OpenChat('${s.id}')">
+        ${avatar}
+        <span><b>${esc(s.name)}</b><small>${esc(s.className||"")} • ${esc(s.phone||"No phone")}</small></span>
+        ${unread?`<span class="comm2Badge">${unread}</span>`:`<span></span>`}
+      </button>`;
+    }).join("") || `<div class="empty">No student found.</div>`;
+  };
+
+  window.comm2AdminPanels = function(){
+    ensure();
+    const anns = activeAnnouncements().slice(0,8);
+    return `<div id="comm2AdminPanels">
+      <div class="comm2Panel">
+        <h2>General Announcement</h2>
+        <p>Post announcements for students. Students will see them on the left panel, app opening page, and inside their portal.</p>
+        <div class="comm2Grid">
+          <input id="comm2AnnTitle" class="input" placeholder="Announcement title">
+          <input id="comm2AnnBody" class="input" placeholder="Announcement message">
+        </div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn green" onclick="comm2PostAnnouncement()">Post Announcement</button>
+          <button class="btn red" onclick="comm2ClearAnnouncements()">Clear Announcements</button>
+        </div>
+        <div class="comm2AnnGrid">${anns.map(a=>`<div class="comm2AnnCard"><b>${esc(a.title||"Announcement")}</b><p>${esc(a.body||"")}</p><small>${esc(a.createdAt||"")}</small><br><button class="comm2AnnDelete" onclick="comm2DeleteAnnouncement('${a.id}')">Delete</button></div>`).join("") || `<div class="empty">No announcement yet.</div>`}</div>
+      </div>
+      <div class="comm2Panel">
+        <h2>Chat with Entire Class</h2>
+        <p>Send one message to all students or to a selected class. It will appear inside their chat window.</p>
+        <div class="comm2Grid">
+          <select id="comm2ClassSelect" class="select"><option value="ALL">All Classes</option>${(state.classes||[]).map(c=>`<option value="${esc(c)}">${esc(c)} — ${esc(subjectForClass(c)||"")}</option>`).join("")}</select>
+          <input id="comm2ClassMsg" class="input" placeholder="Type class message here">
+        </div>
+        <div class="toolbar" style="margin-top:10px"><button class="btn green" onclick="comm2SendClassMessage()">Send to Class</button></div>
+      </div>
+      <div class="comm2Panel">
+        <h2>Chat with a Particular Student</h2>
+        <p>Search and open a direct chat with any student.</p>
+        <input id="comm2StudentSearch" class="input" placeholder="Search student to chat..." oninput="comm2StudentSearch()">
+        <div id="comm2StudentList" class="comm2StudentChatList">${window.comm2StudentListHTML(state.students||[])}</div>
+      </div>
+    </div>`;
+  };
+
+  try{
+    eval("comm2PostAnnouncement = window.comm2PostAnnouncement; comm2ClearAnnouncements = window.comm2ClearAnnouncements; comm2DeleteAnnouncement = window.comm2DeleteAnnouncement; comm2SendClassMessage = window.comm2SendClassMessage; comm2DeleteMessage = window.comm2DeleteMessage; comm2SendMessage = window.comm2SendMessage; comm2AdminPanels = window.comm2AdminPanels;");
   }catch(e){}
 })();
 
