@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Isaac's Assessment Portal</title>
+<title>Akuse Methodist SHTS Mathematics Assessment Portal</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
@@ -2625,6 +2625,142 @@ body.caFullscreenLock{
   @page{size:A4 portrait;margin:10mm}
 }
 
+
+/* ===== FORMAL PORTAL NAME, CONTACT DISPLAY, AND STUDENT QUICK SEARCH ===== */
+.formalContactBadge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  background:#fff7d1;
+  color:#071f3d;
+  border:2px solid #f4c430;
+  border-radius:999px;
+  padding:8px 12px;
+  font-weight:950;
+  line-height:1.25;
+  box-shadow:0 6px 16px rgba(7,31,61,.08);
+}
+.formalContactBlock{
+  border:2px solid #f4c430;
+  border-left:7px solid #071f3d;
+  border-radius:18px;
+  background:#fffdf0;
+  padding:12px 14px;
+  margin:12px 0;
+  color:#071f3d;
+  font-weight:950;
+  line-height:1.45;
+  text-align:center;
+}
+.formalContactBlock b{
+  font-size:18px;
+}
+.studentQuickSearchHero{
+  background:
+    radial-gradient(circle at 15% 15%, rgba(244,196,48,.20), transparent 25%),
+    linear-gradient(135deg,#071f3d,#0d315f);
+  color:#fff;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 16px 42px rgba(7,31,61,.20);
+  margin-bottom:14px;
+}
+.studentQuickSearchHero h2{
+  margin:0;
+  font-size:24px;
+  line-height:1.16;
+}
+.studentQuickSearchHero p{
+  margin:6px 0 0;
+  color:#d9e7f3;
+  line-height:1.45;
+}
+.studentQuickSearchBox{
+  background:#fff;
+  border:2px solid #d9e7f3;
+  border-left:6px solid #0f7b4f;
+  border-radius:20px;
+  padding:14px;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+  margin-bottom:14px;
+}
+.studentQuickSearchBox h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.studentQuickResults{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:9px;
+  margin-top:10px;
+}
+.studentQuickItem{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:16px;
+  padding:10px;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  cursor:pointer;
+  text-align:left;
+}
+.studentQuickItem:hover{
+  border-color:#f4c430;
+  background:#fffdf0;
+  transform:translateY(-1px);
+}
+.studentQuickItem img,.studentQuickItem .avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #f4c430;
+  background:#eef5fc;
+}
+.studentQuickItem .avatar{
+  display:grid;
+  place-items:center;
+  color:#071f3d;
+  font-weight:950;
+}
+.studentQuickItem b{
+  display:block;
+  color:#071f3d;
+  overflow-wrap:anywhere;
+}
+.studentQuickItem small{
+  display:block;
+  color:#667085;
+  line-height:1.32;
+}
+.studentQuickItem .openHint{
+  color:#0f7b4f;
+  font-weight:950;
+  margin-top:3px;
+}
+.studentLoginFilters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.brand .portalContactMini{
+  display:block;
+  margin-top:4px;
+  color:#f4c430;
+  font-size:11px;
+  font-weight:950;
+  line-height:1.25;
+}
+@media(max-width:760px){
+  .studentQuickSearchHero h2{
+    font-size:20px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2770,7 +2906,7 @@ function renderStart(){
   $("app").innerHTML = `<div class="start">
     <div class="startCard">
       <div class="startHero">
-        <h1>Isaac's Assessment Portal</h1>
+        <h1>Akuse Methodist SHTS Mathematics Assessment Portal</h1>
         <p>Professional assessment system for Mathematics and Additional Mathematics. Live quiz submission, student records, continuous assessment, reports, and teacher review.</p>
       </div>
       <div class="startBody">
@@ -2823,7 +2959,7 @@ function renderShell(){
   })[route] || "Portal";
   $("app").innerHTML = `<div class="appShell">
     <aside class="side">
-      <div class="brand"><div class="logoCircle">AM</div><div><h2>Isaac's Assessment Portal</h2><small>Mathematics / Additional Mathematics</small></div></div>
+      <div class="brand"><div class="logoCircle">AM</div><div><h2>Akuse Methodist SHTS Mathematics Assessment Portal</h2><small>Mathematics / Additional Mathematics</small></div></div>
       <nav class="nav">${items.map(([r,t])=>`<button class="${route===r?'active':''}" onclick="setRoute('${r}')">${t}</button>`).join("")}<button onclick="logout()">Logout</button></nav>
     </aside>
     <main class="main">
@@ -3127,7 +3263,7 @@ function bulkImport(){
 }
 function editStudent(id,key,val){const s=student(id); if(!s)return; s[key]=key==="name"?val.trim().toUpperCase():val; save();}
 function genPass(id){const s=student(id); if(!s)return; s.password="AM"+Math.random().toString(36).slice(2,6).toUpperCase(); save(); students();}
-function passMsg(s){return `Hello ${s.name}, your Isaac's Assessment Portal password is: ${s.password}.`}
+function passMsg(s){return `Hello ${s.name}, your Akuse Methodist SHTS Mathematics Assessment Portal password is: ${s.password}.`}
 async function copyPass(id){const s=student(id); if(!s)return; try{await navigator.clipboard.writeText(passMsg(s));alert("Copied.")}catch(e){prompt("Copy:",passMsg(s))}}
 function sharePass(id){const s=student(id); if(!s)return; const p=String(s.phone||"").replace(/[^\d+]/g,"").replace(/^0/,"233"); const msg=encodeURIComponent(passMsg(s)); if(navigator.share)navigator.share({text:passMsg(s)}).catch(()=>{}); else if(p)open("https://wa.me/"+p+"?text="+msg); else copyPass(id)}
 function deleteStudent(id){const s=student(id); if(!s)return; if(!confirm("Delete "+s.name+"?"))return; state.students=state.students.filter(x=>x.id!==id); state.submissions=state.submissions.filter(x=>x.studentId!==id); save(); students()}
@@ -5514,7 +5650,7 @@ function renderShell(){
   })[route] || "Portal";
   $("app").innerHTML = `<div class="appShell">
     <aside class="side">
-      <div class="brand"><div class="logoCircle">AM</div><div><h2>Isaac's Assessment Portal</h2><small>Mathematics / Additional Mathematics</small></div></div>
+      <div class="brand"><div class="logoCircle">AM</div><div><h2>Akuse Methodist SHTS Mathematics Assessment Portal</h2><small>Mathematics / Additional Mathematics</small></div></div>
       <nav class="nav">${items.map(([r,t])=>`<button class="${route===r?'active':''}" onclick="setRoute('${r}')">${t}</button>`).join("")}<button onclick="logout()">Logout</button></nav>
       ${sideQuickSearchHTML()}
     </aside>
@@ -5701,6 +5837,115 @@ function printPictureClassList(){
   previewPictureClassList();
   document.body.classList.add("printPictureClassList");
   setTimeout(()=>{ window.print(); setTimeout(()=>document.body.classList.remove("printPictureClassList"), 400); }, 120);
+}
+
+
+/* ===== FINAL OVERRIDE: FORMAL NAME AND STUDENT QUICK SEARCH ===== */
+const FORMAL_PORTAL_NAME = "Akuse Methodist SHTS Mathematics Assessment Portal";
+const FORMAL_TEACHER_CONTACT = "SIR ISAAC BOAHEN • 0248481762 • AKUSE METHODIST SHTS";
+
+function formalContactHTML(){
+  return `<div class="formalContactBlock"><b>${FORMAL_TEACHER_CONTACT}</b><br>Contact for support on Mathematics / Additional Mathematics assessment access.</div>`;
+}
+function formalSmallContactHTML(){
+  return `<span class="portalContactMini">SIR ISAAC BOAHEN • 0248481762<br>AKUSE METHODIST SHTS</span>`;
+}
+function portalInitials(name){
+  return String(name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+}
+function studentQuickAvatar(s){
+  return s.photo ? `<img src="${s.photo}" alt="">` : `<div class="avatar">${esc(portalInitials(s.name))}</div>`;
+}
+function renderShell(){
+  const items=navItems();
+  const pageTitle = ({
+    dashboard:"Dashboard",students:"Students",quizzes:"Quiz Builder",review:"Review / Marking",components:"Continuous Assessment",reports:"Reports",settings:"Settings",backup:"Backup",
+    studentLogin:"Student Login",studentHome:"Student Home",studentQuizzes:"My Quizzes",studentResults:"My Results"
+  })[route] || "Portal";
+  $("app").innerHTML = `<div class="appShell">
+    <aside class="side">
+      <div class="brand"><div class="logoCircle">AM</div><div><h2>${FORMAL_PORTAL_NAME}</h2><small>Mathematics / Additional Mathematics</small>${formalSmallContactHTML()}</div></div>
+      <nav class="nav">${items.map(([r,t])=>`<button class="${route===r?'active':''}" onclick="setRoute('${r}')">${t}</button>`).join("")}<button onclick="logout()">Logout</button></nav>
+      ${typeof sideQuickSearchHTML==="function" ? sideQuickSearchHTML() : ""}
+    </aside>
+    <main class="main">
+      <div class="topbar"><div><h1>${esc(pageTitle)}</h1><p><b>${FORMAL_TEACHER_CONTACT}</b></p></div><div><span class="formalContactBadge">0248481762</span> ${role==="admin" ? `<button class="btn gold" onclick="save()">Save</button>` : ""}</div></div>
+      <div id="view"></div>
+    </main>
+  </div>`;
+  const fn = {
+    dashboard,students,quizzes,review,components,reports,settings,backup,studentLogin,studentHome,studentQuizzes,studentResults
+  }[route] || dashboard;
+  fn();
+  typeset();
+}
+function studentQuickSearch(){
+  const subj = $("studentQuickSubject")?.value || "ALL";
+  const cls = $("studentQuickClass")?.value || "ALL";
+  const q = ($("studentQuickName")?.value || "").trim().toLowerCase();
+  const box = $("studentQuickResults");
+  if(!box) return;
+  if(!q){
+    box.innerHTML = `<div class="empty">Start typing your name. Matching student names will appear here immediately.</div>`;
+    return;
+  }
+  const list = (state.students || []).filter(s =>
+    (subj==="ALL" || subjectForClass(s.className)===subj) &&
+    (cls==="ALL" || s.className===cls) &&
+    (
+      String(s.name||"").toLowerCase().includes(q) ||
+      String(s.code||"").toLowerCase().includes(q) ||
+      String(s.phone||"").toLowerCase().includes(q)
+    )
+  ).slice(0,30);
+  box.innerHTML = list.map(s=>`<button class="studentQuickItem" onclick="selectStudentLogin('${s.id}')" ondblclick="quickOpenStudentPortal('${s.id}')">
+    ${studentQuickAvatar(s)}
+    <span><b>${esc(s.name)}</b><small>${esc(s.code||"")} • ${esc(s.className||"")} • ${esc(subjectForClass(s.className)||"")}</small><small class="openHint">Double-click to open portal quickly</small></span>
+  </button>`).join("") || `<div class="empty">No matching student found. Check your spelling or select the correct class.</div>`;
+}
+function studentLogin(){
+  const subjects = ["ALL", ...(state.subjects || []).map(x=>x.name)];
+  const subj = $("studentQuickSubject")?.value || "ALL";
+  const cls = $("studentQuickClass")?.value || "ALL";
+  const classList = ["ALL", ...(state.classes || [])];
+  $("view").innerHTML = `<div class="studentQuickSearchHero">
+    <h2>${FORMAL_PORTAL_NAME}</h2>
+    <p>Student access page for Mathematics / Additional Mathematics. Search your name quickly and double-click to open your portal.</p>
+  </div>
+  ${formalContactHTML()}
+  <div class="studentQuickSearchBox">
+    <h3>Quick Search for Student Name</h3>
+    <input id="studentQuickName" class="input" placeholder="Start typing your name here..." oninput="studentQuickSearch()" autofocus>
+    <div class="studentLoginFilters">
+      <select id="studentQuickSubject" class="select" onchange="studentQuickSearch()">${subjects.map(s=>`<option value="${esc(s)}" ${subj===s?'selected':''}>${s==="ALL"?"All Subjects":esc(s)}</option>`).join("")}</select>
+      <select id="studentQuickClass" class="select" onchange="studentQuickSearch()">${classList.map(c=>`<option value="${esc(c)}" ${cls===c?'selected':''}>${c==="ALL"?"All Classes":esc(c)}</option>`).join("")}</select>
+    </div>
+    <div id="studentQuickResults" class="studentQuickResults"><div class="empty">Start typing your name. Matching student names will appear here immediately.</div></div>
+  </div>
+  <div id="studentPassBox"></div>`;
+  setTimeout(()=>{ const inp=$("studentQuickName"); if(inp) inp.focus(); },100);
+}
+function quickOpenStudentPortal(id){
+  currentStudentId=id;
+  const s=student(id);
+  if(!s) return;
+  if(!state.settings.requireStudentPassword){
+    role="student"; route="studentHome"; renderShell(); return;
+  }
+  const pass = prompt("Enter your student password to open your portal:");
+  if(pass === null) return;
+  if(pass !== s.password) return alert("Wrong password.");
+  role="student"; route="studentHome"; renderShell();
+}
+function selectStudentLogin(id){
+  currentStudentId=id;
+  const s=student(id);
+  if(!s) return;
+  if(!state.settings.requireStudentPassword){
+    $("studentPassBox").innerHTML = `<div class="notice">Selected: <b>${esc(s.name)}</b>. Double-click the name card or click below to open.</div><button class="btn green full" onclick="quickOpenStudentPortal('${s.id}')">Open Student Portal</button>`;
+    return;
+  }
+  $("studentPassBox").innerHTML = `<div class="card"><h3>Password Required</h3><p>Selected: <b>${esc(s.name)}</b></p><input id="studentPass" class="input" type="password" placeholder="Enter your password"><button class="btn green full" onclick="studentEnter()">Open Portal</button></div>`;
 }
 
 loadLocal();
