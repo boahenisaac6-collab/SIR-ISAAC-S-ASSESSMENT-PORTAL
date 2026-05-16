@@ -2780,6 +2780,281 @@ body.caFullscreenLock{
 .profilePhotoLargeBox img,.profilePhotoLargeBox .clickableAvatar{width:130px;height:130px;border-radius:24px;border:4px solid #f4c430;object-fit:cover;background:#eef5fc}.profilePhotoLargeBox .clickableAvatar{display:grid;place-items:center;color:#071f3d;font-weight:950;font-size:28px}
 @media(max-width:760px){.studentFullListGrid{grid-template-columns:1fr;max-height:none}.adminStudentDirectory{grid-template-columns:1fr}.profilePhotoLargeBox{grid-template-columns:1fr;text-align:center}.profilePhotoLargeBox img,.profilePhotoLargeBox .clickableAvatar{margin:auto}.adminDetailGrid{grid-template-columns:1fr}}
 
+
+/* ===== PROFESSIONAL CHAT AND ANNOUNCEMENT SYSTEM ===== */
+.commNoticeBanner{
+  border:2px solid #f4c430;
+  border-left:8px solid #071f3d;
+  background:linear-gradient(135deg,#fffdf0,#ffffff);
+  color:#071f3d;
+  border-radius:18px;
+  padding:14px;
+  margin:12px 0;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.commNoticeBanner h3{
+  margin:0 0 7px;
+  color:#071f3d;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.commNoticeBanner p{
+  margin:0;
+  color:#344054;
+  line-height:1.45;
+  font-weight:750;
+}
+.announcementList{
+  display:grid;
+  gap:9px;
+  margin-top:10px;
+}
+.announcementCard{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:15px;
+  padding:11px;
+}
+.announcementCard b{
+  color:#071f3d;
+  display:block;
+  margin-bottom:4px;
+}
+.announcementCard small{
+  color:#667085;
+}
+.commPanel{
+  border:2px solid #d9e7f3;
+  border-left:7px solid #0f7b4f;
+  background:#fff;
+  border-radius:20px;
+  padding:14px;
+  margin:14px 0;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.commPanel h2,.commPanel h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.commPanel p{
+  margin:0 0 10px;
+  color:#667085;
+  line-height:1.45;
+}
+.chatStudentList{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:10px;
+  max-height:420px;
+  overflow:auto;
+  padding:4px;
+}
+.chatStudentBtn{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  gap:9px;
+  align-items:center;
+  text-align:left;
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:16px;
+  padding:9px;
+  cursor:pointer;
+}
+.chatStudentBtn:hover{
+  background:#fffdf0;
+  border-color:#f4c430;
+}
+.chatStudentBtn img,.chatStudentBtn .avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #f4c430;
+  background:#eef5fc;
+}
+.chatStudentBtn .avatar{
+  display:grid;
+  place-items:center;
+  color:#071f3d;
+  font-weight:950;
+}
+.chatStudentBtn b{
+  color:#071f3d;
+  display:block;
+  overflow-wrap:anywhere;
+}
+.chatStudentBtn small{
+  color:#667085;
+  display:block;
+  line-height:1.3;
+}
+.chatBadge{
+  min-width:24px;
+  height:24px;
+  border-radius:999px;
+  background:#d92d20;
+  color:#fff;
+  display:grid;
+  place-items:center;
+  font-size:12px;
+  font-weight:950;
+}
+.chatOpenButton{
+  border:0;
+  border-radius:12px;
+  background:#0f7b4f;
+  color:#fff;
+  padding:8px 10px;
+  font-weight:950;
+  cursor:pointer;
+}
+.announcementAdminGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px;
+}
+.chatModalOverlay{
+  position:fixed;
+  inset:0;
+  z-index:2147483800;
+  background:rgba(4,18,37,.82);
+  display:grid;
+  place-items:center;
+  padding:14px;
+}
+.chatModal{
+  width:min(820px,100%);
+  height:min(760px,92vh);
+  background:#fff;
+  border-radius:24px;
+  border:1px solid #d9e7f3;
+  box-shadow:0 28px 90px rgba(0,0,0,.35);
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+}
+.chatHeader{
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  padding:14px 18px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+}
+.chatHeader h2{
+  margin:0;
+  font-size:19px;
+  line-height:1.2;
+}
+.chatHeader p{
+  margin:3px 0 0;
+  color:#d9e7f3;
+  font-size:12px;
+}
+.chatHeader button{
+  border:0;
+  background:#f4c430;
+  color:#071f3d;
+  border-radius:11px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.chatMessages{
+  padding:14px;
+  overflow:auto;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(244,196,48,.12), transparent 18%),
+    linear-gradient(180deg,#f8fbff,#ffffff);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.chatBubble{
+  max-width:78%;
+  padding:10px 12px;
+  border-radius:18px;
+  line-height:1.45;
+  box-shadow:0 4px 14px rgba(7,31,61,.08);
+  overflow-wrap:anywhere;
+}
+.chatBubble.admin{
+  align-self:flex-end;
+  background:#071f3d;
+  color:#fff;
+  border-bottom-right-radius:6px;
+}
+.chatBubble.student{
+  align-self:flex-start;
+  background:#fff;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+  border-bottom-left-radius:6px;
+}
+.chatBubble small{
+  display:block;
+  margin-top:5px;
+  opacity:.72;
+  font-size:10px;
+}
+.chatInputArea{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  padding:12px;
+  background:#fff;
+  border-top:1px solid #d9e7f3;
+}
+.chatInputArea textarea{
+  min-height:52px;
+  border:1px solid #cbd9e8;
+  border-radius:14px;
+  padding:10px;
+  resize:none;
+  font-family:inherit;
+}
+.chatInputArea button{
+  min-width:95px;
+  border:0;
+  border-radius:14px;
+  background:#0f7b4f;
+  color:#fff;
+  font-weight:950;
+  cursor:pointer;
+}
+.chatQuickOnCard{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:32px;
+  padding:6px 9px;
+  border:0;
+  border-radius:10px;
+  background:#0f7b4f;
+  color:#fff;
+  font-size:12px;
+  font-weight:950;
+  cursor:pointer;
+}
+@media(max-width:760px){
+  .announcementAdminGrid{
+    grid-template-columns:1fr;
+  }
+  .chatModal{
+    height:94vh;
+    border-radius:18px;
+  }
+  .chatInputArea{
+    grid-template-columns:1fr;
+  }
+  .chatBubble{
+    max-width:92%;
+  }
+}
+
 </style>
 </head>
 <body>
