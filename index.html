@@ -7448,6 +7448,208 @@ function sideOpenStudent(id){role = "admin"; route = "students"; renderShell(); 
   }catch(e){}
 })();
 
+
+/* ===== NO-BLANK-PAGES CLASS LIST PRINT FIX ===== */
+(function(){
+  function nbClassSubject(className){
+    try{return subjectForClass(className) || "";}catch(e){return "";}
+  }
+  function nbInitials(name){
+    return String(name || "ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+  }
+  function nbPhotoCell(s){
+    if(s && s.photo){
+      return `<img src="${s.photo}" alt="${esc(s.name||"")}">`;
+    }
+    return `<div class="printAvatar">${esc(nbInitials(s?.name))}</div>`;
+  }
+  function nbSelectedClass(){
+    return document.getElementById("picturePrintClass")?.value || ((state.classes||[])[0] || "");
+  }
+  function nbLearners(className){
+    return (state.students||[])
+      .filter(s=>s.className === className)
+      .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+  }
+  function nbClassListHTML(className){
+    const learners = nbLearners(className);
+    return `<div class="printPictureSheet">
+      <div class="printPictureHeader">
+        <div>
+          <h2>${esc(className || "Class")} Class List</h2>
+          <p>${esc(state.settings?.school || "Akuse Methodist SHTS")}<br>${esc(nbClassSubject(className))} • Teacher: ${esc(state.settings?.teacherName || "Sir Isaac Boahen")}</p>
+        </div>
+        <div><b>Total: ${learners.length}</b><br><small>Generated: ${typeof now==="function" ? now() : new Date().toLocaleString()}</small></div>
+      </div>
+      <table class="pictureClassTable">
+        <thead>
+          <tr><th>No.</th><th>Picture</th><th>Student Name</th><th>Code</th><th>Phone</th><th>Subject</th></tr>
+        </thead>
+        <tbody>
+          ${learners.map((s,i)=>`<tr>
+            <td>${i+1}</td>
+            <td>${nbPhotoCell(s)}</td>
+            <td><b>${esc(s.name||"")}</b></td>
+            <td>${esc(s.code||"")}</td>
+            <td>${esc(s.phone||"")}</td>
+            <td>${esc(nbClassSubject(s.className))}</td>
+          </tr>`).join("") || `<tr><td colspan="6">No student found in the selected class.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  window.previewPictureClassList = function(){
+    const className = nbSelectedClass();
+    const box = document.getElementById("pictureClassPrintArea");
+    if(!box) return;
+    box.innerHTML = nbClassListHTML(className);
+  };
+
+  window.printPictureClassList = function(){
+    const className = nbSelectedClass();
+    const printable = nbClassListHTML(className);
+
+    const oldFrame = document.getElementById("classPrintFrame");
+    if(oldFrame) oldFrame.remove();
+
+    const frame = document.createElement("iframe");
+    frame.id = "classPrintFrame";
+    frame.style.position = "fixed";
+    frame.style.right = "0";
+    frame.style.bottom = "0";
+    frame.style.width = "0";
+    frame.style.height = "0";
+    frame.style.border = "0";
+    frame.style.visibility = "hidden";
+    document.body.appendChild(frame);
+
+    const doc = frame.contentWindow.document;
+    doc.open();
+    doc.write(`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${esc(className)} Class List</title>
+<style>
+  @page{size:A4 portrait;margin:10mm;}
+  html,body{
+    margin:0;
+    padding:0;
+    background:#fff;
+    color:#101828;
+    font-family:Arial, Helvetica, sans-serif;
+    height:auto!important;
+    overflow:visible!important;
+  }
+  *{box-sizing:border-box;}
+  .printPictureSheet{
+    width:100%;
+    margin:0;
+    padding:0;
+    background:#fff;
+    page-break-after:auto;
+  }
+  .printPictureHeader{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:flex-start;
+    border-bottom:3px solid #f4c430;
+    padding-bottom:8px;
+    margin-bottom:8px;
+  }
+  .printPictureHeader h2{
+    margin:0 0 4px;
+    color:#071f3d;
+    font-size:17pt;
+  }
+  .printPictureHeader p{
+    margin:0;
+    font-size:10.5pt;
+    line-height:1.35;
+  }
+  .printPictureHeader b{
+    font-size:11pt;
+    color:#071f3d;
+  }
+  .pictureClassTable{
+    width:100%;
+    border-collapse:collapse;
+    page-break-inside:auto;
+  }
+  .pictureClassTable thead{
+    display:table-header-group;
+  }
+  .pictureClassTable tfoot{
+    display:table-footer-group;
+  }
+  .pictureClassTable tr{
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+  .pictureClassTable th{
+    background:#071f3d;
+    color:#fff;
+    border:1px solid #071f3d;
+    padding:5px;
+    font-size:10pt;
+    text-align:left;
+  }
+  .pictureClassTable td{
+    border:1px solid #cbd9e8;
+    padding:4px 5px;
+    font-size:9.8pt;
+    vertical-align:middle;
+    line-height:1.2;
+  }
+  .pictureClassTable img,.printAvatar{
+    width:38px;
+    height:38px;
+    border-radius:8px;
+    object-fit:cover;
+    border:1.5px solid #f4c430;
+    background:#eef5fc;
+  }
+  .printAvatar{
+    display:grid;
+    place-items:center;
+    color:#071f3d;
+    font-weight:900;
+    font-size:9pt;
+  }
+</style>
+</head>
+<body>
+${printable}
+</body>
+</html>`);
+    doc.close();
+
+    frame.onload = function(){
+      setTimeout(()=>{
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+        setTimeout(()=>frame.remove(), 1500);
+      }, 300);
+    };
+
+    setTimeout(()=>{
+      try{
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+        setTimeout(()=>frame.remove(), 1500);
+      }catch(e){
+        alert("Print window could not open. Please try again.");
+      }
+    }, 600);
+  };
+
+  try{
+    eval("previewPictureClassList = window.previewPictureClassList; printPictureClassList = window.printPictureClassList;");
+  }catch(e){}
+})();
+
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(render);
