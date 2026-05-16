@@ -3131,6 +3131,58 @@ body.caFullscreenLock{
   margin-top:8px;
 }
 
+
+/* ===== PRINT CLASS LIST CLASS SELECTOR FIX ===== */
+.classPrintChooser{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:10px;
+  align-items:center;
+  background:#f8fbff;
+  border:1px solid #d9e7f3;
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:12px;
+}
+.classPrintChooser select{
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:800;
+}
+.classPrintChooser button{
+  min-height:42px;
+  border:0;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.classPrintChooser .previewBtn{
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+}
+.classPrintChooser .printBtn{
+  background:#0f7b4f;
+  color:#fff;
+}
+.classPrintHelp{
+  background:#fffdf0;
+  border:1px solid #f4c430;
+  border-radius:14px;
+  padding:9px 11px;
+  margin-bottom:12px;
+  color:#071f3d;
+  font-weight:850;
+}
+@media(max-width:760px){
+  .classPrintChooser{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -7125,6 +7177,105 @@ function sideOpenStudent(id){role = "admin"; route = "students"; renderShell(); 
 
   try{
     eval("comm2PostAnnouncement = window.comm2PostAnnouncement; comm2ClearAnnouncements = window.comm2ClearAnnouncements; comm2DeleteAnnouncement = window.comm2DeleteAnnouncement; comm2SendClassMessage = window.comm2SendClassMessage; comm2DeleteMessage = window.comm2DeleteMessage; comm2SendMessage = window.comm2SendMessage; comm2AdminPanels = window.comm2AdminPanels;");
+  }catch(e){}
+})();
+
+
+/* ===== PRINT CLASS LIST CLASS SELECTOR FIX ===== */
+(function(){
+  function classSubjectName(className){
+    try{return subjectForClass(className) || "";}catch(e){return "";}
+  }
+  function classPhotoCell(s){
+    if(s && s.photo){
+      return `<img src="${s.photo}" alt="${esc(s.name||"")}">`;
+    }
+    const initials = String(s?.name || "ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+    return `<div class="printAvatar">${esc(initials)}</div>`;
+  }
+
+  window.openClassPrintModal = function(){
+    const old = document.getElementById("printClassModal");
+    if(old) old.remove();
+
+    const classes = Array.isArray(state.classes) ? state.classes : [];
+    const options = classes.map(c=>`<option value="${esc(c)}">${esc(c)} — ${esc(classSubjectName(c))}</option>`).join("");
+
+    document.body.insertAdjacentHTML("beforeend", `<div id="printClassModal" class="printClassModal">
+      <div class="printClassBox">
+        <div class="printClassHead">
+          <h2>Print Class List with Pictures</h2>
+          <button onclick="closeClassPrintModal()">Close</button>
+        </div>
+        <div class="printClassBody">
+          <div class="classPrintHelp">Select the exact class you want to print. The preview and printout will change to that selected class.</div>
+          <div class="classPrintChooser noPrint">
+            <select id="picturePrintClass" onchange="previewPictureClassList()">
+              ${options || `<option value="">No class found</option>`}
+            </select>
+            <button class="previewBtn" onclick="previewPictureClassList()">Preview Selected Class</button>
+            <button class="printBtn" onclick="printPictureClassList()">Print / Save PDF</button>
+          </div>
+          <div id="pictureClassPrintArea"></div>
+        </div>
+      </div>
+    </div>`);
+
+    previewPictureClassList();
+  };
+
+  window.closeClassPrintModal = function(){
+    const old = document.getElementById("printClassModal");
+    if(old) old.remove();
+  };
+
+  window.previewPictureClassList = function(){
+    const selected = document.getElementById("picturePrintClass");
+    const className = selected ? selected.value : ((state.classes||[])[0] || "");
+    const learners = (state.students||[])
+      .filter(s=>s.className === className)
+      .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+
+    const box = document.getElementById("pictureClassPrintArea");
+    if(!box) return;
+
+    box.innerHTML = `<div class="printPictureSheet">
+      <div class="printPictureHeader">
+        <div>
+          <h2>${esc(className || "Class")} Class List</h2>
+          <p>${esc(state.settings?.school || "Akuse Methodist SHTS")}<br>${esc(classSubjectName(className))} • Teacher: ${esc(state.settings?.teacherName || "Sir Isaac Boahen")}</p>
+        </div>
+        <div><b>Total: ${learners.length}</b><br><small>Generated: ${typeof now==="function" ? now() : new Date().toLocaleString()}</small></div>
+      </div>
+      <table class="pictureClassTable">
+        <thead>
+          <tr><th>No.</th><th>Picture</th><th>Student Name</th><th>Code</th><th>Phone</th><th>Subject</th></tr>
+        </thead>
+        <tbody>
+          ${learners.map((s,i)=>`<tr>
+            <td>${i+1}</td>
+            <td>${classPhotoCell(s)}</td>
+            <td><b>${esc(s.name||"")}</b></td>
+            <td>${esc(s.code||"")}</td>
+            <td>${esc(s.phone||"")}</td>
+            <td>${esc(classSubjectName(s.className))}</td>
+          </tr>`).join("") || `<tr><td colspan="6">No student found in the selected class.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  window.printPictureClassList = function(){
+    previewPictureClassList();
+    document.body.classList.add("printPictureClassList");
+    setTimeout(()=>{
+      window.print();
+      setTimeout(()=>document.body.classList.remove("printPictureClassList"), 500);
+    },150);
+  };
+
+  try{
+    eval("openClassPrintModal = window.openClassPrintModal; closeClassPrintModal = window.closeClassPrintModal; previewPictureClassList = window.previewPictureClassList; printPictureClassList = window.printPictureClassList;");
   }catch(e){}
 })();
 
