@@ -2781,8 +2781,51 @@ body.caFullscreenLock{
 @media(max-width:760px){.studentFullListGrid{grid-template-columns:1fr;max-height:none}.adminStudentDirectory{grid-template-columns:1fr}.profilePhotoLargeBox{grid-template-columns:1fr;text-align:center}.profilePhotoLargeBox img,.profilePhotoLargeBox .clickableAvatar{margin:auto}.adminDetailGrid{grid-template-columns:1fr}}
 
 
-/* ===== PROFESSIONAL CHAT AND ANNOUNCEMENT SYSTEM ===== */
-.commNoticeBanner{
+/* ===== WORKING COMMUNICATION SYSTEM: ANNOUNCEMENTS + CLASS/STUDENT CHAT ===== */
+.commSideBox{
+  margin:12px 8px;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);
+  border-radius:16px;
+  color:#fff;
+}
+.commSideBox h3{
+  margin:0 0 8px;
+  color:#f4c430;
+  font-size:13px;
+  line-height:1.25;
+}
+.commSideAnnouncement{
+  border:1px solid rgba(244,196,48,.35);
+  background:rgba(244,196,48,.12);
+  border-radius:12px;
+  padding:8px;
+  margin-bottom:7px;
+}
+.commSideAnnouncement b{
+  display:block;
+  color:#fff;
+  font-size:11px;
+  line-height:1.25;
+  margin-bottom:3px;
+}
+.commSideAnnouncement small{
+  color:#d9e7f3;
+  font-size:10px;
+}
+.commSideBox button{
+  width:100%;
+  min-height:34px;
+  border:0;
+  border-radius:10px;
+  background:#f4c430;
+  color:#071f3d;
+  font-weight:950;
+  cursor:pointer;
+  margin-top:6px;
+}
+.commTopAnnouncement{
   border:2px solid #f4c430;
   border-left:8px solid #071f3d;
   background:linear-gradient(135deg,#fffdf0,#ffffff);
@@ -2792,39 +2835,37 @@ body.caFullscreenLock{
   margin:12px 0;
   box-shadow:0 8px 24px rgba(7,31,61,.08);
 }
-.commNoticeBanner h3{
-  margin:0 0 7px;
+.commTopAnnouncement h2,.commTopAnnouncement h3{
+  margin:0 0 8px;
   color:#071f3d;
-  display:flex;
-  align-items:center;
-  gap:8px;
 }
-.commNoticeBanner p{
+.commTopAnnouncement p{
   margin:0;
   color:#344054;
   line-height:1.45;
   font-weight:750;
 }
-.announcementList{
+.commAnnGrid{
   display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
   gap:9px;
   margin-top:10px;
 }
-.announcementCard{
+.commAnnCard{
   border:1px solid #d9e7f3;
   background:#fff;
   border-radius:15px;
   padding:11px;
 }
-.announcementCard b{
-  color:#071f3d;
+.commAnnCard b{
   display:block;
+  color:#071f3d;
   margin-bottom:4px;
 }
-.announcementCard small{
+.commAnnCard small{
   color:#667085;
 }
-.commPanel{
+.commAdminPanel{
   border:2px solid #d9e7f3;
   border-left:7px solid #0f7b4f;
   background:#fff;
@@ -2833,24 +2874,29 @@ body.caFullscreenLock{
   margin:14px 0;
   box-shadow:0 8px 24px rgba(7,31,61,.08);
 }
-.commPanel h2,.commPanel h3{
+.commAdminPanel h2,.commAdminPanel h3{
   margin:0 0 8px;
   color:#071f3d;
 }
-.commPanel p{
+.commAdminPanel p{
   margin:0 0 10px;
   color:#667085;
   line-height:1.45;
 }
-.chatStudentList{
+.commGrid2{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+}
+.commStudentChatList{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
   gap:10px;
-  max-height:420px;
+  max-height:430px;
   overflow:auto;
   padding:4px;
 }
-.chatStudentBtn{
+.commChatStudent{
   display:grid;
   grid-template-columns:48px minmax(0,1fr) auto;
   gap:9px;
@@ -2862,11 +2908,11 @@ body.caFullscreenLock{
   padding:9px;
   cursor:pointer;
 }
-.chatStudentBtn:hover{
-  background:#fffdf0;
+.commChatStudent:hover{
   border-color:#f4c430;
+  background:#fffdf0;
 }
-.chatStudentBtn img,.chatStudentBtn .avatar{
+.commChatStudent img,.commChatStudent .avatar{
   width:48px;
   height:48px;
   border-radius:50%;
@@ -2874,23 +2920,23 @@ body.caFullscreenLock{
   border:2px solid #f4c430;
   background:#eef5fc;
 }
-.chatStudentBtn .avatar{
+.commChatStudent .avatar{
   display:grid;
   place-items:center;
   color:#071f3d;
   font-weight:950;
 }
-.chatStudentBtn b{
-  color:#071f3d;
+.commChatStudent b{
   display:block;
+  color:#071f3d;
   overflow-wrap:anywhere;
 }
-.chatStudentBtn small{
-  color:#667085;
+.commChatStudent small{
   display:block;
+  color:#667085;
   line-height:1.3;
 }
-.chatBadge{
+.commBadge{
   min-width:24px;
   height:24px;
   border-radius:999px;
@@ -2901,7 +2947,7 @@ body.caFullscreenLock{
   font-size:12px;
   font-weight:950;
 }
-.chatOpenButton{
+.commChatButton{
   border:0;
   border-radius:12px;
   background:#0f7b4f;
@@ -2910,12 +2956,7 @@ body.caFullscreenLock{
   font-weight:950;
   cursor:pointer;
 }
-.announcementAdminGrid{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  gap:10px;
-}
-.chatModalOverlay{
+.commChatModalOverlay{
   position:fixed;
   inset:0;
   z-index:2147483800;
@@ -2924,8 +2965,8 @@ body.caFullscreenLock{
   place-items:center;
   padding:14px;
 }
-.chatModal{
-  width:min(820px,100%);
+.commChatModal{
+  width:min(850px,100%);
   height:min(760px,92vh);
   background:#fff;
   border-radius:24px;
@@ -2935,7 +2976,7 @@ body.caFullscreenLock{
   display:grid;
   grid-template-rows:auto minmax(0,1fr) auto;
 }
-.chatHeader{
+.commChatHeader{
   background:linear-gradient(135deg,#071f3d,#041225);
   color:#fff;
   padding:14px 18px;
@@ -2944,17 +2985,17 @@ body.caFullscreenLock{
   gap:12px;
   align-items:center;
 }
-.chatHeader h2{
+.commChatHeader h2{
   margin:0;
   font-size:19px;
   line-height:1.2;
 }
-.chatHeader p{
+.commChatHeader p{
   margin:3px 0 0;
   color:#d9e7f3;
   font-size:12px;
 }
-.chatHeader button{
+.commChatHeader button{
   border:0;
   background:#f4c430;
   color:#071f3d;
@@ -2963,7 +3004,7 @@ body.caFullscreenLock{
   font-weight:950;
   cursor:pointer;
 }
-.chatMessages{
+.commMessages{
   padding:14px;
   overflow:auto;
   background:
@@ -2973,7 +3014,7 @@ body.caFullscreenLock{
   flex-direction:column;
   gap:10px;
 }
-.chatBubble{
+.commBubble{
   max-width:78%;
   padding:10px 12px;
   border-radius:18px;
@@ -2981,26 +3022,32 @@ body.caFullscreenLock{
   box-shadow:0 4px 14px rgba(7,31,61,.08);
   overflow-wrap:anywhere;
 }
-.chatBubble.admin{
+.commBubble.admin{
   align-self:flex-end;
   background:#071f3d;
   color:#fff;
   border-bottom-right-radius:6px;
 }
-.chatBubble.student{
+.commBubble.student{
   align-self:flex-start;
   background:#fff;
   color:#071f3d;
   border:1px solid #d9e7f3;
   border-bottom-left-radius:6px;
 }
-.chatBubble small{
+.commBubble.broadcast{
+  align-self:center;
+  background:#fff7d1;
+  color:#071f3d;
+  border:1px solid #f4c430;
+}
+.commBubble small{
   display:block;
   margin-top:5px;
   opacity:.72;
   font-size:10px;
 }
-.chatInputArea{
+.commInputArea{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
   gap:8px;
@@ -3008,7 +3055,7 @@ body.caFullscreenLock{
   background:#fff;
   border-top:1px solid #d9e7f3;
 }
-.chatInputArea textarea{
+.commInputArea textarea{
   min-height:52px;
   border:1px solid #cbd9e8;
   border-radius:14px;
@@ -3016,7 +3063,7 @@ body.caFullscreenLock{
   resize:none;
   font-family:inherit;
 }
-.chatInputArea button{
+.commInputArea button{
   min-width:95px;
   border:0;
   border-radius:14px;
@@ -3025,32 +3072,28 @@ body.caFullscreenLock{
   font-weight:950;
   cursor:pointer;
 }
-.chatQuickOnCard{
+.commInlineStudentButton{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  min-height:32px;
-  padding:6px 9px;
+  min-height:34px;
+  padding:7px 10px;
   border:0;
   border-radius:10px;
   background:#0f7b4f;
   color:#fff;
-  font-size:12px;
   font-weight:950;
   cursor:pointer;
 }
 @media(max-width:760px){
-  .announcementAdminGrid{
-    grid-template-columns:1fr;
-  }
-  .chatModal{
+  .commChatModal{
     height:94vh;
     border-radius:18px;
   }
-  .chatInputArea{
+  .commInputArea{
     grid-template-columns:1fr;
   }
-  .chatBubble{
+  .commBubble{
     max-width:92%;
   }
 }
@@ -6391,6 +6434,277 @@ function adminShowStudentProfileAll(studentId){
   box.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function sideOpenStudent(id){role = "admin"; route = "students"; renderShell(); setTimeout(()=>{adminShowStudentProfileAll(id);},120);}
+
+
+/* ===== WORKING COMMUNICATION SYSTEM: ANNOUNCEMENTS + STUDENT / CLASS CHAT ===== */
+function commEnsure(){
+  state.messages = Array.isArray(state.messages) ? state.messages : [];
+  state.announcements = Array.isArray(state.announcements) ? state.announcements : [];
+  state.classMessages = Array.isArray(state.classMessages) ? state.classMessages : [];
+}
+function commTime(){
+  try{return new Date().toLocaleString();}catch(e){return typeof now==="function" ? now() : "";}
+}
+function commUid(prefix){
+  return typeof uid==="function" ? uid(prefix) : (prefix + "_" + Date.now() + "_" + Math.random().toString(16).slice(2));
+}
+function commInitials(name){
+  return String(name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+}
+function commAvatar(s){
+  if(!s) return `<div class="avatar">ST</div>`;
+  return s.photo ? `<img src="${s.photo}" alt="">` : `<div class="avatar">${esc(commInitials(s.name))}</div>`;
+}
+function commActiveAnnouncements(){
+  commEnsure();
+  return [...state.announcements].filter(a=>a.active !== false).sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+}
+function commAnnouncementHTML(limit=5){
+  const list = commActiveAnnouncements().slice(0,limit);
+  return `<div class="commTopAnnouncement">
+    <h2>📢 Announcements</h2>
+    ${list.length ? `<div class="commAnnGrid">${list.map(a=>`<div class="commAnnCard"><b>${esc(a.title || "Announcement")}</b><p>${esc(a.body || "")}</p><small>${esc(a.createdAt || "")}</small></div>`).join("")}</div>` : `<p>No announcement has been posted yet.</p>`}
+  </div>`;
+}
+function commSideHTML(){
+  if(role !== "admin" && role !== "student" && role !== "guest") return "";
+  const anns = commActiveAnnouncements().slice(0,3);
+  const annHtml = anns.length ? anns.map(a=>`<div class="commSideAnnouncement"><b>${esc(a.title||"Announcement")}</b><small>${esc((a.body||"").slice(0,70))}${(a.body||"").length>70?"...":""}</small></div>`).join("") : `<div class="commSideAnnouncement"><b>No announcement yet</b><small>Check again later.</small></div>`;
+  const chatBtn = role==="student" && currentStudentId ? `<button onclick="commOpenChat('${currentStudentId}')">Open Chat</button>` : "";
+  return `<div class="commSideBox"><h3>Announcements</h3>${annHtml}${chatBtn}</div>`;
+}
+function commUnreadAdmin(studentId){
+  commEnsure();
+  return state.messages.filter(m=>m.studentId===studentId && m.from==="student" && !m.readByAdmin).length;
+}
+function commUnreadStudent(studentId){
+  commEnsure();
+  return state.messages.filter(m=>m.studentId===studentId && m.from==="admin" && !m.readByStudent).length;
+}
+function commClassUnreadStudent(studentId){
+  commEnsure();
+  const s = student(studentId);
+  if(!s) return 0;
+  return state.classMessages.filter(m=>(m.className==="ALL" || m.className===s.className) && !(m.readByStudents||[]).includes(studentId)).length;
+}
+function commMessagesForStudent(studentId){
+  commEnsure();
+  const s = student(studentId);
+  const direct = state.messages.filter(m=>m.studentId===studentId).map(m=>({...m, kind:"direct"}));
+  const classMsgs = (state.classMessages||[])
+    .filter(m=>s && (m.className==="ALL" || m.className===s.className))
+    .map(m=>({...m, kind:"class", from:"admin"}));
+  return [...direct, ...classMsgs].sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
+}
+function commChatBody(studentId){
+  const msgs = commMessagesForStudent(studentId);
+  if(!msgs.length) return `<div class="empty">No message yet. Start the conversation.</div>`;
+  return msgs.map(m=>{
+    const cls = m.kind==="class" ? "broadcast" : (m.from==="admin" ? "admin" : "student");
+    const sender = m.kind==="class" ? "Class Announcement from Teacher" : (m.from==="admin" ? "Sir Isaac Boahen" : "Student");
+    return `<div class="commBubble ${cls}">${esc(m.text||"")}<small>${sender} • ${esc(m.createdAt||"")}</small></div>`;
+  }).join("");
+}
+function commOpenChat(studentId){
+  commEnsure();
+  const s = student(studentId);
+  if(!s) return alert("Student not found.");
+  if(role === "admin"){
+    state.messages.forEach(m=>{ if(m.studentId===studentId && m.from==="student") m.readByAdmin=true; });
+  }else{
+    state.messages.forEach(m=>{ if(m.studentId===studentId && m.from==="admin") m.readByStudent=true; });
+    state.classMessages.forEach(m=>{
+      if(m.className==="ALL" || m.className===s.className){
+        m.readByStudents = Array.isArray(m.readByStudents) ? m.readByStudents : [];
+        if(!m.readByStudents.includes(studentId)) m.readByStudents.push(studentId);
+      }
+    });
+  }
+  save();
+  const old=document.getElementById("commChatModalOverlay");
+  if(old) old.remove();
+  document.body.insertAdjacentHTML("beforeend", `<div id="commChatModalOverlay" class="commChatModalOverlay">
+    <div class="commChatModal">
+      <div class="commChatHeader">
+        <div><h2>${role==="admin" ? `Chat with ${esc(s.name)}` : "Chat with Sir Isaac Boahen"}</h2><p>${role==="admin" ? esc((s.phone||"No phone") + " • " + (s.className||"")) : "0248481762 • Akuse Methodist SHTS"}</p></div>
+        <button onclick="commCloseChat()">Close</button>
+      </div>
+      <div id="commMessages" class="commMessages">${commChatBody(studentId)}</div>
+      <div class="commInputArea">
+        <textarea id="commChatText" placeholder="Type your message here..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();commSendMessage('${studentId}')}"></textarea>
+        <button onclick="commSendMessage('${studentId}')">Send</button>
+      </div>
+    </div>
+  </div>`);
+  setTimeout(()=>{const box=document.getElementById("commMessages"); if(box) box.scrollTop=box.scrollHeight; const t=document.getElementById("commChatText"); if(t) t.focus();},80);
+}
+function commSendMessage(studentId){
+  commEnsure();
+  const text=(document.getElementById("commChatText")?.value||"").trim();
+  if(!text) return;
+  state.messages.push({
+    id: commUid("msg"),
+    studentId,
+    from: role==="admin" ? "admin" : "student",
+    text,
+    createdAt: commTime(),
+    readByAdmin: role==="admin",
+    readByStudent: role!=="admin"
+  });
+  save();
+  const input=document.getElementById("commChatText");
+  if(input) input.value="";
+  const box=document.getElementById("commMessages");
+  if(box){box.innerHTML=commChatBody(studentId); setTimeout(()=>box.scrollTop=box.scrollHeight,30);}
+}
+function commCloseChat(){
+  const old=document.getElementById("commChatModalOverlay");
+  if(old) old.remove();
+  if(role==="admin" && route==="dashboard") dashboard();
+  if(role==="student" && route==="studentHome") studentHome();
+}
+function commAdminAnnouncements(){
+  const anns = commActiveAnnouncements().slice(0,8);
+  return `<div class="commAdminPanel">
+    <h2>General Announcement</h2>
+    <p>Post announcements for all students. Students will see them on the left panel, the app opening page, and inside their portal.</p>
+    <div class="commGrid2">
+      <input id="commAnnTitle" class="input" placeholder="Announcement title">
+      <input id="commAnnBody" class="input" placeholder="Announcement message">
+    </div>
+    <div class="toolbar" style="margin-top:10px">
+      <button class="btn green" onclick="commPostAnnouncement()">Post Announcement</button>
+      <button class="btn red" onclick="commClearAnnouncements()">Clear Announcements</button>
+    </div>
+    <div class="commAnnGrid">${anns.map(a=>`<div class="commAnnCard"><b>${esc(a.title||"Announcement")}</b><p>${esc(a.body||"")}</p><small>${esc(a.createdAt||"")}</small></div>`).join("") || `<div class="empty">No announcement yet.</div>`}</div>
+  </div>`;
+}
+function commPostAnnouncement(){
+  commEnsure();
+  const title=(document.getElementById("commAnnTitle")?.value||"").trim() || "General Announcement";
+  const body=(document.getElementById("commAnnBody")?.value||"").trim();
+  if(!body) return alert("Type the announcement message.");
+  state.announcements.push({id:commUid("ann"), title, body, createdAt:commTime(), active:true});
+  save();
+  alert("Announcement posted.");
+  dashboard();
+}
+function commClearAnnouncements(){
+  commEnsure();
+  if(!confirm("Clear all announcements?")) return;
+  state.announcements=[];
+  save();
+  dashboard();
+}
+function commAdminClassChat(){
+  return `<div class="commAdminPanel">
+    <h2>Chat with Entire Class</h2>
+    <p>Send one message to all students or to a selected class. Students will see the class message in their chat window.</p>
+    <div class="commGrid2">
+      <select id="commClassSelect" class="select"><option value="ALL">All Classes</option>${(state.classes||[]).map(c=>`<option value="${esc(c)}">${esc(c)} — ${esc(subjectForClass(c)||"")}</option>`).join("")}</select>
+      <input id="commClassMsg" class="input" placeholder="Type class message here">
+    </div>
+    <div class="toolbar" style="margin-top:10px"><button class="btn green" onclick="commSendClassMessage()">Send to Class</button></div>
+  </div>`;
+}
+function commSendClassMessage(){
+  commEnsure();
+  const className=document.getElementById("commClassSelect")?.value || "ALL";
+  const text=(document.getElementById("commClassMsg")?.value||"").trim();
+  if(!text) return alert("Type a message first.");
+  state.classMessages.push({id:commUid("clsmsg"), className, text, createdAt:commTime(), readByStudents:[]});
+  save();
+  alert(className==="ALL" ? "Message sent to all students." : "Message sent to " + className + ".");
+  dashboard();
+}
+function commAdminStudentChatPanel(){
+  return `<div class="commAdminPanel">
+    <h2>Chat with a Particular Student</h2>
+    <p>Search and open a direct chat with any student.</p>
+    <input id="commStudentSearch" class="input" placeholder="Search student to chat..." oninput="commAdminStudentSearch()">
+    <div id="commStudentList" class="commStudentChatList">${commStudentListHTML(state.students||[])}</div>
+  </div>`;
+}
+function commStudentListHTML(list){
+  return list.slice(0,100).map(s=>{
+    const unread = commUnreadAdmin(s.id);
+    return `<button class="commChatStudent" onclick="commOpenChat('${s.id}')">
+      ${commAvatar(s)}
+      <span><b>${esc(s.name)}</b><small>${esc(s.className||"")} • ${esc(s.phone||"No phone")}</small></span>
+      ${unread?`<span class="commBadge">${unread}</span>`:`<span></span>`}
+    </button>`;
+  }).join("") || `<div class="empty">No student found.</div>`;
+}
+function commAdminStudentSearch(){
+  const q=(document.getElementById("commStudentSearch")?.value||"").toLowerCase().trim();
+  const list=(state.students||[]).filter(s=>!q || String(s.name||"").toLowerCase().includes(q) || String(s.className||"").toLowerCase().includes(q) || String(s.phone||"").toLowerCase().includes(q));
+  const box=document.getElementById("commStudentList");
+  if(box) box.innerHTML=commStudentListHTML(list);
+}
+/* Render shell override to put announcements on the left panel for everyone */
+function renderShell(){
+  const items=navItems();
+  const pageTitle = ({
+    dashboard:"Dashboard",students:"Students",quizzes:"Quiz Builder",review:"Review / Marking",components:"Continuous Assessment",reports:"Reports",settings:"Settings",backup:"Backup",
+    studentLogin:"Student Login",studentHome:"Student Home",studentQuizzes:"My Quizzes",studentResults:"My Results"
+  })[route] || "Portal";
+  $("app").innerHTML = `<div class="appShell">
+    <aside class="side">
+      <div class="brand"><div class="logoCircle">AM</div><div><h2>${typeof FORMAL_PORTAL_NAME!=="undefined"?FORMAL_PORTAL_NAME:"Akuse Methodist SHTS Mathematics Assessment Portal"}</h2><small>Mathematics / Additional Mathematics</small>${typeof formalSmallContactHTML==="function"?formalSmallContactHTML():""}</div></div>
+      <nav class="nav">${items.map(([r,t])=>`<button class="${route===r?'active':''}" onclick="setRoute('${r}')">${t}</button>`).join("")}<button onclick="logout()">Logout</button></nav>
+      ${commSideHTML()}
+      ${role==="admin" && typeof sideQuickSearchHTML==="function" ? sideQuickSearchHTML() : ""}
+    </aside>
+    <main class="main">
+      <div class="topbar"><div><h1>${esc(pageTitle)}</h1><p><b>SIR ISAAC BOAHEN • 0248481762 • AKUSE METHODIST SHTS</b></p></div><div>${role==="admin"?`<button class="btn gold" onclick="save()">Save</button>`:""}</div></div>
+      <div id="view"></div>
+    </main>
+  </div>`;
+  const fn = {dashboard,students,quizzes,review,components,reports,settings,backup,studentLogin,studentHome,studentQuizzes,studentResults}[route] || dashboard;
+  fn();
+  typeset();
+}
+/* Dashboard override - communication panels are visible in admin mode */
+function dashboard(){
+  commEnsure();
+  const published=state.quizzes.filter(q=>q.status==="Published").length;
+  const subs=state.submissions.length;
+  $("view").innerHTML = `${commAdminAnnouncements()}${commAdminClassChat()}${commAdminStudentChatPanel()}<div class="cards">
+    <div class="card stat"><span>Total Students</span><b>${state.students.length}</b></div>
+    <div class="card stat"><span>Classes</span><b>${state.classes.length}</b></div>
+    <div class="card stat"><span>Published Quizzes</span><b>${published}</b></div>
+    <div class="card stat"><span>Submissions</span><b>${subs}</b></div>
+  </div>`;
+}
+/* Student login override wrapper - add announcements at top */
+const commOriginalStudentLogin = studentLogin;
+function studentLogin(){
+  commOriginalStudentLogin();
+  const view=document.getElementById("view");
+  if(view && !document.querySelector(".commTopAnnouncement")){
+    view.insertAdjacentHTML("afterbegin", commAnnouncementHTML(6));
+  }
+}
+/* Student home override wrapper - add announcement + chat centre at top */
+const commOriginalStudentHome = studentHome;
+function studentHome(){
+  commOriginalStudentHome();
+  commEnsure();
+  const s=student(currentStudentId);
+  const view=document.getElementById("view");
+  if(view && s){
+    const unread = commUnreadStudent(s.id) + commClassUnreadStudent(s.id);
+    view.insertAdjacentHTML("afterbegin", `${commAnnouncementHTML(6)}<div class="commAdminPanel"><h2>Message Centre</h2><p>Chat directly with Sir Isaac Boahen. You can also see class messages here.</p><button class="btn green" onclick="commOpenChat('${s.id}')">Open Chat ${unread?`(${unread} new)`:''}</button></div>`);
+  }
+}
+/* Add chat button on admin student cards if adminDirectoryCard exists */
+if(typeof adminDirectoryCard === "function"){
+  const commOldAdminDirectoryCard = adminDirectoryCard;
+  adminDirectoryCard = function(s){
+    const base = commOldAdminDirectoryCard(s);
+    return base.replace(`</div>`, `<button class="commInlineStudentButton" onclick="event.stopPropagation();commOpenChat('${s.id}')">Chat</button></div>`);
+  };
+}
 
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
