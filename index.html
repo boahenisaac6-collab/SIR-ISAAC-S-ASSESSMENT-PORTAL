@@ -6717,6 +6717,165 @@ function sideOpenStudent(id){role = "admin"; route = "students"; renderShell(); 
   }
 })();
 
+
+/* ===== COMMUNICATION CLICK FIX: KEEP DESIGN, MAKE OPEN CHAT WORK ===== */
+(function(){
+  function comm2SafeSave(){
+    try{
+      if(typeof normalize === "function") normalize();
+    }catch(e){}
+    try{
+      if(typeof saveLocal === "function") saveLocal();
+      else if(typeof KEY !== "undefined") localStorage.setItem(KEY, JSON.stringify(state));
+    }catch(e){
+      console.warn("Local save skipped. This can happen when many pictures are stored.", e);
+    }
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote === "function"){
+        pushRemote();
+      }else if(typeof save === "function"){
+        try{ save(); }catch(err){ console.warn("Save skipped", err); }
+      }
+    }catch(e){
+      console.warn("Live save skipped", e);
+    }
+  }
+  window.comm2SafeSave = comm2SafeSave;
+
+  function comm2EnsureFixed(){
+    state.messages = Array.isArray(state.messages) ? state.messages : [];
+    state.announcements = Array.isArray(state.announcements) ? state.announcements : [];
+    state.classMessages = Array.isArray(state.classMessages) ? state.classMessages : [];
+  }
+  window.comm2Ensure = comm2EnsureFixed;
+
+  window.comm2Time = window.comm2Time || function(){
+    try{return new Date().toLocaleString();}catch(e){return typeof now==="function" ? now() : "";}
+  };
+  window.comm2Uid = window.comm2Uid || function(prefix){
+    return typeof uid==="function" ? uid(prefix) : (prefix + "_" + Date.now() + "_" + Math.random().toString(16).slice(2));
+  };
+
+  window.comm2MessagesForStudent = function(studentId){
+    comm2EnsureFixed();
+    const s = student(studentId);
+    const direct = state.messages.filter(m=>m.studentId===studentId).map(m=>({...m, kind:"direct"}));
+    const classMsgs = (state.classMessages||[])
+      .filter(m=>s && (m.className==="ALL" || m.className===s.className))
+      .map(m=>({...m, kind:"class", from:"admin"}));
+    return [...direct, ...classMsgs].sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
+  };
+
+  window.comm2ChatBody = function(studentId){
+    const msgs = window.comm2MessagesForStudent(studentId);
+    if(!msgs.length) return `<div class="empty">No message yet. Start the conversation.</div>`;
+    return msgs.map(m=>{
+      const cls = m.kind==="class" ? "broadcast" : (m.from==="admin" ? "admin" : "student");
+      const sender = m.kind==="class" ? "Class Message from Teacher" : (m.from==="admin" ? "Sir Isaac Boahen" : "Student");
+      return `<div class="comm2Bubble ${cls}">${esc(m.text||"")}<small>${sender} • ${esc(m.createdAt||"")}</small></div>`;
+    }).join("");
+  };
+
+  function openChatFixed(studentId){
+    try{
+      comm2EnsureFixed();
+      const s = student(studentId);
+      if(!s) return alert("Student not found. Please refresh and try again.");
+
+      // Mark read safely but do not allow save errors to stop the chat window.
+      try{
+        if(role === "admin"){
+          state.messages.forEach(m=>{ if(m.studentId===studentId && m.from==="student") m.readByAdmin=true; });
+        }else{
+          state.messages.forEach(m=>{ if(m.studentId===studentId && m.from==="admin") m.readByStudent=true; });
+          state.classMessages.forEach(m=>{
+            if(m.className==="ALL" || m.className===s.className){
+              m.readByStudents = Array.isArray(m.readByStudents) ? m.readByStudents : [];
+              if(!m.readByStudents.includes(studentId)) m.readByStudents.push(studentId);
+            }
+          });
+        }
+      }catch(e){ console.warn("Read mark skipped", e); }
+
+      const old=document.getElementById("comm2ModalOverlay");
+      if(old) old.remove();
+
+      document.body.insertAdjacentHTML("beforeend", `<div id="comm2ModalOverlay" class="comm2ModalOverlay">
+        <div class="comm2Modal">
+          <div class="comm2Header">
+            <div><h2>${role==="admin" ? `Chat with ${esc(s.name)}` : "Chat with Sir Isaac Boahen"}</h2><p>${role==="admin" ? esc((s.phone||"No phone") + " • " + (s.className||"")) : "0248481762 • Akuse Methodist SHTS"}</p></div>
+            <button onclick="comm2CloseChat()">Close</button>
+          </div>
+          <div id="comm2Messages" class="comm2Messages">${window.comm2ChatBody(studentId)}</div>
+          <div class="comm2InputArea">
+            <textarea id="comm2Text" placeholder="Type your message here..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();comm2SendMessage('${studentId}')}"></textarea>
+            <button onclick="comm2SendMessage('${studentId}')">Send</button>
+          </div>
+        </div>
+      </div>`);
+
+      setTimeout(()=>{
+        const box=document.getElementById("comm2Messages");
+        if(box) box.scrollTop=box.scrollHeight;
+        const t=document.getElementById("comm2Text");
+        if(t) t.focus();
+      },80);
+
+      comm2SafeSave();
+    }catch(e){
+      console.error("Open chat failed", e);
+      alert("Chat could not open. Please refresh the page and try again.");
+    }
+  }
+
+  function sendMessageFixed(studentId){
+    try{
+      comm2EnsureFixed();
+      const input=document.getElementById("comm2Text");
+      const text=(input?.value||"").trim();
+      if(!text) return;
+      state.messages.push({
+        id: (window.comm2Uid || function(p){return p+"_"+Date.now();})("msg"),
+        studentId,
+        from: role==="admin" ? "admin" : "student",
+        text,
+        createdAt: (window.comm2Time || function(){return new Date().toLocaleString();})(),
+        readByAdmin: role==="admin",
+        readByStudent: role!=="admin"
+      });
+      if(input) input.value="";
+      const box=document.getElementById("comm2Messages");
+      if(box){
+        box.innerHTML=window.comm2ChatBody(studentId);
+        setTimeout(()=>box.scrollTop=box.scrollHeight,30);
+      }
+      comm2SafeSave();
+    }catch(e){
+      console.error("Send message failed", e);
+      alert("Message could not be sent. Please try again.");
+    }
+  }
+
+  function closeChatFixed(){
+    const old=document.getElementById("comm2ModalOverlay");
+    if(old) old.remove();
+    try{
+      if(typeof comm2InjectSide==="function") setTimeout(comm2InjectSide,80);
+      if(role==="student" && route==="studentHome" && typeof studentHome==="function") setTimeout(studentHome,120);
+      if(role==="admin" && route==="dashboard" && typeof dashboard==="function") setTimeout(dashboard,120);
+    }catch(e){}
+  }
+
+  window.comm2OpenChat = openChatFixed;
+  window.comm2SendMessage = sendMessageFixed;
+  window.comm2CloseChat = closeChatFixed;
+
+  // Make the names available to inline onclick handlers in all browsers.
+  try{
+    eval("comm2OpenChat = window.comm2OpenChat; comm2SendMessage = window.comm2SendMessage; comm2CloseChat = window.comm2CloseChat;");
+  }catch(e){}
+})();
+
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(render);
