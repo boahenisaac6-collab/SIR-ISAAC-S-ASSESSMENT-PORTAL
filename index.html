@@ -3183,6 +3183,104 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== FULL CLASS LIST MULTI-PAGE PRINT FIX ===== */
+@media print{
+  body.printPictureClassList,
+  body.printPictureClassList html{
+    height:auto!important;
+    min-height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+  body.printPictureClassList *{
+    visibility:hidden!important;
+  }
+  body.printPictureClassList #pictureClassPrintArea,
+  body.printPictureClassList #pictureClassPrintArea *{
+    visibility:visible!important;
+  }
+  body.printPictureClassList #pictureClassPrintArea{
+    position:absolute!important;
+    left:0!important;
+    top:0!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    display:block!important;
+  }
+  body.printPictureClassList .printClassModal,
+  body.printPictureClassList .printClassBox,
+  body.printPictureClassList .printClassBody{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    box-shadow:none!important;
+    border:0!important;
+    padding:0!important;
+    margin:0!important;
+    background:#fff!important;
+  }
+  body.printPictureClassList .printPictureSheet{
+    width:100%!important;
+    height:auto!important;
+    min-height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    border:0!important;
+    border-radius:0!important;
+    padding:0!important;
+    margin:0!important;
+    page-break-inside:auto!important;
+    break-inside:auto!important;
+  }
+  body.printPictureClassList .pictureClassTable{
+    width:100%!important;
+    border-collapse:collapse!important;
+    page-break-inside:auto!important;
+    break-inside:auto!important;
+  }
+  body.printPictureClassList .pictureClassTable thead{
+    display:table-header-group!important;
+  }
+  body.printPictureClassList .pictureClassTable tbody{
+    display:table-row-group!important;
+  }
+  body.printPictureClassList .pictureClassTable tr{
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    page-break-after:auto!important;
+  }
+  body.printPictureClassList .pictureClassTable td,
+  body.printPictureClassList .pictureClassTable th{
+    padding:5px!important;
+    font-size:10.5pt!important;
+  }
+  body.printPictureClassList .pictureClassTable img,
+  body.printPictureClassList .pictureClassTable .printAvatar{
+    width:42px!important;
+    height:42px!important;
+  }
+  body.printPictureClassList .noPrint,
+  body.printPictureClassList .printClassHead,
+  body.printPictureClassList .classPrintChooser,
+  body.printPictureClassList .classPrintHelp{
+    display:none!important;
+    visibility:hidden!important;
+  }
+  @page{
+    size:A4 portrait;
+    margin:10mm;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -7276,6 +7374,77 @@ function sideOpenStudent(id){role = "admin"; route = "students"; renderShell(); 
 
   try{
     eval("openClassPrintModal = window.openClassPrintModal; closeClassPrintModal = window.closeClassPrintModal; previewPictureClassList = window.previewPictureClassList; printPictureClassList = window.printPictureClassList;");
+  }catch(e){}
+})();
+
+
+/* ===== FULL CLASS LIST PRINT FUNCTION FIX ===== */
+(function(){
+  function classSubjectNameSafe(className){
+    try{return subjectForClass(className) || "";}catch(e){return "";}
+  }
+  function classPhotoCellSafe(s){
+    if(s && s.photo){
+      return `<img src="${s.photo}" alt="${esc(s.name||"")}">`;
+    }
+    const initials = String(s?.name || "ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+    return `<div class="printAvatar">${esc(initials)}</div>`;
+  }
+
+  window.previewPictureClassList = function(){
+    const selected = document.getElementById("picturePrintClass");
+    const className = selected ? selected.value : ((state.classes||[])[0] || "");
+    const learners = (state.students||[])
+      .filter(s=>s.className === className)
+      .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+
+    const box = document.getElementById("pictureClassPrintArea");
+    if(!box) return;
+
+    box.innerHTML = `<div class="printPictureSheet">
+      <div class="printPictureHeader">
+        <div>
+          <h2>${esc(className || "Class")} Class List</h2>
+          <p>${esc(state.settings?.school || "Akuse Methodist SHTS")}<br>${esc(classSubjectNameSafe(className))} • Teacher: ${esc(state.settings?.teacherName || "Sir Isaac Boahen")}</p>
+        </div>
+        <div><b>Total: ${learners.length}</b><br><small>Generated: ${typeof now==="function" ? now() : new Date().toLocaleString()}</small></div>
+      </div>
+      <table class="pictureClassTable">
+        <thead>
+          <tr><th>No.</th><th>Picture</th><th>Student Name</th><th>Code</th><th>Phone</th><th>Subject</th></tr>
+        </thead>
+        <tbody>
+          ${learners.map((s,i)=>`<tr>
+            <td>${i+1}</td>
+            <td>${classPhotoCellSafe(s)}</td>
+            <td><b>${esc(s.name||"")}</b></td>
+            <td>${esc(s.code||"")}</td>
+            <td>${esc(s.phone||"")}</td>
+            <td>${esc(classSubjectNameSafe(s.className))}</td>
+          </tr>`).join("") || `<tr><td colspan="6">No student found in the selected class.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  window.printPictureClassList = function(){
+    previewPictureClassList();
+
+    const area = document.getElementById("pictureClassPrintArea");
+    if(!area) return alert("Preview the class list first.");
+
+    document.body.classList.add("printPictureClassList");
+
+    setTimeout(()=>{
+      window.print();
+      setTimeout(()=>{
+        document.body.classList.remove("printPictureClassList");
+      }, 800);
+    }, 200);
+  };
+
+  try{
+    eval("previewPictureClassList = window.previewPictureClassList; printPictureClassList = window.printPictureClassList;");
   }catch(e){}
 })();
 
