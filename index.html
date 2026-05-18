@@ -14835,6 +14835,284 @@ ${printable}
   }catch(e){}
 })();
 
+
+/* ===== MARKED PDF STUDENT NAME + PRINTOUT DATE FIX ===== */
+(function(){
+  const TEACHER_SIGNATURE_NAME_2 = "Sir Isaac Boahen";
+
+  function nmEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function nmSafeFileName(name){
+    return String(name || "marked_script")
+      .replace(/\.[^.]+$/,"")
+      .replace(/[^\w\-]+/g,"_")
+      .replace(/^_+|_+$/g,"") || "marked_script";
+  }
+  function nmStudent(id){
+    try{ if(typeof student==="function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>s.id===id) || {};
+  }
+  function nmAssignment(id){
+    return (state.docAssignments||[]).find(a=>a.id===id) || {};
+  }
+  function nmPrintDate(){
+    try{
+      return new Date().toLocaleString(undefined,{
+        weekday:"long", year:"numeric", month:"long", day:"numeric",
+        hour:"2-digit", minute:"2-digit"
+      });
+    }catch(e){
+      return new Date().toLocaleString();
+    }
+  }
+
+  function nmLoadImage(dataUrl){
+    return new Promise((resolve,reject)=>{
+      const img = new Image();
+      img.onload = ()=>resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+  function nmDataUrlToBytes(dataUrl){
+    const b64 = String(dataUrl).split(",")[1] || "";
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+  function nmBinaryStringFromUint8(arr){
+    let out = "";
+    const chunk = 8192;
+    for(let i=0;i<arr.length;i+=chunk){
+      out += String.fromCharCode.apply(null, arr.subarray(i,i+chunk));
+    }
+    return out;
+  }
+  function nmArrayBufferFromBinaryString(str){
+    const buf = new Uint8Array(str.length);
+    for(let i=0;i<str.length;i++) buf[i] = str.charCodeAt(i) & 255;
+    return buf;
+  }
+  function nmWrapText(ctx,text,x,y,maxWidth,lineHeight){
+    const words=String(text||"").split(/\s+/);
+    let line="";
+    for(let i=0;i<words.length;i++){
+      const test=line?line+" "+words[i]:words[i];
+      if(ctx.measureText(test).width>maxWidth && i>0){
+        ctx.fillText(line,x,y);
+        line=words[i];
+        y+=lineHeight;
+      }else line=test;
+    }
+    if(line) ctx.fillText(line,x,y);
+    return y;
+  }
+
+  async function nmMakeSignedPage(dataUrl,meta){
+    const img = await nmLoadImage(dataUrl);
+    const maxW = 1420;
+    let imgW = img.naturalWidth || img.width || 1000;
+    let imgH = img.naturalHeight || img.height || 1400;
+    const scale = Math.min(1, maxW / imgW);
+    imgW = Math.round(imgW * scale);
+    imgH = Math.round(imgH * scale);
+
+    const pad = 44;
+    const headerH = 190;
+    const footerH = 130;
+    const canvas = document.createElement("canvas");
+    canvas.width = imgW + pad*2;
+    canvas.height = imgH + headerH + footerH;
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle = "#071f3d";
+    ctx.fillRect(0,0,canvas.width,95);
+    ctx.fillStyle = "#f4c430";
+    ctx.fillRect(0,95,canvas.width,8);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 30px Arial";
+    ctx.fillText("MARKED SCRIPT", pad, 38);
+    ctx.font = "bold 19px Arial";
+    nmWrapText(ctx, meta.assignment || "Assignment", pad, 68, canvas.width-pad*2, 22);
+
+    ctx.fillStyle = "#071f3d";
+    ctx.font = "bold 30px Arial";
+    ctx.fillText("Student Name: " + (meta.studentName || "Student"), pad, 130);
+
+    ctx.font = "bold 17px Arial";
+    const line2 = [
+      meta.className ? "Class: " + meta.className : "",
+      meta.scoreText ? "Score: " + meta.scoreText : ""
+    ].filter(Boolean).join("     ");
+    ctx.fillText(line2, pad, 158);
+
+    ctx.fillStyle = "#344054";
+    ctx.font = "bold 16px Arial";
+    ctx.fillText("Date of Printout: " + (meta.printDate || nmPrintDate()), pad, 182);
+
+    ctx.drawImage(img, pad, headerH, imgW, imgH);
+
+    const footerY = headerH + imgH + 28;
+    ctx.strokeStyle = "#f4c430";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(pad, footerY);
+    ctx.lineTo(canvas.width-pad, footerY);
+    ctx.stroke();
+
+    ctx.fillStyle = "#071f3d";
+    ctx.font = "italic 35px Georgia, 'Times New Roman', serif";
+    ctx.fillText(TEACHER_SIGNATURE_NAME_2, pad, footerY + 45);
+
+    ctx.font = "bold 14px Arial";
+    ctx.fillText("Teacher's Signature / Initial", pad, footerY + 67);
+
+    ctx.fillStyle = "#344054";
+    ctx.font = "bold 13px Arial";
+    ctx.fillText("Printed: " + (meta.printDate || nmPrintDate()), pad, footerY + 92);
+
+    if(meta.feedback){
+      ctx.font = "14px Arial";
+      ctx.fillStyle = "#344054";
+      nmWrapText(ctx, "Comment: " + meta.feedback, pad + 350, footerY + 40, canvas.width - pad*2 - 350, 19);
+    }
+
+    return {
+      bytes: nmDataUrlToBytes(canvas.toDataURL("image/jpeg",0.92)),
+      width: canvas.width,
+      height: canvas.height
+    };
+  }
+
+  function nmMakePdf(images){
+    const pageW = 595.28, pageH = 841.89, margin = 18;
+    const objects = [];
+    objects.push(""); objects.push("");
+    const catalogId=1, pagesId=2;
+    const pageIds=[];
+    const addObj=(s)=>{objects.push(s); return objects.length;};
+
+    images.forEach(info=>{
+      const imgId=objects.length+1;
+      const imgStream=nmBinaryStringFromUint8(info.bytes);
+      addObj(`<< /Type /XObject /Subtype /Image /Width ${info.width} /Height ${info.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${info.bytes.length} >>\nstream\n${imgStream}\nendstream`);
+      const maxW=pageW-margin*2, maxH=pageH-margin*2;
+      const scale=Math.min(maxW/info.width,maxH/info.height);
+      const drawW=info.width*scale, drawH=info.height*scale;
+      const x=(pageW-drawW)/2, y=(pageH-drawH)/2;
+      const content=`q\n${drawW.toFixed(2)} 0 0 ${drawH.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im0 Do\nQ`;
+      const contentId=objects.length+1;
+      addObj(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+      const pageId=objects.length+1;
+      pageIds.push(pageId);
+      addObj(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 ${imgId} 0 R >> >> /Contents ${contentId} 0 R >>`);
+    });
+
+    objects[catalogId-1]=`<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+    objects[pagesId-1]=`<< /Type /Pages /Kids [${pageIds.map(id=>id+" 0 R").join(" ")}] /Count ${pageIds.length} >>`;
+    let pdf="%PDF-1.4\n";
+    const offsets=[0];
+    objects.forEach((obj,i)=>{
+      offsets.push(pdf.length);
+      pdf += `${i+1} 0 obj\n${obj}\nendobj\n`;
+    });
+    const xref=pdf.length;
+    pdf += `xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;
+    for(let i=1;i<offsets.length;i++) pdf += String(offsets[i]).padStart(10,"0")+" 00000 n \n";
+    pdf += `trailer\n<< /Size ${objects.length+1} /Root ${catalogId} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return new Blob([nmArrayBufferFromBinaryString(pdf)],{type:"application/pdf"});
+  }
+
+  function nmSaveBlob(blob,filename){
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    a.remove();
+  }
+
+  async function nmDownloadSubmission(ds){
+    if(!ds) return alert("Submission not found.");
+    const st=nmStudent(ds.studentId);
+    const a=nmAssignment(ds.assignmentId);
+    const files=(ds.markedFiles||[]).filter(Boolean).filter(f=>String(f.data||"").startsWith("data:image"));
+    if(!files.length) return alert("No marked script image found. Save the marked copy first.");
+
+    const printDate=nmPrintDate();
+    const meta={
+      studentName:st.name || "Student",
+      className:st.className || "",
+      assignment:a.title || "Marked Work",
+      scoreText:(ds.score ?? "-") + " / " + (a.maxScore ?? "-"),
+      feedback:ds.feedback || "",
+      printDate
+    };
+    const pages=[];
+    for(const f of files) pages.push(await nmMakeSignedPage(f.data,meta));
+    nmSaveBlob(nmMakePdf(pages), nmSafeFileName(st.name || "student") + ".pdf");
+  }
+
+  window.downloadMarkedSubmissionPDF = function(subId){
+    const ds=(state.docSubmissions||[]).find(x=>x.id===subId);
+    nmDownloadSubmission(ds);
+  };
+
+  window.downloadMarkedScriptFile = function(data,name){
+    const meta={
+      studentName:"Student",
+      className:"",
+      assignment:"Marked Work",
+      scoreText:"",
+      feedback:"",
+      printDate:nmPrintDate()
+    };
+    nmMakeSignedPage(data,meta).then(page=>nmSaveBlob(nmMakePdf([page]), nmSafeFileName(name||"marked_script")+".pdf"));
+  };
+
+  window.downloadAllMarkedScriptsPDF = async function(assignmentId="ALL"){
+    const submissions=(state.docSubmissions||[])
+      .filter(ds=>assignmentId==="ALL" || ds.assignmentId===assignmentId)
+      .filter(ds=>(ds.markedFiles||[]).filter(Boolean).some(f=>String(f.data||"").startsWith("data:image")))
+      .sort((a,b)=>{
+        const aa=nmAssignment(a.assignmentId).title || "";
+        const bb=nmAssignment(b.assignmentId).title || "";
+        const sa=nmStudent(a.studentId).name || "";
+        const sb=nmStudent(b.studentId).name || "";
+        return aa.localeCompare(bb) || sa.localeCompare(sb);
+      });
+    if(!submissions.length) return alert("No marked scripts found for PDF download.");
+
+    const pages=[];
+    const printDate=nmPrintDate();
+    for(const ds of submissions){
+      const st=nmStudent(ds.studentId);
+      const a=nmAssignment(ds.assignmentId);
+      const meta={
+        studentName:st.name || "Student",
+        className:st.className || "",
+        assignment:a.title || "Marked Work",
+        scoreText:(ds.score ?? "-") + " / " + (a.maxScore ?? "-"),
+        feedback:ds.feedback || "",
+        printDate
+      };
+      const files=(ds.markedFiles||[]).filter(Boolean).filter(f=>String(f.data||"").startsWith("data:image"));
+      for(const f of files) pages.push(await nmMakeSignedPage(f.data,meta));
+    }
+    const title=assignmentId==="ALL" ? "All_Marked_Scripts" : (nmAssignment(assignmentId).title || "Marked_Scripts");
+    nmSaveBlob(nmMakePdf(pages), nmSafeFileName(title)+".pdf");
+  };
+
+  try{
+    eval("downloadMarkedSubmissionPDF=window.downloadMarkedSubmissionPDF; downloadMarkedScriptFile=window.downloadMarkedScriptFile; downloadAllMarkedScriptsPDF=window.downloadAllMarkedScriptsPDF;");
+  }catch(e){}
+})();
+
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(render);
