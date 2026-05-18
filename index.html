@@ -4607,6 +4607,151 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== SIMPLE STUDENT PASSWORD INSTRUCTION + VIEW PASSWORD BUTTON ===== */
+.simpleStudentPasswordNotice{
+  border:3px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  border-radius:20px;
+  background:#fffdf0;
+  padding:15px;
+  margin:14px 0;
+  color:#071f3d;
+  box-shadow:0 10px 26px rgba(7,31,61,.10);
+}
+.simpleStudentPasswordNotice h2{
+  margin:0 0 8px;
+  color:#071f3d;
+  font-size:20px;
+}
+.simpleStudentPasswordNotice p{
+  margin:0 0 8px;
+  color:#344054;
+  line-height:1.45;
+  font-weight:800;
+}
+.simpleDefaultPasswordBox{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  background:#fff;
+  border:2px dashed #f4c430;
+  border-radius:16px;
+  padding:10px;
+  margin:10px 0;
+}
+.simpleDefaultPasswordBox code{
+  display:block;
+  background:#eef5fc;
+  color:#071f3d;
+  border-radius:12px;
+  padding:9px 10px;
+  font-size:19px;
+  font-weight:950;
+  overflow-wrap:anywhere;
+}
+.simpleDefaultPasswordBox button{
+  min-height:40px;
+  border:0;
+  border-radius:12px;
+  background:#071f3d;
+  color:#fff;
+  font-weight:950;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.simplePasswordChangeBox{
+  border:2px solid #d9e7f3;
+  border-left:8px solid #071f3d;
+  border-radius:18px;
+  background:#fff;
+  padding:12px;
+  margin:12px 0;
+}
+.simplePasswordChangeBox h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.simplePasswordChangeBox p{
+  margin:0 0 10px;
+  color:#667085;
+  font-weight:800;
+  line-height:1.45;
+}
+.simplePasswordGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+  gap:8px;
+  align-items:end;
+}
+.simplePassField label{
+  display:block;
+  font-size:11px;
+  font-weight:950;
+  color:#667085;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.simplePassWrap{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:6px;
+}
+.simplePassWrap input{
+  min-height:40px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+}
+.simplePassWrap button,
+.inlineViewPassBtn{
+  min-height:40px;
+  border:1px solid #d9e7f3;
+  border-radius:12px;
+  background:#eef5fc;
+  color:#071f3d;
+  font-weight:950;
+  padding:7px 10px;
+  cursor:pointer;
+}
+.simplePasswordGrid .savePassBtn{
+  min-height:40px;
+  border:0;
+  border-radius:12px;
+  background:#0f7b4f;
+  color:#fff;
+  font-weight:950;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.studentInlineLoginBox{
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+}
+.studentInlineLoginBox .inlineViewPassBtn{
+  background:#eef5fc!important;
+  color:#071f3d!important;
+  border:1px solid #d9e7f3!important;
+}
+.simpleStudentPasswordNote{
+  background:#ecfdf3;
+  border:1px solid #bce8ce;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:9px 10px;
+  font-weight:850;
+  line-height:1.45;
+  margin-top:8px;
+}
+@media(max-width:760px){
+  .simpleDefaultPasswordBox,
+  .simplePasswordGrid,
+  .simplePassWrap,
+  .studentInlineLoginBox{
+    grid-template-columns:1fr!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -11299,6 +11444,188 @@ ${printable}
 
   try{
     eval("students=window.students; adminShowStudentProfileAll=window.adminShowStudentProfileAll; adminShowStudentProfileFixed=window.adminShowStudentProfileFixed; studentWorkSummaryHTML=window.studentWorkSummaryHTML; refreshStudentWorkPanel=window.refreshStudentWorkPanel; resetQuizForStudent=window.resetQuizForStudent; availableQuizzes=window.availableQuizzes; submitQuiz=window.submitQuiz;");
+  }catch(e){}
+})();
+
+
+/* ===== SIMPLE STUDENT PASSWORD INSTRUCTION + VIEW PASSWORD BUTTON ===== */
+(function(){
+  function spSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("simple password save skipped", e); }
+  }
+  function spActiveShare(studentId){
+    try{ if(typeof pwActiveShare==="function") return pwActiveShare(studentId); }catch(e){}
+    return null;
+  }
+  function spCopy(text){
+    try{
+      if(navigator.clipboard){navigator.clipboard.writeText(text); alert("Password copied."); return;}
+    }catch(e){}
+    prompt("Copy password:", text);
+  }
+  window.spCopy = spCopy;
+
+  window.togglePasswordView = function(inputId, btn){
+    const input = document.getElementById(inputId);
+    if(!input) return;
+    if(input.type === "password"){
+      input.type = "text";
+      if(btn) btn.textContent = "Hide";
+    }else{
+      input.type = "password";
+      if(btn) btn.textContent = "View";
+    }
+    input.focus();
+  };
+
+  window.simpleStudentPasswordNoticeHTML = function(studentId){
+    const s = student(studentId);
+    if(!s) return "";
+    const active = spActiveShare(studentId);
+    if(!active) return "";
+    const pass = active.password || s.password || "";
+    return `<div id="simpleStudentPasswordNotice_${studentId}" class="simpleStudentPasswordNotice">
+      <h2>Your Password</h2>
+      <p>This is your current portal password. Keep it safely.</p>
+      <div class="simpleDefaultPasswordBox">
+        <code>${esc(pass)}</code>
+        <button onclick="spCopy('${String(pass).replace(/'/g,"\\'")}')">Copy</button>
+      </div>
+      <div class="simpleStudentPasswordNote">
+        You can use this password next time. You may also change it below to a password you can remember.
+      </div>
+    </div>`;
+  };
+
+  window.simpleChangePasswordBoxHTML = function(studentId){
+    const s = student(studentId);
+    if(!s) return "";
+    return `<div id="simplePasswordChangeBox_${studentId}" class="simplePasswordChangeBox">
+      <h3>Change Password</h3>
+      <p>Type your new password two times, then click Save.</p>
+      <div class="simplePasswordGrid">
+        <div class="simplePassField">
+          <label>New Password</label>
+          <div class="simplePassWrap">
+            <input id="simpleNewPass1" type="password" placeholder="New password">
+            <button type="button" onclick="togglePasswordView('simpleNewPass1', this)">View</button>
+          </div>
+        </div>
+        <div class="simplePassField">
+          <label>Confirm Password</label>
+          <div class="simplePassWrap">
+            <input id="simpleNewPass2" type="password" placeholder="Confirm password">
+            <button type="button" onclick="togglePasswordView('simpleNewPass2', this)">View</button>
+          </div>
+        </div>
+        <button class="savePassBtn" onclick="simpleStudentSavePassword()">Save</button>
+      </div>
+    </div>`;
+  };
+
+  window.simpleStudentSavePassword = function(){
+    const s = student(currentStudentId);
+    if(!s) return;
+    const p1 = (document.getElementById("simpleNewPass1")?.value || "").trim();
+    const p2 = (document.getElementById("simpleNewPass2")?.value || "").trim();
+    if(!p1 || !p2) return alert("Please type the password two times.");
+    if(p1.length < 4) return alert("Your password should be at least 4 characters.");
+    if(p1 !== p2) return alert("The two passwords are not the same. Please check and try again.");
+    if(!confirm("Save this as your new password?")) return;
+    s.password = p1;
+    if(Array.isArray(state.passwordShares)){
+      state.passwordShares.forEach(p=>{
+        if(p.studentId===s.id && p.active!==false){
+          p.password = p1;
+          p.changedByStudentAt = new Date().toISOString();
+        }
+      });
+    }
+    spSave();
+    alert("Your new password has been saved.");
+    if(typeof studentHome==="function") studentHome();
+  };
+
+  function cleanOldPasswordBlocks(studentId){
+    document.querySelectorAll(
+      ".passwordShareNotice,.studentPasswordChangeBox,.changePasswordAnytimeBox," +
+      "#passwordShareNotice_" + studentId + ",#studentPasswordChangeBox_" + studentId + ",#changePasswordAnytimeBox_" + studentId
+    ).forEach(el=>el.remove());
+  }
+
+  const oldStudentHome = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHome ? oldStudentHome.apply(this, arguments) : undefined;
+    const s = student(currentStudentId);
+    const view = document.getElementById("view");
+    if(view && s){
+      cleanOldPasswordBlocks(s.id);
+      if(!document.getElementById("simpleStudentPasswordNotice_"+s.id)){
+        const notice = simpleStudentPasswordNoticeHTML(s.id);
+        if(notice) view.insertAdjacentHTML("afterbegin", notice);
+      }
+      if(!document.getElementById("simplePasswordChangeBox_"+s.id)){
+        view.insertAdjacentHTML("beforeend", simpleChangePasswordBoxHTML(s.id));
+      }
+    }
+    return result;
+  };
+
+  function ilCanOpenWithoutPassword(studentId){
+    return !state.settings.requireStudentPassword || !!spActiveShare(studentId);
+  }
+  function ilPhoto(studentId){
+    try{
+      if(typeof clickableStudentPhoto==="function") return clickableStudentPhoto(studentId);
+    }catch(e){}
+    const s = student(studentId);
+    if(!s) return "";
+    if(s.photo) return `<img class="clickablePhoto" src="${s.photo}" alt="${esc(s.name)}">`;
+    const initials = String(s.name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+    return `<div class="clickableAvatar">${esc(initials)}</div>`;
+  }
+
+  window.buildStudentVisibleList = function(list, mode="student"){
+    if(mode !== "student"){
+      return `<div class="studentFullListGrid">
+        ${list.map(s=>`<div class="studentFullListItem" onclick="adminShowStudentProfileAll && adminShowStudentProfileAll('${s.id}')">
+          ${ilPhoto(s.id)}
+          <div class="studentFullInfo">
+            <b>${esc(s.name)}</b>
+            <small>${esc(s.phone || "No phone number")}</small>
+            <small>${esc(s.code || "")} • ${esc(s.className || "")} • ${esc(subjectForClass(s.className)||"")}</small>
+            <small class="openLine">Click to view full profile</small>
+          </div>
+        </div>`).join("") || `<div class="empty">No student found.</div>`}
+      </div>`;
+    }
+
+    return `<div class="studentFullListGrid">
+      ${list.map(s=>`<div class="studentFullListItem inlinePasswordReady">
+        ${ilPhoto(s.id)}
+        <div class="studentFullInfo">
+          <b>${esc(s.name)}</b>
+          <small>${esc(s.phone || "No phone number")}</small>
+          <small>${esc(s.code || "")} • ${esc(s.className || "")} • ${esc(subjectForClass(s.className)||"")}</small>
+          <small class="openLine">${ilCanOpenWithoutPassword(s.id) ? "You may open the portal now. Your password is shown inside." : "Type your password below."}</small>
+        </div>
+        <div class="studentInlineLoginBox" onclick="event.stopPropagation()">
+          <input id="inlinePass_${s.id}" type="password" placeholder="Password" onkeydown="if(event.key==='Enter'){studentCardLogin('${s.id}')}">
+          <button type="button" class="inlineViewPassBtn" onclick="togglePasswordView('inlinePass_${s.id}', this)">View</button>
+          <button onclick="studentCardLogin('${s.id}')">Open Portal</button>
+          <div class="studentInlineLoginHint">Type your password, then click Open Portal.</div>
+        </div>
+      </div>`).join("") || `<div class="empty">No student found.</div>`}
+    </div>`;
+  };
+
+  try{
+    eval("togglePasswordView=window.togglePasswordView; simpleStudentSavePassword=window.simpleStudentSavePassword; spCopy=window.spCopy; buildStudentVisibleList=window.buildStudentVisibleList; studentHome=window.studentHome;");
   }catch(e){}
 })();
 
