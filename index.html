@@ -5124,6 +5124,29 @@ body.caFullscreenLock{
   line-height:1.35;
 }
 
+
+/* ===== MARKING TOOLS VISIBLE + STUDENT MARKED SCRIPT DISPLAY ===== */
+.markerModal{grid-template-rows:auto auto minmax(0,1fr) auto!important;overflow:hidden!important}
+.markerHeader{position:relative!important;z-index:40!important}
+.markerTools{position:relative!important;z-index:999!important;background:#fff!important;border-bottom:2px solid #d9e7f3!important;box-shadow:0 6px 18px rgba(7,31,61,.12)!important;display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important;padding:10px!important;overflow:visible!important;visibility:visible!important;opacity:1!important}
+.markerCanvasWrap{position:relative!important;z-index:1!important;overflow:auto!important;min-height:0!important;background:#eef5fc!important}
+.markerPage{position:relative!important;z-index:2!important;margin:auto!important}
+.markerFooter{position:relative!important;z-index:45!important;background:#fff!important;box-shadow:0 -6px 18px rgba(7,31,61,.08)!important}
+.markerTools button,.markerTools label,.markerTools input{position:relative!important;z-index:1000!important;visibility:visible!important;opacity:1!important}
+.markedScriptStudentPanel{border:2px solid #d9e7f3;border-left:8px solid #0f7b4f;background:#fff;border-radius:20px;padding:14px;margin:14px 0;box-shadow:0 8px 24px rgba(7,31,61,.08)}
+.markedScriptStudentPanel h2,.markedScriptStudentPanel h3{margin:0 0 8px;color:#071f3d}
+.markedScriptStudentPanel p{margin:0 0 10px;color:#667085;line-height:1.45;font-weight:750}
+.markedScriptCard{border:1px solid #d9e7f3;background:#f8fbff;border-radius:16px;padding:12px;margin:10px 0}
+.markedScriptMeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:8px 0}
+.markedScriptMeta div{border:1px solid #edf2f7;background:#fff;border-radius:12px;padding:8px}
+.markedScriptMeta span{display:block;color:#667085;font-size:10px;font-weight:950;text-transform:uppercase;margin-bottom:4px}
+.markedScriptMeta b{color:#071f3d}
+.markedFilesGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.markedFileBox{border:1px solid #d9e7f3;background:#fff;border-radius:14px;padding:10px}
+.markedFileBox img{width:100%;max-height:280px;object-fit:contain;border:1px solid #d9e7f3;border-radius:10px;background:#fff}
+.markedFileBox a{display:inline-flex;margin-top:7px;border-radius:10px;padding:7px 10px;background:#071f3d;color:#fff;text-decoration:none;font-weight:950}
+@media(max-width:760px){.markerTools{max-height:35vh!important;overflow:auto!important}.markerFooter{grid-template-columns:1fr!important}}
+
 </style>
 </head>
 <body>
@@ -13117,6 +13140,115 @@ ${printable}
 
   try{
     eval("openDigitalMarker=window.openDigitalMarker; setupMarkerCanvas=window.setupMarkerCanvas; markerTool=window.markerTool; markerSetColor=window.markerSetColor; clearMarkerCanvas=window.clearMarkerCanvas; undoMarkerInk=window.undoMarkerInk; saveMarkedWork=window.saveMarkedWork; publishMarkedWork=window.publishMarkedWork;");
+  }catch(e){}
+})();
+
+
+/* ===== MARKING TOOLS VISIBLE + STUDENT MARKED SCRIPT DISPLAY ===== */
+(function(){
+  function mtSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("marked script save skipped", e); }
+  }
+  function mtEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function mtAssignment(id){ return (state.docAssignments||[]).find(a=>a.id===id) || {}; }
+  function mtNow(){ try{ return typeof now==="function" ? now() : new Date().toLocaleString(); }catch(e){ return new Date().toLocaleString(); } }
+
+  const previousOpenDigitalMarker = window.openDigitalMarker;
+  if(typeof previousOpenDigitalMarker === "function"){
+    window.openDigitalMarker = function(subId,fileIndex){
+      const result = previousOpenDigitalMarker.apply(this, arguments);
+      setTimeout(function(){
+        const tools = document.querySelector(".markerTools");
+        const modal = document.querySelector(".markerModal");
+        const wrap = document.querySelector(".markerCanvasWrap");
+        if(modal) modal.style.gridTemplateRows = "auto auto minmax(0,1fr) auto";
+        if(tools){
+          tools.style.position = "relative";
+          tools.style.zIndex = "999";
+          tools.style.visibility = "visible";
+          tools.style.opacity = "1";
+        }
+        if(wrap){
+          wrap.style.zIndex = "1";
+          wrap.style.minHeight = "0";
+        }
+      }, 250);
+      return result;
+    };
+  }
+
+  const oldPublishMarkedWork = window.publishMarkedWork;
+  window.publishMarkedWork = function(subId,fileIndex){
+    if(typeof saveMarkedWork === "function"){
+      saveMarkedWork(subId,fileIndex);
+    }else if(typeof oldPublishMarkedWork === "function"){
+      oldPublishMarkedWork.apply(this, arguments);
+    }
+    const ds = (state.docSubmissions||[]).find(x=>x.id===subId);
+    if(ds){
+      ds.published = true;
+      ds.publishedAt = mtNow();
+      const scoreInput = document.getElementById("markerScore");
+      const feedbackInput = document.getElementById("markerFeedback");
+      if(scoreInput) ds.score = Number(scoreInput.value) || 0;
+      if(feedbackInput) ds.feedback = feedbackInput.value || "";
+      mtSave();
+    }
+    alert("Marked script and score have been published to the student's portal.");
+    document.getElementById("markerOverlay")?.remove();
+    if(typeof review === "function" && role === "admin") review();
+  };
+
+  function markedFilesHTML(ds){
+    const files = (ds.markedFiles||[]).filter(Boolean);
+    if(!files.length) return '<div class="empty">Marked copy has not been saved yet.</div>';
+    return '<div class="markedFilesGrid">'+files.map(function(f,i){
+      const isImg = String(f.type||"").startsWith("image/") || String(f.data||"").startsWith("data:image");
+      return '<div class="markedFileBox"><b>Marked Page '+(i+1)+'</b>'+(isImg?'<img src="'+f.data+'" alt="Marked script">':'<p>'+mtEsc(f.name||"Marked file")+'</p>')+'<a href="'+f.data+'" target="_blank">Open Marked Script</a></div>';
+    }).join("")+'</div>';
+  }
+
+  window.studentMarkedScriptsHTML = function(){
+    const sid = currentStudentId;
+    if(!sid) return "";
+    const rows = (state.docSubmissions||[]).filter(ds=>ds.studentId===sid && ds.published).sort((a,b)=>String(b.publishedAt||b.submittedAt||"").localeCompare(String(a.publishedAt||a.submittedAt||"")));
+    if(!rows.length){
+      return '<div class="markedScriptStudentPanel"><h2>My Marked Scripts</h2><p>No marked script has been published yet.</p></div>';
+    }
+    return '<div class="markedScriptStudentPanel" id="studentMarkedScriptsPanel"><h2>My Marked Scripts and Scores</h2><p>When Sir Isaac marks and publishes your submitted work, your marked script and score will appear here.</p>'+
+      rows.map(function(ds){
+        const a = mtAssignment(ds.assignmentId);
+        return '<div class="markedScriptCard"><h3>'+mtEsc(a.title || "Marked Work")+'</h3><div class="markedScriptMeta"><div><span>Score</span><b>'+(ds.score ?? "-")+' / '+(a.maxScore ?? "-")+'</b></div><div><span>Status</span><b>Published</b></div><div><span>Submitted</span><b>'+mtEsc(ds.submittedAt || "")+'</b></div><div><span>Published</span><b>'+mtEsc(ds.publishedAt || "")+'</b></div></div>'+(ds.feedback?'<p><b>Teacher Comment:</b> '+mtEsc(ds.feedback)+'</p>':"")+markedFilesHTML(ds)+'</div>';
+      }).join("")+'</div>';
+  };
+
+  const oldStudentResults = window.studentResults;
+  window.studentResults = function(){
+    if(typeof oldStudentResults === "function") oldStudentResults.apply(this, arguments);
+    else document.getElementById("view").innerHTML = "";
+    const view = document.getElementById("view");
+    if(view && !document.getElementById("studentMarkedScriptsPanel")){
+      view.insertAdjacentHTML("beforeend", studentMarkedScriptsHTML());
+    }
+  };
+
+  const oldStudentHome = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHome ? oldStudentHome.apply(this, arguments) : undefined;
+    const view = document.getElementById("view");
+    if(view && !document.getElementById("studentMarkedScriptsPanel")){
+      view.insertAdjacentHTML("beforeend", studentMarkedScriptsHTML());
+    }
+    return result;
+  };
+
+  try{
+    eval("openDigitalMarker=window.openDigitalMarker; publishMarkedWork=window.publishMarkedWork; studentResults=window.studentResults; studentHome=window.studentHome; studentMarkedScriptsHTML=window.studentMarkedScriptsHTML;");
   }catch(e){}
 })();
 
