@@ -4772,6 +4772,277 @@ body.caFullscreenLock{
   line-height:1.3;
 }
 
+
+/* ===== SIMPLIFIED QUIZ IMPORT + SCANNED WORK CENTRE ===== */
+.simpleQuizCentre{
+  display:grid;
+  gap:14px;
+}
+.simpleQuizPanel{
+  border:2px solid #d9e7f3;
+  border-left:8px solid #071f3d;
+  background:#fff;
+  border-radius:22px;
+  padding:14px;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.simpleQuizPanel h2,.simpleQuizPanel h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.simpleQuizPanel p{
+  margin:0 0 10px;
+  color:#667085;
+  line-height:1.45;
+  font-weight:750;
+}
+.simpleQuizSteps{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+.simpleQuizStep{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:16px;
+  padding:11px;
+}
+.simpleQuizStep b{
+  color:#071f3d;
+}
+.simpleQuizGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:10px;
+}
+.simpleQuizGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.simpleQuizGrid input,.simpleQuizGrid select,.simpleQuizPanel textarea{
+  width:100%;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:9px 10px;
+  min-height:42px;
+  font-family:inherit;
+}
+.simpleQuizPanel textarea{
+  min-height:170px;
+  resize:vertical;
+}
+.simpleClassChecks{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:7px;
+  margin-top:6px;
+}
+.simpleClassChecks label{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:12px;
+  padding:8px 10px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  font-size:13px;
+  text-transform:none;
+  color:#071f3d;
+  font-weight:900;
+}
+.simpleActionRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin-top:10px;
+}
+.simpleActionRow button,.simpleActionRow label{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.simpleActionRow .green{border:0;background:#0f7b4f;color:#fff}
+.simpleActionRow .navy{border:0;background:#071f3d;color:#fff}
+.simpleActionRow .gold{border:0;background:#f4c430;color:#071f3d}
+.simpleActionRow .light{border:1px solid #d9e7f3;background:#eef5fc;color:#071f3d}
+.simpleActionRow .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.quizManageGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
+  gap:12px;
+  align-items:start;
+}
+.quizManageCard{
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  padding:12px;
+  background:#f8fbff;
+  display:grid;
+  gap:8px;
+}
+.quizManageCard h3{
+  color:#071f3d;
+  margin:0;
+}
+.quizStatusPill{
+  display:inline-flex;
+  width:max-content;
+  border-radius:999px;
+  padding:5px 10px;
+  font-size:12px;
+  font-weight:950;
+  border:1px solid #d9e7f3;
+}
+.quizStatusPill.published{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}
+.quizStatusPill.draft{background:#fff7d1;color:#071f3d;border-color:#f4c430}
+.previewModal2{
+  position:fixed;
+  inset:0;
+  z-index:2147483925;
+  background:rgba(4,18,37,.84);
+  display:grid;
+  place-items:center;
+  padding:14px;
+}
+.previewBox2{
+  width:min(980px,100%);
+  max-height:92vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:22px;
+  box-shadow:0 28px 90px rgba(0,0,0,.35);
+  border:1px solid #d9e7f3;
+}
+.previewHead2{
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  padding:14px 18px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+}
+.previewHead2 h2{margin:0;font-size:18px}
+.previewHead2 button{
+  border:0;
+  border-radius:10px;
+  background:#f4c430;
+  color:#071f3d;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.previewBody2{padding:14px}
+.previewQ2{
+  border:1px solid #d9e7f3;
+  border-radius:16px;
+  padding:12px;
+  margin:10px 0;
+  background:#fff;
+}
+.previewQ2 h4{margin:0 0 8px;color:#071f3d}
+.choice2{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:8px;
+  border-bottom:1px dashed #edf2f7;
+  padding:6px 0;
+}
+.choice2.correct{
+  background:#ecfdf3;
+  border:1px solid #bce8ce;
+  border-radius:10px;
+  padding:7px;
+}
+.importResultBox{
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:10px;
+  margin-top:10px;
+  font-weight:900;
+}
+.importErrorBox{
+  border:1px solid #ffd4d0;
+  background:#fff1f0;
+  color:#b42318;
+  border-radius:14px;
+  padding:10px;
+  margin-top:10px;
+  font-weight:900;
+}
+.scannedQuestionView{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:16px;
+  padding:10px;
+  margin:10px 0;
+}
+.scannedQuestionView img{
+  width:100%;
+  max-height:360px;
+  object-fit:contain;
+  border-radius:12px;
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+}
+.studentSimpleNotice{
+  border:3px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  border-radius:20px;
+  background:#fffdf0;
+  padding:14px;
+  margin:12px 0;
+  color:#071f3d;
+}
+.studentSimpleNotice h2{margin:0 0 8px;color:#071f3d}
+.studentSimpleNotice ol{
+  margin:8px 0 0 20px;
+  line-height:1.55;
+  font-weight:850;
+}
+.assessmentSelectInline{
+  min-height:38px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:7px 10px;
+  font-weight:850;
+  max-width:260px;
+}
+@media(max-width:760px){
+  .simpleActionRow button,.simpleActionRow label{
+    width:100%;
+  }
+  .quizManageGrid{
+    grid-template-columns:1fr;
+  }
+}
+@media print{
+  body.printImportedResults *{visibility:hidden!important}
+  body.printImportedResults #importedResultsPrintArea,
+  body.printImportedResults #importedResultsPrintArea *{visibility:visible!important}
+  body.printImportedResults #importedResultsPrintArea{
+    position:absolute!important;
+    left:0!important;
+    top:0!important;
+    width:100%!important;
+  }
+  @page{size:A4 portrait;margin:10mm}
+}
+
 </style>
 </head>
 <body>
@@ -11827,6 +12098,651 @@ ${printable}
 
   try{
     eval("revokePasswordShareForAllStudents=window.revokePasswordShareForAllStudents; toggleAllPasswordWindows=window.toggleAllPasswordWindows; passwordControlCentreHTML=window.passwordControlCentreHTML; buildStudentVisibleList=window.buildStudentVisibleList; clearStudentLoginAutofill=window.clearStudentLoginAutofill; studentLogin=window.studentLogin; studentQuickSearch=window.studentQuickSearch;");
+  }catch(e){}
+})();
+
+
+/* ===== SIMPLIFIED QUIZ IMPORT + SCANNED WORK CENTRE ===== */
+(function(){
+  let scannedQuestionFileCache = null;
+
+  function sqEnsure(){
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.docAssignments = Array.isArray(state.docAssignments) ? state.docAssignments : [];
+    state.docSubmissions = Array.isArray(state.docSubmissions) ? state.docSubmissions : [];
+    state.reportScores = Array.isArray(state.reportScores) ? state.reportScores : [];
+  }
+  function sqSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("simple quiz save skipped", e); }
+  }
+  function sqUid(prefix){ return typeof uid==="function" ? uid(prefix) : prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function sqNow(){ return typeof now==="function" ? now() : new Date().toLocaleString(); }
+  function sqEsc(v){ return typeof esc==="function" ? esc(v) : String(v??""); }
+  function sqSubjectClasses(subject){
+    try{
+      const found=(state.subjects||[]).find(s=>s.name===subject);
+      if(found && Array.isArray(found.classes)) return found.classes.slice();
+      if(typeof classesForSubject==="function") return classesForSubject(subject);
+    }catch(e){}
+    return (state.classes||[]).slice();
+  }
+  function sqSubjectOptions(selected=""){
+    return (state.subjects||[]).map(s=>`<option value="${sqEsc(s.name)}" ${s.name===selected?'selected':''}>${sqEsc(s.name)}</option>`).join("");
+  }
+  function sqReportComponents(){
+    try{ if(typeof reportComponents==="function") return reportComponents(); }catch(e){}
+    return [
+      {key:"ex1",label:"Exercise 1"},{key:"ex2",label:"Exercise 2"},{key:"ex3",label:"Exercise 3"},
+      {key:"proj1",label:"Project Work 1"},{key:"proj2",label:"Project Work 2"},{key:"proj3",label:"Project Work 3"},
+      {key:"group",label:"Group Work"},{key:"exam",label:"Examination"}
+    ];
+  }
+  function sqComponentOptions(selected="ex1"){
+    return sqReportComponents().map(c=>`<option value="${sqEsc(c.key)}" ${c.key===selected?'selected':''}>${sqEsc(c.label)}</option>`).join("");
+  }
+  function sqComponentLabel(key){
+    const c=sqReportComponents().find(x=>x.key===key);
+    return c ? c.label : key;
+  }
+  function sqSetReport(studentId,key,scorePercent){
+    let r;
+    try{
+      if(typeof getReportRecord==="function") r=getReportRecord(studentId);
+    }catch(e){}
+    if(!r){
+      state.reportScores = state.reportScores || [];
+      r = state.reportScores.find(x=>x.studentId===studentId);
+      if(!r){ r={id:sqUid("rep"),studentId}; state.reportScores.push(r); }
+    }
+    let n = Number(scorePercent);
+    if(Number.isNaN(n)) n=0;
+    if(n<0)n=0;
+    if(n>100)n=100;
+    r[key]=Math.round(n*100)/100;
+  }
+  function sqScorePercent(sub){
+    const score = Number(sub.teacherScore ?? sub.autoScore ?? sub.score ?? 0);
+    const max = Number(sub.maxScore || 100);
+    return max ? Math.round((score/max)*10000)/100 : 0;
+  }
+  function sqQuizById(id){
+    try{ if(typeof quiz==="function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>q.id===id);
+  }
+  function sqStudentById(id){
+    try{ if(typeof student==="function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>s.id===id);
+  }
+  function sqSubjectForClass(c){
+    try{ return subjectForClass(c)||""; }catch(e){ return ""; }
+  }
+
+  window.refreshSimpleImportClasses = function(){
+    const subj = document.getElementById("simpleImportSubject")?.value || (state.subjects?.[0]?.name || "");
+    const box = document.getElementById("simpleImportClasses");
+    if(!box) return;
+    box.innerHTML = sqSubjectClasses(subj).map(c=>`<label><input type="checkbox" value="${sqEsc(c)}" checked> ${sqEsc(c)}</label>`).join("") || `<div class="empty">No class found for this subject.</div>`;
+  };
+
+  window.refreshScannedAssignmentClasses = function(){
+    const subj = document.getElementById("scanAssignSubject")?.value || (state.subjects?.[0]?.name || "");
+    const box = document.getElementById("scanAssignClasses");
+    if(!box) return;
+    box.innerHTML = sqSubjectClasses(subj).map(c=>`<label><input type="checkbox" value="${sqEsc(c)}" checked> ${sqEsc(c)}</label>`).join("") || `<div class="empty">No class found for this subject.</div>`;
+  };
+
+  window.copyQuizPackageTemplate = function(){
+    const sample = {
+      title: "Exercise 2: Mathematics MCQ",
+      subject: "Mathematics",
+      durationMinutes: 30,
+      assignmentType: "Exercise",
+      status: "Draft",
+      assessmentComponent: "ex1",
+      questions: [
+        {
+          type: "mcq",
+          marks: 1,
+          prompt: "Simplify \\(\\frac{2}{3}+\\frac{1}{6}\\).",
+          choices: ["\\(\\frac{1}{2}\\)", "\\(\\frac{5}{6}\\)", "\\(\\frac{3}{9}\\)", "\\(\\frac{2}{9}\\)"],
+          answer: "B"
+        }
+      ]
+    };
+    const text = JSON.stringify(sample,null,2);
+    try{ navigator.clipboard.writeText(text); alert("Quiz Package template copied."); }
+    catch(e){ prompt("Copy this template:", text); }
+  };
+
+  function normalizeQuizPackage(raw, settings){
+    let data;
+    try{ data = JSON.parse(raw); }
+    catch(e){ throw new Error("The quiz package is not valid JSON. Copy the package exactly as given."); }
+
+    if(Array.isArray(data)) data = {questions:data};
+    if(!Array.isArray(data.questions)) throw new Error("The quiz package must contain a questions array.");
+
+    const letters = ["A","B","C","D","E","F"];
+    const questions = data.questions.map((q,i)=>{
+      let choices = q.choices || q.options || q.alternatives;
+      if(choices && !Array.isArray(choices) && typeof choices==="object"){
+        choices = letters.map(l=>choices[l]).filter(x=>x!==undefined);
+      }
+      if(!Array.isArray(choices) || choices.length < 2) throw new Error("Question "+(i+1)+" must have at least two choices.");
+      const answer = String(q.answer || q.correct || q.correctAnswer || "").trim().toUpperCase();
+      if(!answer) throw new Error("Question "+(i+1)+" has no correct answer.");
+      return {
+        id: q.id || sqUid("q"),
+        type: "mcq",
+        marks: Number(q.marks || 1),
+        prompt: q.prompt || q.question || q.text || "",
+        choices: choices.map(String),
+        answer: answer
+      };
+    });
+    if(!questions.length) throw new Error("No questions found in the package.");
+
+    const title = (settings.title || data.title || "Imported MCQ Exercise").trim();
+    const subject = settings.subject || data.subject || state.subjects?.[0]?.name || "Mathematics";
+    const durationMinutes = Number(settings.duration || data.durationMinutes || data.duration || 30) || 30;
+    const classes = settings.classNames && settings.classNames.length ? settings.classNames : (data.classNames || sqSubjectClasses(subject));
+    const status = settings.status || data.status || "Draft";
+    const assessmentComponent = settings.assessmentComponent || data.assessmentComponent || "ex1";
+    return {title,subject,durationMinutes,classNames:classes,status,assessmentComponent,assignmentType:"Exercise",questions};
+  }
+
+  window.validateQuizPackage = function(){
+    const box = document.getElementById("quizImportResult");
+    try{
+      const raw = document.getElementById("quizPackageText")?.value || "";
+      const settings = {
+        title: document.getElementById("simpleImportTitle")?.value || "",
+        subject: document.getElementById("simpleImportSubject")?.value || "",
+        duration: document.getElementById("simpleImportDuration")?.value || 30,
+        status: document.getElementById("simpleImportStatus")?.value || "Draft",
+        assessmentComponent: document.getElementById("simpleImportComponent")?.value || "ex1",
+        classNames: [...document.querySelectorAll("#simpleImportClasses input:checked")].map(x=>x.value)
+      };
+      const q = normalizeQuizPackage(raw, settings);
+      box.innerHTML = `<div class="importResultBox">Valid quiz package. Title: ${sqEsc(q.title)}. Questions: ${q.questions.length}. Subject: ${sqEsc(q.subject)}. Classes: ${sqEsc(q.classNames.join(", "))}.</div>`;
+      previewImportedQuizObject(q);
+    }catch(e){
+      box.innerHTML = `<div class="importErrorBox">${sqEsc(e.message)}</div>`;
+    }
+  };
+
+  window.importQuizPackage = function(){
+    const box = document.getElementById("quizImportResult");
+    try{
+      const raw = document.getElementById("quizPackageText")?.value || "";
+      const settings = {
+        title: document.getElementById("simpleImportTitle")?.value || "",
+        subject: document.getElementById("simpleImportSubject")?.value || "",
+        duration: document.getElementById("simpleImportDuration")?.value || 30,
+        status: document.getElementById("simpleImportStatus")?.value || "Draft",
+        assessmentComponent: document.getElementById("simpleImportComponent")?.value || "ex1",
+        classNames: [...document.querySelectorAll("#simpleImportClasses input:checked")].map(x=>x.value)
+      };
+      const q = normalizeQuizPackage(raw, settings);
+      q.id = sqUid("quiz");
+      q.createdAt = sqNow();
+      state.quizzes.push(q);
+      if(q.status==="Published"){
+        q.publishedAt = new Date().toISOString();
+        try{ if(typeof ensureUniformAssignmentNotices==="function") ensureUniformAssignmentNotices(); }catch(e){}
+      }
+      sqSave();
+      box.innerHTML = `<div class="importResultBox">Quiz imported successfully as ${sqEsc(q.status)}. You can preview or publish it below.</div>`;
+      quizzes();
+    }catch(e){
+      box.innerHTML = `<div class="importErrorBox">${sqEsc(e.message)}</div>`;
+    }
+  };
+
+  function previewImportedQuizObject(q){
+    const old = document.getElementById("simplePreviewModal");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="simplePreviewModal" class="previewModal2">
+      <div class="previewBox2">
+        <div class="previewHead2"><h2>Preview: ${sqEsc(q.title)}</h2><button onclick="document.getElementById('simplePreviewModal').remove()">Close</button></div>
+        <div class="previewBody2">
+          <p><b>Subject:</b> ${sqEsc(q.subject)}<br><b>Classes:</b> ${sqEsc((q.classNames||[]).join(", "))}<br><b>Duration:</b> ${q.durationMinutes} minutes<br><b>Component:</b> ${sqEsc(sqComponentLabel(q.assessmentComponent))}</p>
+          ${q.questions.map((qq,i)=>`<div class="previewQ2"><h4>Question ${i+1}</h4><p>${qq.prompt}</p>
+            ${qq.choices.map((c,j)=>{const L=["A","B","C","D","E","F"][j]; return `<div class="choice2 ${String(qq.answer).toUpperCase()===L?'correct':''}"><b>${L}.</b><span>${c}</span></div>`}).join("")}
+            <p><b>Correct Answer:</b> ${sqEsc(qq.answer)}</p></div>`).join("")}
+        </div>
+      </div>
+    </div>`);
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  }
+
+  window.previewQuizSimple = function(qid){
+    const q=sqQuizById(qid);
+    if(!q) return alert("Quiz not found.");
+    previewImportedQuizObject(q);
+  };
+
+  window.toggleQuizPublishSimple = function(qid){
+    const q=sqQuizById(qid);
+    if(!q) return;
+    q.status = q.status==="Published" ? "Draft" : "Published";
+    if(q.status==="Published"){
+      q.publishedAt = new Date().toISOString();
+      try{ if(typeof ensureUniformAssignmentNotices==="function") ensureUniformAssignmentNotices(); }catch(e){}
+    }
+    sqSave();
+    alert(q.status==="Published" ? "Published. Assigned students can now see it." : "Hidden from students.");
+    quizzes();
+  };
+
+  window.deleteQuizSimple = function(qid){
+    const q=sqQuizById(qid);
+    if(!q) return;
+    if(!confirm("Delete this quiz/exercise and its submissions?\n\n"+q.title)) return;
+    state.quizzes = state.quizzes.filter(x=>x.id!==qid);
+    state.submissions = state.submissions.filter(x=>x.quizId!==qid);
+    sqSave();
+    quizzes();
+  };
+
+  window.publishQuizResultsSimple = function(qid){
+    const q=sqQuizById(qid);
+    if(!q) return;
+    const subs=state.submissions.filter(s=>s.quizId===qid);
+    if(!subs.length) return alert("No submission yet.");
+    subs.forEach(s=>s.published=true);
+    if(q.assessmentComponent){
+      assignQuizScoresToComponent(qid, q.assessmentComponent);
+    }
+    sqSave();
+    alert("Results published. If a component was selected, scores have also been sent to cumulative records.");
+    quizzes();
+  };
+
+  window.assignQuizScoresToComponent = function(qid, componentKey){
+    const q=sqQuizById(qid);
+    const subs=state.submissions.filter(s=>s.quizId===qid);
+    if(!q) return;
+    subs.forEach(sub=>{
+      sqSetReport(sub.studentId, componentKey, sqScorePercent(sub));
+    });
+    q.assessmentComponent = componentKey;
+    sqSave();
+  };
+
+  window.assignQuizScoresClicked = function(qid){
+    const key = document.getElementById("component_for_"+qid)?.value || "ex1";
+    assignQuizScoresToComponent(qid,key);
+    alert("Scores assigned to "+sqComponentLabel(key)+" in cumulative records.");
+    quizzes();
+  };
+
+  window.printQuizResultsSimple = function(qid){
+    const q=sqQuizById(qid);
+    if(!q) return;
+    const rows = state.submissions.filter(s=>s.quizId===qid).map(s=>({sub:s,stu:sqStudentById(s.studentId)||{}}))
+      .sort((a,b)=>String(a.stu.className||"").localeCompare(String(b.stu.className||"")) || String(a.stu.name||"").localeCompare(String(b.stu.name||"")));
+    const old=document.getElementById("simpleResultsModal");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="simpleResultsModal" class="previewModal2">
+      <div class="previewBox2">
+        <div class="previewHead2"><h2>Results: ${sqEsc(q.title)}</h2><button onclick="document.getElementById('simpleResultsModal').remove()">Close</button></div>
+        <div class="previewBody2"><button class="btn green noPrint" onclick="document.body.classList.add('printImportedResults');setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove('printImportedResults'),500)},100)">Print / Save PDF</button>
+          <div id="importedResultsPrintArea">
+            <h2>${sqEsc(q.title)} Results</h2>
+            <p>${sqEsc(q.subject)} • ${sqEsc((q.classNames||[]).join(", "))}<br>Generated: ${sqNow()}</p>
+            <table class="exerciseResultsTable"><thead><tr><th>No.</th><th>Student</th><th>Class</th><th>Score</th><th>Percent</th><th>Status</th><th>Submitted</th></tr></thead><tbody>
+              ${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${sqEsc(r.stu.name||"")}</td><td>${sqEsc(r.stu.className||"")}</td><td>${r.sub.teacherScore ?? r.sub.autoScore} / ${r.sub.maxScore}</td><td>${sqScorePercent(r.sub)}%</td><td>${r.sub.published?"Published":"Not Published"}</td><td>${sqEsc(r.sub.submittedAt||"")}</td></tr>`).join("") || `<tr><td colspan="7">No submission yet.</td></tr>`}
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>`);
+  };
+
+  function quizManagementHTML(){
+    const quizzes = (state.quizzes||[]).filter(q=>q.assignmentType==="Exercise" || String(q.title||"").toLowerCase().includes("exercise") || Array.isArray(q.questions));
+    return `<div class="quizManageGrid">${quizzes.map(q=>{
+      const subs=state.submissions.filter(s=>s.quizId===q.id);
+      const published=subs.filter(s=>s.published).length;
+      const comp=q.assessmentComponent||"ex1";
+      return `<div class="quizManageCard">
+        <h3>${sqEsc(q.title||"Untitled Exercise")}</h3>
+        <span class="quizStatusPill ${q.status==="Published"?'published':'draft'}">${sqEsc(q.status||"Draft")}</span>
+        <p><b>Subject:</b> ${sqEsc(q.subject||"")}<br><b>Classes:</b> ${sqEsc((q.classNames||[]).join(", "))}<br><b>Questions:</b> ${(q.questions||[]).length}<br><b>Duration:</b> ${q.durationMinutes||30} minutes<br><b>Submissions:</b> ${subs.length}; <b>Published results:</b> ${published}</p>
+        <label style="font-size:11px;text-transform:uppercase;color:#667085;font-weight:950">Send scores to cumulative record</label>
+        <select id="component_for_${q.id}" class="assessmentSelectInline">${sqComponentOptions(comp)}</select>
+        <div class="simpleActionRow">
+          <button class="light" onclick="previewQuizSimple('${q.id}')">Preview</button>
+          <button class="${q.status==="Published"?'light':'green'}" onclick="toggleQuizPublishSimple('${q.id}')">${q.status==="Published"?"Hide":"Publish"}</button>
+          <button class="gold" onclick="publishQuizResultsSimple('${q.id}')">Publish Results</button>
+          <button class="navy" onclick="assignQuizScoresClicked('${q.id}')">Assign Scores</button>
+          <button class="light" onclick="printQuizResultsSimple('${q.id}')">Print Results</button>
+          <button class="red" onclick="deleteQuizSimple('${q.id}')">Delete</button>
+        </div>
+      </div>`;
+    }).join("") || `<div class="empty">No exercise found. Import a Quiz Package or create a scanned work assignment.</div>`}</div>`;
+  }
+
+  function importInstructionsHTML(){
+    return `<div class="simpleQuizPanel">
+      <h2>Simple Quiz Builder Instructions</h2>
+      <p>This page now focuses on two main types of work: <b>multiple-choice quizzes</b> and <b>scanned/theory work</b>.</p>
+      <div class="simpleQuizSteps">
+        <div class="simpleQuizStep"><b>1. Ask ChatGPT for a Quiz Package</b><br>Example: “Prepare 20 Mathematics MCQs on fractions as Exercise 2 in Quiz Package format.”</div>
+        <div class="simpleQuizStep"><b>2. Paste the Quiz Package</b><br>Paste the JSON package in the import box below.</div>
+        <div class="simpleQuizStep"><b>3. Choose subject and classes</b><br>Select Mathematics or Additional Mathematics, then tick the classes.</div>
+        <div class="simpleQuizStep"><b>4. Import as Draft</b><br>Preview the quiz. If satisfied, publish it for students.</div>
+        <div class="simpleQuizStep"><b>5. Publish results later</b><br>After students submit, publish results and assign scores to Exercise 1, Exercise 2, Project Work, Group Work, or another component.</div>
+      </div>
+    </div>`;
+  }
+
+  function importQuizPanelHTML(){
+    const subj = state.subjects?.[0]?.name || "Mathematics";
+    return `<div class="simpleQuizPanel">
+      <h2>Import Multiple-Choice Quiz Package</h2>
+      <p>Paste a quiz package prepared by ChatGPT. The quiz will become part of this app and will support timer, auto-marking, one-attempt rule, reset, result publishing, and cumulative records.</p>
+      <div class="simpleQuizGrid">
+        <div><label>Quiz / Exercise Name</label><input id="simpleImportTitle" placeholder="Example: Exercise 2: Fractions and Percentages"></div>
+        <div><label>Subject</label><select id="simpleImportSubject" onchange="refreshSimpleImportClasses()">${sqSubjectOptions(subj)}</select></div>
+        <div><label>Duration</label><input id="simpleImportDuration" type="number" value="30"></div>
+        <div><label>Status</label><select id="simpleImportStatus"><option>Draft</option><option>Published</option></select></div>
+        <div><label>Assessment Component</label><select id="simpleImportComponent">${sqComponentOptions("ex1")}</select></div>
+      </div>
+      <label style="display:block;margin-top:10px;font-size:11px;text-transform:uppercase;color:#667085;font-weight:950">Assign Classes</label>
+      <div id="simpleImportClasses" class="simpleClassChecks"></div>
+      <label style="display:block;margin-top:10px;font-size:11px;text-transform:uppercase;color:#667085;font-weight:950">Paste Quiz Package Here</label>
+      <textarea id="quizPackageText" placeholder='Paste JSON Quiz Package here...'></textarea>
+      <div class="simpleActionRow">
+        <button class="light" onclick="copyQuizPackageTemplate()">Copy Template</button>
+        <button class="gold" onclick="validateQuizPackage()">Validate and Preview</button>
+        <button class="green" onclick="importQuizPackage()">Import Quiz</button>
+      </div>
+      <div id="quizImportResult"></div>
+    </div>`;
+  }
+
+  window.handleQuestionFileSelect = function(file){
+    if(!file) return;
+    const r = new FileReader();
+    r.onload = ()=>{
+      scannedQuestionFileCache = {name:file.name,type:file.type,data:r.result};
+      const box=document.getElementById("scannedQuestionPreview");
+      if(box){
+        box.innerHTML = `<div class="scannedQuestionView"><b>${sqEsc(file.name)}</b>${String(file.type).startsWith("image/")?`<img src="${r.result}" alt="">`:`<p>PDF/File uploaded. Students will open it as a document.</p>`}</div>`;
+      }
+    };
+    r.readAsDataURL(file);
+  };
+
+  window.createScannedAssignment = function(){
+    const title=(document.getElementById("scanAssignTitle")?.value||"").trim();
+    if(!title) return alert("Type the assignment name.");
+    const subject=document.getElementById("scanAssignSubject")?.value || state.subjects?.[0]?.name || "Mathematics";
+    const classes=[...document.querySelectorAll("#scanAssignClasses input:checked")].map(x=>x.value);
+    if(!classes.length) return alert("Select at least one class.");
+    if(!scannedQuestionFileCache) return alert("Upload the scanned question paper first.");
+    const maxScore=Number(document.getElementById("scanAssignMax")?.value)||10;
+    const status=document.getElementById("scanAssignStatus")?.value || "Draft";
+    const assessmentComponent=document.getElementById("scanAssignComponent")?.value || "ex1";
+    const instructions=(document.getElementById("scanAssignInstructions")?.value||"").trim() || "Open the question paper, solve the work in your exercise book, scan your answers as PDF or image, and submit them here.";
+    state.docAssignments.push({
+      id:sqUid("doc"),
+      title,subject,classNames:classes,status,createdAt:sqNow(),instructions,maxScore,assessmentComponent,
+      questionFile: scannedQuestionFileCache
+    });
+    scannedQuestionFileCache=null;
+    sqSave();
+    alert("Scanned/theory assignment saved as "+status+".");
+    quizzes();
+  };
+
+  window.toggleScannedAssignmentPublish = function(id){
+    const a=(state.docAssignments||[]).find(x=>x.id===id);
+    if(!a) return;
+    a.status = a.status==="Published" ? "Draft" : "Published";
+    a.publishedAt = a.status==="Published" ? new Date().toISOString() : a.publishedAt;
+    sqSave();
+    alert(a.status==="Published" ? "Published. Students can now see the scanned work." : "Hidden from students.");
+    quizzes();
+  };
+
+  window.deleteScannedAssignment = function(id){
+    const a=(state.docAssignments||[]).find(x=>x.id===id);
+    if(!a) return;
+    if(!confirm("Delete this scanned assignment and its submissions?\n\n"+a.title)) return;
+    state.docAssignments = state.docAssignments.filter(x=>x.id!==id);
+    state.docSubmissions = state.docSubmissions.filter(x=>x.assignmentId!==id);
+    sqSave();
+    quizzes();
+  };
+
+  window.assignDocScoresToComponent = function(id, componentKey){
+    const a=(state.docAssignments||[]).find(x=>x.id===id);
+    if(!a) return;
+    a.assessmentComponent=componentKey;
+    const subs=state.docSubmissions.filter(s=>s.assignmentId===id);
+    subs.forEach(s=>{
+      const max=Number(a.maxScore||100);
+      const score=Number(s.score||0);
+      const pct=max ? Math.round((score/max)*10000)/100 : 0;
+      sqSetReport(s.studentId,componentKey,pct);
+    });
+    sqSave();
+  };
+
+  window.publishScannedResults = function(id){
+    const a=(state.docAssignments||[]).find(x=>x.id===id);
+    if(!a) return;
+    const subs=state.docSubmissions.filter(s=>s.assignmentId===id);
+    if(!subs.length) return alert("No scanned work has been submitted yet.");
+    subs.forEach(s=>s.published=true);
+    assignDocScoresToComponent(id, a.assessmentComponent || "ex1");
+    sqSave();
+    alert("Marked work and scores published.");
+    quizzes();
+  };
+
+  window.assignScannedScoresClicked = function(id){
+    const key=document.getElementById("doc_component_"+id)?.value || "ex1";
+    assignDocScoresToComponent(id,key);
+    alert("Scores assigned to "+sqComponentLabel(key)+" in cumulative records.");
+    quizzes();
+  };
+
+  function scannedAssignmentPanelHTML(){
+    const subj=state.subjects?.[0]?.name || "Mathematics";
+    return `<div class="simpleQuizPanel">
+      <h2>Create Scanned / Theory Work</h2>
+      <p>Use this when you write questions on paper or in Word, scan them, and upload them for students. Students will solve the work, scan their answers as PDF or image, and submit. You can mark submitted image scripts with pen tools.</p>
+      <div class="simpleQuizGrid">
+        <div><label>Assignment Name</label><input id="scanAssignTitle" placeholder="Example: Exercise 3: Theory Work"></div>
+        <div><label>Subject</label><select id="scanAssignSubject" onchange="refreshScannedAssignmentClasses()">${sqSubjectOptions(subj)}</select></div>
+        <div><label>Max Score</label><input id="scanAssignMax" type="number" value="10"></div>
+        <div><label>Status</label><select id="scanAssignStatus"><option>Draft</option><option>Published</option></select></div>
+        <div><label>Assessment Component</label><select id="scanAssignComponent">${sqComponentOptions("ex1")}</select></div>
+      </div>
+      <label style="display:block;margin-top:10px;font-size:11px;text-transform:uppercase;color:#667085;font-weight:950">Assign Classes</label>
+      <div id="scanAssignClasses" class="simpleClassChecks"></div>
+      <label style="display:block;margin-top:10px;font-size:11px;text-transform:uppercase;color:#667085;font-weight:950">Instruction for Students</label>
+      <textarea id="scanAssignInstructions" style="min-height:85px">Open the question paper, solve the work in your exercise book, scan your answers as PDF or image, and submit them here.</textarea>
+      <div class="simpleActionRow">
+        <label class="light">Upload Scanned Question<input type="file" hidden accept="image/*,.pdf" onchange="handleQuestionFileSelect(this.files[0])"></label>
+        <button class="green" onclick="createScannedAssignment()">Save Scanned Assignment</button>
+      </div>
+      <div id="scannedQuestionPreview"></div>
+    </div>`;
+  }
+
+  function scannedManagementHTML(){
+    const items=state.docAssignments||[];
+    return `<div class="quizManageGrid">${items.map(a=>{
+      const subs=state.docSubmissions.filter(s=>s.assignmentId===a.id);
+      const published=subs.filter(s=>s.published).length;
+      const comp=a.assessmentComponent||"ex1";
+      return `<div class="quizManageCard">
+        <h3>${sqEsc(a.title)}</h3>
+        <span class="quizStatusPill ${a.status==="Published"?'published':'draft'}">${sqEsc(a.status||"Draft")}</span>
+        <p><b>Type:</b> Scanned/Theory Work<br><b>Subject:</b> ${sqEsc(a.subject)}<br><b>Classes:</b> ${sqEsc((a.classNames||[]).join(", "))}<br><b>Max score:</b> ${a.maxScore}<br><b>Submissions:</b> ${subs.length}; <b>Published marks:</b> ${published}</p>
+        ${a.questionFile ? `<div class="scannedQuestionView"><b>Question file:</b> ${sqEsc(a.questionFile.name||"Uploaded question")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a href="${a.questionFile.data}" target="_blank">Open uploaded question file</a></p>`}</div>` : ""}
+        <label style="font-size:11px;text-transform:uppercase;color:#667085;font-weight:950">Send marks to cumulative record</label>
+        <select id="doc_component_${a.id}" class="assessmentSelectInline">${sqComponentOptions(comp)}</select>
+        <div class="simpleActionRow">
+          <button class="${a.status==="Published"?'light':'green'}" onclick="toggleScannedAssignmentPublish('${a.id}')">${a.status==="Published"?"Hide":"Publish"}</button>
+          <button class="gold" onclick="publishScannedResults('${a.id}')">Publish Marks</button>
+          <button class="navy" onclick="assignScannedScoresClicked('${a.id}')">Assign Scores</button>
+          <button class="red" onclick="deleteScannedAssignment('${a.id}')">Delete</button>
+        </div>
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory assignment yet.</div>`}</div>`;
+  }
+
+  window.quizzes = function(){
+    sqEnsure();
+    document.getElementById("view").innerHTML = `<div class="simpleQuizCentre">
+      ${importInstructionsHTML()}
+      ${importQuizPanelHTML()}
+      <div class="simpleQuizPanel"><h2>Manage Multiple-Choice Exercises</h2><p>Preview, publish, hide, publish results, print results, delete, and assign scores to cumulative records.</p>${quizManagementHTML()}</div>
+      ${scannedAssignmentPanelHTML()}
+      <div class="simpleQuizPanel"><h2>Manage Scanned / Theory Work</h2><p>Publish scanned question papers, mark submitted scripts, publish marks, and assign marks to cumulative records.</p>${scannedManagementHTML()}</div>
+    </div>`;
+    refreshSimpleImportClasses();
+    refreshScannedAssignmentClasses();
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  };
+
+  function studentCanSeeQuiz(q,s){
+    const subject=sqSubjectForClass(s.className);
+    return q.status==="Published" && q.subject===subject && (q.classNames||[]).includes(s.className);
+  }
+  function hasSubmittedQuiz(studentId,qid){
+    return (state.submissions||[]).some(s=>s.studentId===studentId && s.quizId===qid);
+  }
+
+  window.studentQuizzes = function(){
+    sqEnsure();
+    const s=sqStudentById(currentStudentId);
+    if(!s){ role="guest"; route="studentLogin"; return renderShell(); }
+    const qs=(state.quizzes||[]).filter(q=>studentCanSeeQuiz(q,s));
+    const docs=(state.docAssignments||[]).filter(a=>a.status==="Published" && a.subject===sqSubjectForClass(s.className) && (a.classNames||[]).includes(s.className));
+    document.getElementById("view").innerHTML = `<div class="studentSimpleNotice">
+      <h2>My Assignments</h2>
+      <ol>
+        <li>For multiple-choice work, click <b>Start Exercise</b>. The timer will start after you confirm.</li>
+        <li>For theory/scanned work, open the question paper, solve it, scan your answer pages, and upload them.</li>
+        <li>After submission, wait for Sir Isaac Boahen to publish your result or marked script.</li>
+      </ol>
+    </div>
+    <div class="card"><h2>Multiple-Choice Exercises</h2>
+      ${qs.map(q=>{const done=hasSubmittedQuiz(s.id,q.id); return `<div class="${done?'quizClosedCard':'quizCard'}"><h3>${sqEsc(q.title)}</h3><p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${sqEsc(sqComponentLabel(q.assessmentComponent||"ex1"))}</p>${done?`<span class="quizClosedBadge">Submitted / Closed</span>`:`<button class="btn green" onclick="takeQuiz('${q.id}')">Start Exercise</button>`}</div>`}).join("") || `<div class="empty">No multiple-choice exercise available now.</div>`}
+    </div>
+    <div class="card"><h2>Theory / Scanned Work</h2>
+      ${docs.map(a=>`<div class="docAssignmentCard"><h3>${sqEsc(a.title)}</h3><p>${sqEsc(a.instructions||"Open the question, solve it, scan and submit.")}</p><p>Maximum score: ${a.maxScore} • Component: ${sqEsc(sqComponentLabel(a.assessmentComponent||"ex1"))}</p>${a.questionFile?`<div class="scannedQuestionView"><b>Question Paper:</b> ${sqEsc(a.questionFile.name||"Question paper")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}</div>`:""}<button class="btn green" onclick="openDocSubmitSimple('${a.id}')">Submit My Answer Script</button></div>`).join("") || `<div class="empty">No scanned/theory work available now.</div>`}
+    </div>`;
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  };
+
+  window.openDocSubmitSimple = function(id){
+    const a=(state.docAssignments||[]).find(x=>x.id===id);
+    if(!a) return;
+    const old=document.getElementById("docSubmitOverlay");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="docSubmitOverlay" class="previewModal2">
+      <div class="previewBox2">
+        <div class="previewHead2"><h2>${sqEsc(a.title)}</h2><button onclick="document.getElementById('docSubmitOverlay').remove()">Close</button></div>
+        <div class="previewBody2">
+          <div class="studentSimpleNotice"><h2>Instructions</h2><ol><li>Open the question paper.</li><li>Solve the work in your exercise book.</li><li>Scan your answer pages as PDF or images.</li><li>Upload the scanned pages below and click Submit.</li></ol></div>
+          ${a.questionFile?`<div class="scannedQuestionView"><b>Question Paper:</b> ${sqEsc(a.questionFile.name||"Question paper")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a class="btn light" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}</div>`:""}
+          <div class="docUploadBox"><input id="docFiles" type="file" multiple accept="image/*,.pdf"><p>Upload your scanned answer pages here. Images are best for digital marking.</p></div>
+          <button class="btn green full" onclick="submitDocAssignmentSimple('${a.id}')">Submit Scanned Work</button>
+        </div>
+      </div>
+    </div>`);
+  };
+
+  window.submitDocAssignmentSimple = function(id){
+    const files=[...(document.getElementById("docFiles")?.files||[])];
+    if(!files.length) return alert("Select at least one scanned page or PDF.");
+    const reads=files.map(f=>new Promise(res=>{const r=new FileReader(); r.onload=()=>res({name:f.name,type:f.type,data:r.result}); r.readAsDataURL(f)}));
+    Promise.all(reads).then(fileObjs=>{
+      state.docSubmissions.push({id:sqUid("docsub"),assignmentId:id,studentId:currentStudentId,files:fileObjs,score:null,feedback:"",published:false,submittedAt:sqNow(),markedFiles:[]});
+      sqSave();
+      alert("Your scanned work has been submitted.");
+      document.getElementById("docSubmitOverlay")?.remove();
+      if(typeof setRoute==="function") setRoute("studentResults");
+    });
+  };
+
+  const oldReview = window.review;
+  window.review = function(){
+    sqEnsure();
+    const timed = state.submissions.slice().reverse();
+    const docs = state.docSubmissions.slice().reverse();
+    document.getElementById("view").innerHTML = `<div class="simpleQuizPanel"><h2>Review and Marking</h2><p>Review multiple-choice submissions and scanned work. Scanned images can be opened with pen tools for marking.</p></div>
+      <div class="simpleQuizPanel"><h2>Multiple-Choice Submissions</h2>${timed.map(sub=>{const st=sqStudentById(sub.studentId)||{}; const q=sqQuizById(sub.quizId)||{}; return `<div class="studentWorkItem"><b>${sqEsc(st.name||"Student")} — ${sqEsc(q.title||"Exercise")}</b><br>${sqEsc(st.className||"")} • Submitted: ${sqEsc(sub.submittedAt||"")}<br>Score: <b>${sub.teacherScore ?? sub.autoScore} / ${sub.maxScore}</b> • Status: ${sub.published?"Published":"Not Published"}<div class="simpleActionRow"><button class="light" onclick="viewStudentExerciseAnswers && viewStudentExerciseAnswers('${sub.id}')">View Answers</button><button class="gold" onclick="publishSub('${sub.id}')">${sub.published?"Unpublish":"Publish"}</button></div></div>`}).join("") || `<div class="empty">No MCQ submission yet.</div>`}</div>
+      <div class="simpleQuizPanel"><h2>Scanned Work Submissions</h2>${docs.map(ds=>docSubmissionReviewSimpleHTML(ds)).join("") || `<div class="empty">No scanned work submission yet.</div>`}</div>`;
+  };
+
+  window.docSubmissionReviewSimpleHTML = function(ds){
+    const st=sqStudentById(ds.studentId)||{};
+    const a=(state.docAssignments||[]).find(x=>x.id===ds.assignmentId)||{};
+    return `<div class="studentWorkItem"><b>${sqEsc(st.name||"Student")} — ${sqEsc(a.title||"Scanned Work")}</b><br>${sqEsc(st.className||"")} • Submitted: ${sqEsc(ds.submittedAt||"")}<br>Score: <b>${ds.score ?? "-"} / ${a.maxScore ?? "-"}</b> • Status: ${ds.published?"Published":"Not Published"}
+      <div class="docSubmissionFiles">${(ds.files||[]).map((f,i)=>`<div class="docFileCard">${String(f.type||"").startsWith("image/")?`<img src="${f.data}" alt="">`:`<p><b>${sqEsc(f.name||"Uploaded file")}</b></p><a href="${f.data}" target="_blank">Open File</a>`}<p>${sqEsc(f.name||"Uploaded file")}</p>${String(f.type||"").startsWith("image/")?`<button class="btn gold" onclick="openDigitalMarker('${ds.id}',${i})">Open Pen Marking Tools</button>`:""}${ds.markedFiles?.[i]?.data?`<div class="docMarkedPreview">Marked copy saved. <a href="${ds.markedFiles[i].data}" target="_blank">Open marked copy</a></div>`:""}</div>`).join("")}</div>
+      <div class="simpleQuizGrid" style="margin-top:8px"><div><label>Score</label><input class="input" type="number" value="${ds.score ?? ""}" onchange="setDocScoreSimple('${ds.id}',this.value)"></div><div><label>Feedback</label><input class="input" value="${sqEsc(ds.feedback||"")}" onchange="setDocFeedbackSimple('${ds.id}',this.value)"></div><div><label>Component</label><select class="assessmentSelectInline" onchange="setDocComponentSimple('${a.id}',this.value)">${sqComponentOptions(a.assessmentComponent||"ex1")}</select></div></div>
+      <div class="simpleActionRow"><button class="green" onclick="publishDocSubmissionSimple('${ds.id}')">${ds.published?"Unpublish":"Publish Marked Work"}</button></div>
+    </div>`;
+  };
+
+  window.setDocScoreSimple = function(id,v){
+    const ds=state.docSubmissions.find(x=>x.id===id); if(!ds) return;
+    ds.score=Number(v)||0; sqSave();
+  };
+  window.setDocFeedbackSimple = function(id,v){
+    const ds=state.docSubmissions.find(x=>x.id===id); if(!ds) return;
+    ds.feedback=v; sqSave();
+  };
+  window.setDocComponentSimple = function(aid,key){
+    const a=state.docAssignments.find(x=>x.id===aid); if(a){a.assessmentComponent=key; sqSave();}
+  };
+  window.publishDocSubmissionSimple = function(id){
+    const ds=state.docSubmissions.find(x=>x.id===id); if(!ds) return;
+    const a=state.docAssignments.find(x=>x.id===ds.assignmentId)||{};
+    ds.published = !ds.published;
+    if(ds.published){
+      const max=Number(a.maxScore||100);
+      const score=Number(ds.score||0);
+      sqSetReport(ds.studentId, a.assessmentComponent||"ex1", max ? Math.round((score/max)*10000)/100 : 0);
+    }
+    sqSave();
+    review();
+  };
+
+  const oldSaveMarkedWork = window.saveMarkedWork;
+  if(typeof oldSaveMarkedWork==="function"){
+    window.saveMarkedWork = function(subId,fileIndex){
+      const result = oldSaveMarkedWork.apply(this, arguments);
+      const ds=state.docSubmissions.find(x=>x.id===subId);
+      if(ds){
+        const a=state.docAssignments.find(x=>x.id===ds.assignmentId)||{};
+        if(ds.score!==null && ds.score!==undefined){
+          const max=Number(a.maxScore||100);
+          sqSetReport(ds.studentId, a.assessmentComponent||"ex1", max ? Math.round((Number(ds.score||0)/max)*10000)/100 : 0);
+          sqSave();
+        }
+      }
+      return result;
+    };
+  }
+
+  try{
+    eval("quizzes=window.quizzes; refreshSimpleImportClasses=window.refreshSimpleImportClasses; validateQuizPackage=window.validateQuizPackage; importQuizPackage=window.importQuizPackage; previewQuizSimple=window.previewQuizSimple; toggleQuizPublishSimple=window.toggleQuizPublishSimple; deleteQuizSimple=window.deleteQuizSimple; publishQuizResultsSimple=window.publishQuizResultsSimple; assignQuizScoresToComponent=window.assignQuizScoresToComponent; studentQuizzes=window.studentQuizzes; openDocSubmitSimple=window.openDocSubmitSimple; submitDocAssignmentSimple=window.submitDocAssignmentSimple; review=window.review;");
   }catch(e){}
 })();
 
