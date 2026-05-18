@@ -4100,6 +4100,203 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== BULK PASSWORD SHARE, STUDENT CHANGE PASSWORD, NEAT LAYOUT, PRINT PASSWORD OPTION ===== */
+.passwordControlCentre{
+  border:2px solid #d9e7f3;
+  border-left:8px solid #071f3d;
+  background:#fff;
+  border-radius:22px;
+  padding:14px;
+  margin:14px 0;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.passwordControlCentre h2,.passwordControlCentre h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.passwordControlCentre p{
+  margin:0 0 10px;
+  color:#667085;
+  line-height:1.45;
+  font-weight:750;
+}
+.passwordCentreGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+.passwordCentreCard{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:16px;
+  padding:11px;
+}
+.passwordCentreCard span{
+  display:block;
+  font-size:10px;
+  color:#667085;
+  font-weight:950;
+  text-transform:uppercase;
+  margin-bottom:3px;
+}
+.passwordCentreCard b{
+  color:#071f3d;
+  overflow-wrap:anywhere;
+}
+.passwordActionRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin-top:10px;
+}
+.passwordActionRow button{
+  min-height:38px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.passwordActionRow .green{
+  border:0;
+  background:#0f7b4f;
+  color:#fff;
+}
+.passwordActionRow .navy{
+  border:0;
+  background:#071f3d;
+  color:#fff;
+}
+.passwordActionRow .gold{
+  border:0;
+  background:#f4c430;
+  color:#071f3d;
+}
+.passwordActionRow .light{
+  border:1px solid #d9e7f3;
+  background:#eef5fc;
+  color:#071f3d;
+}
+.passwordActionRow .red{
+  border:1px solid #ffd4d0;
+  background:#fff1f0;
+  color:#b42318;
+}
+.studentPasswordChangeBox{
+  border:2px solid #d9e7f3;
+  border-left:7px solid #0f7b4f;
+  background:#fff;
+  border-radius:18px;
+  padding:12px;
+  margin:12px 0;
+  color:#071f3d;
+}
+.studentPasswordChangeBox h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.studentPasswordChangeGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+  gap:8px;
+  align-items:end;
+}
+.studentPasswordChangeGrid input{
+  min-height:40px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+}
+.studentPasswordChangeGrid button{
+  min-height:40px;
+  border:0;
+  border-radius:12px;
+  background:#0f7b4f;
+  color:#fff;
+  font-weight:950;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.passwordAdminPanel{
+  width:100%!important;
+  clear:both!important;
+  box-sizing:border-box!important;
+  display:block!important;
+}
+.adminStudentDirectoryCard .passwordAdminPanel,
+.fixedStudentCard .passwordAdminPanel{
+  grid-column:1/-1!important;
+  margin-top:10px!important;
+  overflow:hidden!important;
+}
+.adminStudentDirectoryCard,
+.fixedStudentCard{
+  overflow:visible!important;
+}
+.passwordAdminGrid{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))!important;
+  gap:8px!important;
+}
+.passwordAdminCell{
+  min-width:0!important;
+  overflow-wrap:anywhere!important;
+}
+.classPrintPasswordToggle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #f4c430;
+  background:#fffdf0;
+  color:#071f3d;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:950;
+  min-height:42px;
+}
+.classPrintPasswordToggle input{
+  width:18px;
+  height:18px;
+}
+.passwordPrintTable{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+}
+.passwordPrintTable th{
+  background:#071f3d;
+  color:#fff;
+  border:1px solid #071f3d;
+  padding:6px;
+  text-align:left;
+}
+.passwordPrintTable td{
+  border:1px solid #d9e7f3;
+  padding:6px;
+}
+@media(max-width:760px){
+  .studentPasswordChangeGrid{
+    grid-template-columns:1fr;
+  }
+  .passwordActionRow button{
+    width:100%;
+  }
+}
+@media print{
+  body.printAllPasswords *{visibility:hidden!important}
+  body.printAllPasswords #allPasswordsPrintArea,
+  body.printAllPasswords #allPasswordsPrintArea *{visibility:visible!important}
+  body.printAllPasswords #allPasswordsPrintArea{
+    position:absolute!important;
+    left:0!important;
+    top:0!important;
+    width:100%!important;
+  }
+  @page{size:A4 portrait;margin:10mm}
+}
+
 </style>
 </head>
 <body>
@@ -9961,6 +10158,351 @@ ${printable}
 
   try{
     eval("sharePasswordToStudentPortal=window.sharePasswordToStudentPortal; revokePasswordShare=window.revokePasswordShare; pwCopy=window.pwCopy; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; finishStudentLogin=window.finishStudentLogin;");
+  }catch(e){}
+})();
+
+
+/* ===== BULK PASSWORD SHARE + STUDENT CHANGE PASSWORD + PRINT PASSWORDS ===== */
+(function(){
+  function bpEnsure(){
+    state.passwordShares = Array.isArray(state.passwordShares) ? state.passwordShares : [];
+    state.students = Array.isArray(state.students) ? state.students : [];
+  }
+  function bpSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("password bulk save skipped", e); }
+  }
+  function bpNowISO(){ return new Date().toISOString(); }
+  function bpTime(iso){ try{return new Date(iso).toLocaleString();}catch(e){return iso||"";} }
+  function bpUid(prefix){ return typeof uid==="function" ? uid(prefix) : prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function bpMakePassword(s){
+    const base = (s.code || "AMEST").replace(/\s+/g,"").toUpperCase();
+    return base || ("AM"+Math.random().toString(36).slice(2,6).toUpperCase());
+  }
+  function bpExpireOld(){
+    bpEnsure();
+    const now = Date.now();
+    let changed = false;
+    state.passwordShares.forEach(p=>{
+      if(p.active !== false && p.expiresAt && new Date(p.expiresAt).getTime() <= now){
+        p.active = false;
+        p.expiredAt = bpNowISO();
+        changed = true;
+      }
+    });
+    if(changed) bpSave();
+  }
+  function bpActiveShare(studentId){
+    bpExpireOld();
+    const now = Date.now();
+    return state.passwordShares
+      .filter(p=>p.studentId===studentId && p.active!==false)
+      .filter(p=>!p.expiresAt || new Date(p.expiresAt).getTime() > now)
+      .sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")))[0] || null;
+  }
+  window.pwActiveShare = window.pwActiveShare || bpActiveShare;
+
+  function bpSetShare(studentId){
+    const s = student(studentId);
+    if(!s) return null;
+    if(!s.password) s.password = bpMakePassword(s);
+    const exp = new Date(Date.now()+24*60*60*1000).toISOString();
+    state.passwordShares.forEach(p=>{ if(p.studentId===studentId && p.active!==false) p.active=false; });
+    const rec = {
+      id: bpUid("pwshare"),
+      studentId,
+      password: s.password,
+      createdAt: bpNowISO(),
+      expiresAt: exp,
+      active: true
+    };
+    state.passwordShares.push(rec);
+    return rec;
+  }
+
+  window.sharePasswordToAllStudentsPortal = function(){
+    bpEnsure();
+    if(!state.students.length) return alert("No student found.");
+    if(!confirm("Share passwords to ALL students' portals for 24 hours?\n\nDuring the 24-hour window, every student can enter without typing a password. Each student will see the password and can change it.")) return;
+    let count=0;
+    state.students.forEach(s=>{
+      if(!s.password) s.password = bpMakePassword(s);
+      bpSetShare(s.id);
+      count++;
+    });
+    bpSave();
+    alert("Passwords shared to all students' portals for 24 hours.\n\nTotal students: " + count);
+    if(typeof students==="function" && role==="admin" && route==="students") students();
+    else if(typeof dashboard==="function" && role==="admin" && route==="dashboard") dashboard();
+  };
+
+  window.sharePasswordToClassPortal = function(className){
+    bpEnsure();
+    const learners = state.students.filter(s=>s.className===className);
+    if(!learners.length) return alert("No student found in this class.");
+    if(!confirm("Share passwords to all students in " + className + " for 24 hours?")) return;
+    learners.forEach(s=>{ if(!s.password) s.password=bpMakePassword(s); bpSetShare(s.id); });
+    bpSave();
+    alert("Passwords shared to " + className + " for 24 hours.");
+    if(typeof students==="function" && role==="admin" && route==="students") students();
+  };
+
+  window.resetStudentPassword = function(studentId){
+    bpEnsure();
+    const s = student(studentId);
+    if(!s) return;
+    const next = prompt("Enter a new password for " + s.name + ":", s.code || bpMakePassword(s));
+    if(next === null) return;
+    const clean = String(next).trim();
+    if(!clean) return alert("Password cannot be empty.");
+    s.password = clean;
+    state.passwordShares.forEach(p=>{ if(p.studentId===studentId && p.active!==false) p.password = clean; });
+    bpSave();
+    alert("Password reset successfully.");
+    if(typeof adminShowStudentProfileAll==="function") adminShowStudentProfileAll(studentId);
+    else if(typeof adminShowStudentProfileFixed==="function") adminShowStudentProfileFixed(studentId);
+  };
+
+  window.studentChangeOwnPassword = function(){
+    const s = student(currentStudentId);
+    if(!s) return;
+    const p1 = (document.getElementById("studentNewPassword1")?.value || "").trim();
+    const p2 = (document.getElementById("studentNewPassword2")?.value || "").trim();
+    if(!p1 || !p2) return alert("Type the new password twice.");
+    if(p1.length < 4) return alert("Password should be at least 4 characters.");
+    if(p1 !== p2) return alert("The two passwords do not match.");
+    if(!confirm("Save this as your new portal password?")) return;
+    s.password = p1;
+    state.passwordShares.forEach(p=>{
+      if(p.studentId===s.id && p.active!==false){
+        p.password = p1;
+        p.changedByStudentAt = bpNowISO();
+      }
+    });
+    bpSave();
+    alert("Your new password has been saved. Keep it safely.");
+    if(typeof studentHome==="function") studentHome();
+  };
+
+  function bpStudentChangeBox(studentId){
+    const active = (window.pwActiveShare ? window.pwActiveShare(studentId) : bpActiveShare(studentId));
+    if(!active) return "";
+    return `<div class="studentPasswordChangeBox" id="studentPasswordChangeBox_${studentId}">
+      <h3>Change Your Password</h3>
+      <p style="margin:0 0 8px;color:#667085;font-weight:800;line-height:1.45">Within this 24-hour window, you can change the password to your own personal password. After saving it, use the new password for your next login.</p>
+      <div class="studentPasswordChangeGrid">
+        <div><label class="label">New Password</label><input id="studentNewPassword1" type="password" placeholder="Enter new password"></div>
+        <div><label class="label">Confirm Password</label><input id="studentNewPassword2" type="password" placeholder="Repeat new password"></div>
+        <button onclick="studentChangeOwnPassword()">Save New Password</button>
+      </div>
+    </div>`;
+  }
+
+  const oldStudentHome = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHome ? oldStudentHome.apply(this, arguments) : undefined;
+    const s = student(currentStudentId);
+    const view = document.getElementById("view");
+    if(view && s && !document.getElementById("studentPasswordChangeBox_"+s.id)){
+      const box = bpStudentChangeBox(s.id);
+      if(box){
+        const notice = document.getElementById("passwordShareNotice_"+s.id);
+        if(notice) notice.insertAdjacentHTML("afterend", box);
+        else view.insertAdjacentHTML("afterbegin", box);
+      }
+    }
+    return result;
+  };
+
+  window.passwordControlCentreHTML = function(){
+    bpEnsure();
+    const activeCount = state.students.filter(s => (window.pwActiveShare ? window.pwActiveShare(s.id) : bpActiveShare(s.id))).length;
+    const classOptionsHtml = (state.classes||[]).map(c=>`<option value="${String(c).replace(/"/g,'&quot;')}">${esc(c)}</option>`).join("");
+    return `<div class="passwordControlCentre" id="passwordControlCentre">
+      <h2>Password Control Centre</h2>
+      <p>Share portal passwords to students for 24 hours, reset forgotten passwords, and print password lists when needed.</p>
+      <div class="passwordCentreGrid">
+        <div class="passwordCentreCard"><span>Total Students</span><b>${state.students.length}</b></div>
+        <div class="passwordCentreCard"><span>Active 24-hour password windows</span><b>${activeCount}</b></div>
+        <div class="passwordCentreCard"><span>Default rule</span><b>Students need password after the 24-hour window</b></div>
+      </div>
+      <div class="passwordActionRow">
+        <button class="green" onclick="sharePasswordToAllStudentsPortal()">Share Passwords to All Students for 24 Hours</button>
+        <select id="bulkPasswordClassSelect" class="select" style="min-height:38px;max-width:260px"><option value="">Select class for sharing</option>${classOptionsHtml}</select>
+        <button class="gold" onclick="const c=document.getElementById('bulkPasswordClassSelect').value;if(!c)alert('Select a class first.');else sharePasswordToClassPortal(c)">Share to Selected Class</button>
+        <button class="navy" onclick="openPasswordPrintModal()">Print Password List</button>
+      </div>
+    </div>`;
+  };
+
+  function injectPasswordControlCentre(){
+    const view = document.getElementById("view");
+    if(!view || role!=="admin") return;
+    if(route!=="students" && route!=="dashboard") return;
+    if(document.getElementById("passwordControlCentre")) return;
+    view.insertAdjacentHTML("afterbegin", passwordControlCentreHTML());
+  }
+
+  const oldStudents = window.students;
+  if(typeof oldStudents==="function"){
+    window.students = function(){
+      const result = oldStudents.apply(this, arguments);
+      injectPasswordControlCentre();
+      return result;
+    };
+  }
+
+  const oldDashboard = window.dashboard;
+  if(typeof oldDashboard==="function"){
+    window.dashboard = function(){
+      const result = oldDashboard.apply(this, arguments);
+      injectPasswordControlCentre();
+      return result;
+    };
+  }
+
+  window.pwAdminPanelHTML = function(studentId){
+    const s = student(studentId);
+    if(!s) return "";
+    const active = (window.pwActiveShare ? window.pwActiveShare(studentId) : bpActiveShare(studentId));
+    const msg = `Hello ${s.name}, your Akuse Methodist SHTS Mathematics Assessment Portal password is: ${s.password || ""}. You can enter without password within the 24-hour window, but after that you will need this password.`;
+    return `<div class="passwordAdminPanel" id="passwordAdminPanel_${studentId}">
+      <h3>Student Password and 24-Hour Portal Access</h3>
+      <div class="passwordAdminGrid">
+        <div class="passwordAdminCell"><span>Student Password</span><b>${esc(s.password || "No password set")}</b></div>
+        <div class="passwordAdminCell"><span>24-Hour Access</span><b>${active ? "Active" : "Not active"}</b><br><span class="passwordShareStatus ${active?'active':'inactive'}">${active ? "Expires: " + esc(bpTime(active.expiresAt)) : "Password not currently shared in portal"}</span></div>
+        <div class="passwordAdminCell"><span>Student change status</span><b>${active && active.changedByStudentAt ? "Changed by student: " + esc(bpTime(active.changedByStudentAt)) : "No recent student change"}</b></div>
+      </div>
+      <div class="passwordActionRow">
+        <button class="green" onclick="sharePasswordToStudentPortal('${s.id}')">Share Password to Student Portal for 24 Hours</button>
+        <button class="gold" onclick="resetStudentPassword('${s.id}')">Reset Password</button>
+        <button class="light" onclick="pwCopy('${String(s.password||"").replace(/'/g,"\\'")}')">Copy Password</button>
+        <button class="light" onclick="pwCopy('${msg.replace(/'/g,"\\'")}')">Copy Full Message</button>
+        <button class="red" onclick="revokePasswordShare('${s.id}')">Revoke 24-Hour Window</button>
+      </div>
+    </div>`;
+  };
+
+  const oldAdminShowStudentProfileAll = window.adminShowStudentProfileAll;
+  if(typeof oldAdminShowStudentProfileAll==="function"){
+    window.adminShowStudentProfileAll = function(studentId){
+      const result = oldAdminShowStudentProfileAll.apply(this, arguments);
+      const box = document.getElementById("adminSelectedStudentProfile") || document.getElementById("adminSmartProfile");
+      if(box){
+        const existing = document.getElementById("passwordAdminPanel_"+studentId);
+        if(existing) existing.outerHTML = pwAdminPanelHTML(studentId);
+        else box.insertAdjacentHTML("beforeend", pwAdminPanelHTML(studentId));
+      }
+      return result;
+    };
+  }
+
+  const oldAdminShowStudentProfileFixed = window.adminShowStudentProfileFixed;
+  if(typeof oldAdminShowStudentProfileFixed==="function"){
+    window.adminShowStudentProfileFixed = function(studentId){
+      const result = oldAdminShowStudentProfileFixed.apply(this, arguments);
+      const box = document.getElementById("adminSelectedStudentProfile") || document.getElementById("adminSmartProfile");
+      if(box){
+        const existing = document.getElementById("passwordAdminPanel_"+studentId);
+        if(existing) existing.outerHTML = pwAdminPanelHTML(studentId);
+        else box.insertAdjacentHTML("beforeend", pwAdminPanelHTML(studentId));
+      }
+      return result;
+    };
+  }
+
+  window.openPasswordPrintModal = function(){
+    const old = document.getElementById("passwordPrintModal");
+    if(old) old.remove();
+    const classes = ["ALL", ...(state.classes||[])];
+    document.body.insertAdjacentHTML("beforeend", `<div id="passwordPrintModal" class="printClassModal">
+      <div class="printClassBox">
+        <div class="printClassHead"><h2>Print Password List</h2><button onclick="document.getElementById('passwordPrintModal').remove()">Close</button></div>
+        <div class="printClassBody">
+          <div class="classPrintChooser noPrint">
+            <select id="passwordPrintClass" onchange="previewPasswordPrintList()">${classes.map(c=>`<option value="${esc(c)}">${c==="ALL"?"All Classes":esc(c)}</option>`).join("")}</select>
+            <button class="previewBtn" onclick="previewPasswordPrintList()">Preview</button>
+            <button class="printBtn" onclick="printPasswordList()">Print / Save PDF</button>
+          </div>
+          <div id="allPasswordsPrintArea"></div>
+        </div>
+      </div>
+    </div>`);
+    previewPasswordPrintList();
+  };
+
+  window.previewPasswordPrintList = function(){
+    const cls = document.getElementById("passwordPrintClass")?.value || "ALL";
+    const learners = state.students.filter(s=>cls==="ALL" || s.className===cls).sort((a,b)=>String(a.className||"").localeCompare(String(b.className||"")) || String(a.name||"").localeCompare(String(b.name||"")));
+    const box = document.getElementById("allPasswordsPrintArea");
+    if(!box) return;
+    box.innerHTML = `<div class="printPictureSheet">
+      <div class="printPictureHeader">
+        <div><h2>${esc(cls==="ALL"?"All Classes":cls)} Password List</h2><p>${esc(state.settings?.school || "Akuse Methodist SHTS")}<br>Teacher: ${esc(state.settings?.teacherName || "Sir Isaac Boahen")}</p></div>
+        <div><b>Total: ${learners.length}</b><br><small>Generated: ${new Date().toLocaleString()}</small></div>
+      </div>
+      <table class="passwordPrintTable">
+        <thead><tr><th>No.</th><th>Name</th><th>Class</th><th>Code</th><th>Phone</th><th>Password</th></tr></thead>
+        <tbody>${learners.map((s,i)=>`<tr><td>${i+1}</td><td><b>${esc(s.name||"")}</b></td><td>${esc(s.className||"")}</td><td>${esc(s.code||"")}</td><td>${esc(s.phone||"")}</td><td><b>${esc(s.password||"")}</b></td></tr>`).join("") || `<tr><td colspan="6">No student found.</td></tr>`}</tbody>
+      </table>
+    </div>`;
+  };
+
+  window.printPasswordList = function(){
+    previewPasswordPrintList();
+    document.body.classList.add("printAllPasswords");
+    setTimeout(()=>{
+      window.print();
+      setTimeout(()=>document.body.classList.remove("printAllPasswords"),600);
+    },100);
+  };
+
+  const oldOpenClassPrintModal = window.openClassPrintModal;
+  if(typeof oldOpenClassPrintModal==="function"){
+    window.openClassPrintModal = function(){
+      const result = oldOpenClassPrintModal.apply(this, arguments);
+      setTimeout(()=>{
+        const chooser = document.querySelector("#printClassModal .classPrintChooser");
+        if(chooser && !document.getElementById("showPasswordsOnClassPrintWrap")){
+          chooser.insertAdjacentHTML("beforeend", `<label id="showPasswordsOnClassPrintWrap" class="classPrintPasswordToggle"><input id="showPasswordsOnClassPrint" type="checkbox" onchange="previewPictureClassList()"> Show Passwords</label>`);
+        }
+      },80);
+      return result;
+    };
+  }
+
+  function classSubjectSafe(className){ try{return subjectForClass(className)||"";}catch(e){return "";} }
+  function photoCellSafe(s){
+    if(s && s.photo) return `<img src="${s.photo}" alt="${esc(s.name||"")}">`;
+    const initials=String(s?.name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+    return `<div class="printAvatar">${esc(initials)}</div>`;
+  }
+
+  window.previewPictureClassList = function(){
+    const selected = document.getElementById("picturePrintClass");
+    const className = selected ? selected.value : ((state.classes||[])[0] || "");
+    const showPass = !!document.getElementById("showPasswordsOnClassPrint")?.checked;
+    const learners = (state.students||[]).filter(s=>s.className===className).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+    const box = document.getElementById("pictureClassPrintArea");
+    if(!box) return;
+    box.innerHTML = `<div class="printPictureSheet">
+      <div class="printPictureHeader">
+        <div><h2>${esc(className || "Class")} Class List</h2><p>${esc(state.settings?.school || "Akuse Methodist SHTS")}<br>${esc(classSubjectSafe(className))} • Teacher: ${esc(state.settings?.teacherName || "Sir Isaac Boahen")}</p></div>
+        <div><b>Total: ${learners.length}</b><br><small>Generated: ${new Date().toLocaleString()}</small><br><small>Password column: ${showPass?"Shown":"Hidden"}</small></div>
+      </div>
+      <table class="pictureClassTable">
+        <thead><tr><th>No.</th><th>Picture</th><th>Student Name</th><th>Code</th><th>Phone</th>${showPass?`<th>Password</th>`:""}<th>Subject</th></tr></thead>
+        <tbody>${learners.map((s,i)=>`<tr><td>${i+1}</td><td>${photoCellSafe(s)}</td><td><b>${esc(s.name||"")}</b></td><td>${esc(s.code||"")}</td><td>${esc(s.phone||"")}</td>${showPass?`<td><b>${esc(s.password||"")}</b></td>`:""}<td>${esc(classSubjectSafe(s.className))}</td></tr>`).join("") || `<tr><td colspan="${showPass?7:6}">No student found in the selected class.</td></tr>`}</tbody>
+      </table>
+    </div>`;
+  };
+
+  try{
+    eval("sharePasswordToAllStudentsPortal=window.sharePasswordToAllStudentsPortal; sharePasswordToClassPortal=window.sharePasswordToClassPortal; resetStudentPassword=window.resetStudentPassword; studentChangeOwnPassword=window.studentChangeOwnPassword; openPasswordPrintModal=window.openPasswordPrintModal; previewPasswordPrintList=window.previewPasswordPrintList; printPasswordList=window.printPasswordList; previewPictureClassList=window.previewPictureClassList; openClassPrintModal=window.openClassPrintModal;");
   }catch(e){}
 })();
 
