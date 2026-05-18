@@ -3959,6 +3959,147 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== STUDENT PASSWORD DISPLAY + 24-HOUR PASSWORD SHARE WINDOW ===== */
+.passwordAdminPanel{
+  border:2px solid #d9e7f3;
+  border-left:7px solid #f4c430;
+  border-radius:18px;
+  background:#fffdf0;
+  padding:12px;
+  margin-top:12px;
+  color:#071f3d;
+}
+.passwordAdminPanel h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.passwordAdminGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:8px;
+  margin-top:8px;
+}
+.passwordAdminCell{
+  border:1px solid #f4c430;
+  background:#fff;
+  border-radius:12px;
+  padding:9px;
+}
+.passwordAdminCell span{
+  display:block;
+  font-size:10px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.passwordAdminCell b{
+  color:#071f3d;
+  overflow-wrap:anywhere;
+}
+.passwordShareStatus{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 10px;
+  font-weight:950;
+  font-size:12px;
+  margin-top:6px;
+}
+.passwordShareStatus.active{
+  background:#ecfdf3;
+  color:#0f6b47;
+  border:1px solid #bce8ce;
+}
+.passwordShareStatus.inactive{
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+}
+.passwordShareNotice{
+  border:3px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  border-radius:20px;
+  background:linear-gradient(135deg,#fffdf0,#ffffff);
+  color:#071f3d;
+  padding:15px;
+  margin:14px 0;
+  box-shadow:0 12px 30px rgba(7,31,61,.12);
+}
+.passwordShareNotice h2{
+  margin:0 0 8px;
+  color:#071f3d;
+  font-size:21px;
+}
+.passwordShareNotice p{
+  margin:0 0 8px;
+  color:#344054;
+  line-height:1.45;
+  font-weight:800;
+}
+.passwordDisplayBox{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  border:2px dashed #f4c430;
+  background:#fff;
+  border-radius:16px;
+  padding:10px;
+  margin:10px 0;
+}
+.passwordDisplayBox code{
+  font-size:19px;
+  font-weight:950;
+  color:#071f3d;
+  background:#eef5fc;
+  border-radius:10px;
+  padding:8px 10px;
+  overflow-wrap:anywhere;
+}
+.passwordDisplayBox button{
+  min-height:40px;
+  border:0;
+  border-radius:12px;
+  background:#071f3d;
+  color:#fff;
+  font-weight:950;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.passwordShareHint{
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:9px 11px;
+  font-weight:850;
+  line-height:1.45;
+}
+.passwordShareBtn{
+  border:0;
+  border-radius:10px;
+  background:#0f7b4f;
+  color:#fff;
+  font-weight:950;
+  padding:7px 10px;
+  cursor:pointer;
+}
+.passwordRevokeBtn{
+  border:1px solid #ffd4d0;
+  border-radius:10px;
+  background:#fff1f0;
+  color:#b42318;
+  font-weight:950;
+  padding:7px 10px;
+  cursor:pointer;
+}
+@media(max-width:760px){
+  .passwordDisplayBox{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -9556,6 +9697,270 @@ ${printable}
 
   try{
     eval("smartPhoneHTML=window.smartPhoneHTML; openPhoneOptions=window.openPhoneOptions; closePhoneOptions=window.closePhoneOptions; saveStudentPhoneSelf=window.saveStudentPhoneSelf; adminSavePhoneFixed=window.adminSavePhoneFixed; qaNoticeHTML=window.qaNoticeHTML; qaActiveNoticesForStudent=window.qaActiveNoticesForStudent; takeQuiz=window.takeQuiz; closeStartQuizPrompt=window.closeStartQuizPrompt; confirmStartExerciseNow=window.confirmStartExerciseNow; adminPublishExercise=window.adminPublishExercise; qToggle=window.qToggle;");
+  }catch(e){}
+})();
+
+
+/* ===== STUDENT PASSWORD DISPLAY + 24-HOUR PASSWORD SHARE WINDOW ===== */
+(function(){
+  function pwEnsure(){
+    state.passwordShares = Array.isArray(state.passwordShares) ? state.passwordShares : [];
+  }
+  function pwSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("Password share save skipped", e); }
+  }
+  function pwNowISO(){ return new Date().toISOString(); }
+  function pwTime(iso){ try{return new Date(iso).toLocaleString();}catch(e){return iso||"";} }
+  function pwUid(prefix){ return typeof uid==="function" ? uid(prefix) : prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function pwCopy(text){
+    try{
+      if(navigator.clipboard){navigator.clipboard.writeText(text); alert("Copied."); return;}
+    }catch(e){}
+    prompt("Copy:", text);
+  }
+  function pwExpireOld(){
+    pwEnsure();
+    const now = Date.now();
+    let changed = false;
+    state.passwordShares.forEach(p=>{
+      if(p.active !== false && p.expiresAt && new Date(p.expiresAt).getTime() <= now){
+        p.active = false;
+        p.expiredAt = pwNowISO();
+        changed = true;
+      }
+    });
+    if(changed) pwSave();
+  }
+  function pwActiveShare(studentId){
+    pwExpireOld();
+    pwEnsure();
+    const now = Date.now();
+    return state.passwordShares
+      .filter(p=>p.studentId===studentId && p.active!==false)
+      .filter(p=>!p.expiresAt || new Date(p.expiresAt).getTime() > now)
+      .sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")))[0] || null;
+  }
+  window.pwActiveShare = pwActiveShare;
+
+  window.sharePasswordToStudentPortal = function(studentId){
+    pwEnsure();
+    const s = student(studentId);
+    if(!s) return alert("Student not found.");
+    if(!s.password){
+      s.password = s.code || ("PASS" + Math.random().toString(36).slice(2,6).toUpperCase());
+    }
+    const exp = new Date(Date.now()+24*60*60*1000).toISOString();
+    state.passwordShares.forEach(p=>{
+      if(p.studentId===studentId && p.active!==false) p.active=false;
+    });
+    state.passwordShares.push({
+      id: pwUid("pwshare"),
+      studentId,
+      password: s.password,
+      createdAt: pwNowISO(),
+      expiresAt: exp,
+      active: true
+    });
+    pwSave();
+    alert("Password shared to " + s.name + "'s portal for 24 hours.\n\nDuring this period, the student can open the portal without entering a password. The password notice will disappear after 24 hours.");
+    if(typeof adminShowStudentProfileAll==="function") adminShowStudentProfileAll(studentId);
+    else if(typeof adminShowStudentProfileFixed==="function") adminShowStudentProfileFixed(studentId);
+  };
+
+  window.revokePasswordShare = function(studentId){
+    pwEnsure();
+    const s=student(studentId);
+    if(!s) return;
+    if(!confirm("Remove the 24-hour password window for " + s.name + "?")) return;
+    state.passwordShares.forEach(p=>{
+      if(p.studentId===studentId && p.active!==false){
+        p.active=false;
+        p.revokedAt=pwNowISO();
+      }
+    });
+    pwSave();
+    alert("Password sharing window has been removed.");
+    if(typeof adminShowStudentProfileAll==="function") adminShowStudentProfileAll(studentId);
+    else if(typeof adminShowStudentProfileFixed==="function") adminShowStudentProfileFixed(studentId);
+  };
+
+  window.pwAdminPanelHTML = function(studentId){
+    const s = student(studentId);
+    if(!s) return "";
+    const active = pwActiveShare(studentId);
+    const msg = `Hello ${s.name}, your Akuse Methodist SHTS Mathematics Assessment Portal password is: ${s.password || ""}. You can enter without password within the 24-hour window, but after that you will need this password.`;
+    return `<div class="passwordAdminPanel" id="passwordAdminPanel_${studentId}">
+      <h3>Student Password and 24-Hour Portal Access</h3>
+      <div class="passwordAdminGrid">
+        <div class="passwordAdminCell"><span>Student Password</span><b>${esc(s.password || "No password set")}</b></div>
+        <div class="passwordAdminCell"><span>24-Hour Access</span><b>${active ? "Active" : "Not active"}</b><br><span class="passwordShareStatus ${active?'active':'inactive'}">${active ? "Expires: " + esc(pwTime(active.expiresAt)) : "Password not currently shared in portal"}</span></div>
+      </div>
+      <div class="toolbar" style="margin-top:10px">
+        <button class="passwordShareBtn" onclick="sharePasswordToStudentPortal('${s.id}')">Share Password to Student Portal for 24 Hours</button>
+        <button class="btn light" onclick="pwCopy('${String(s.password||"").replace(/'/g,"\\'")}')">Copy Password</button>
+        <button class="btn gold" onclick="pwCopy('${msg.replace(/'/g,"\\'")}')">Copy Full Message</button>
+        <button class="passwordRevokeBtn" onclick="revokePasswordShare('${s.id}')">Revoke 24-Hour Window</button>
+      </div>
+      <p style="margin:8px 0 0;color:#667085;font-weight:800;line-height:1.45">When shared, this password appears inside the student portal for 24 hours. During that 24-hour window, the student can open the portal without entering the password. After 24 hours, the student will need the password to log in.</p>
+    </div>`;
+  };
+
+  window.pwStudentNoticeHTML = function(studentId){
+    const s = student(studentId);
+    if(!s) return "";
+    const active = pwActiveShare(studentId);
+    if(!active) return "";
+    const pass = active.password || s.password || "";
+    return `<div class="passwordShareNotice" id="passwordShareNotice_${studentId}">
+      <h2>🔐 Your Portal Password Has Been Shared</h2>
+      <p>Sir Isaac Boahen has shared your portal password with you for a short time. Copy it and keep it safely.</p>
+      <div class="passwordDisplayBox">
+        <code>${esc(pass)}</code>
+        <button onclick="pwCopy('${String(pass).replace(/'/g,"\\'")}')">Copy Password</button>
+      </div>
+      <div class="passwordShareHint">
+        You can enter your portal without typing the password until <b>${esc(pwTime(active.expiresAt))}</b>. After this 24-hour window, this notice will disappear and you will need the password to log in.
+      </div>
+    </div>`;
+  };
+
+  function pwOpenStudent(studentId){
+    currentStudentId = studentId;
+    const s = student(studentId);
+    if(!s) return alert("Student not found.");
+    const active = pwActiveShare(studentId);
+    if(!state.settings.requireStudentPassword || active){
+      role="student";
+      route="studentHome";
+      renderShell();
+      return;
+    }
+    const passbox = document.getElementById("studentPassBox");
+    if(passbox){
+      passbox.innerHTML = `<div class="card"><h3>${esc(s.name)}</h3><label class="label">Enter Password</label><input id="stuPass" class="input" type="password" onkeydown="if(event.key==='Enter')finishStudentLogin()"><button class="btn green full" onclick="finishStudentLogin()">Open Portal</button></div>`;
+    }else{
+      const pass = prompt("Enter your student password:");
+      if(pass === null) return;
+      if(pass !== s.password) return alert("Wrong password.");
+      role="student"; route="studentHome"; renderShell();
+    }
+  }
+
+  window.selectStudentLogin = function(id){
+    pwOpenStudent(id);
+  };
+
+  window.quickOpenStudentPortal = function(id){
+    pwOpenStudent(id);
+  };
+
+  window.finishStudentLogin = function(){
+    const s=student(currentStudentId);
+    if(!s) return;
+    const active = pwActiveShare(s.id);
+    if(active){
+      role="student"; route="studentHome"; renderShell(); return;
+    }
+    const input = document.getElementById("stuPass") || document.getElementById("studentPass");
+    if((input?.value || "") !== s.password) return alert("Wrong password.");
+    role="student"; route="studentHome"; renderShell();
+  };
+
+  const oldStudentHome = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHome ? oldStudentHome.apply(this, arguments) : undefined;
+    const s = student(currentStudentId);
+    const view = document.getElementById("view");
+    if(view && s && !document.getElementById("passwordShareNotice_"+s.id)){
+      const note = pwStudentNoticeHTML(s.id);
+      if(note) view.insertAdjacentHTML("afterbegin", note);
+    }
+    return result;
+  };
+
+  const oldAdminShowStudentProfileAll = window.adminShowStudentProfileAll;
+  if(typeof oldAdminShowStudentProfileAll === "function"){
+    window.adminShowStudentProfileAll = function(studentId){
+      const result = oldAdminShowStudentProfileAll.apply(this, arguments);
+      const box = document.getElementById("adminSelectedStudentProfile") || document.getElementById("adminSmartProfile");
+      if(box && !document.getElementById("passwordAdminPanel_"+studentId)){
+        box.insertAdjacentHTML("beforeend", pwAdminPanelHTML(studentId));
+      }
+      return result;
+    };
+  }
+
+  const oldAdminShowStudentProfileFixed = window.adminShowStudentProfileFixed;
+  if(typeof oldAdminShowStudentProfileFixed === "function"){
+    window.adminShowStudentProfileFixed = function(studentId){
+      const result = oldAdminShowStudentProfileFixed.apply(this, arguments);
+      const box = document.getElementById("adminSelectedStudentProfile") || document.getElementById("adminSmartProfile");
+      if(box && !document.getElementById("passwordAdminPanel_"+studentId)){
+        box.insertAdjacentHTML("beforeend", pwAdminPanelHTML(studentId));
+      }
+      return result;
+    };
+  }
+
+  const oldAdminDirectoryCard = window.adminDirectoryCard;
+  if(typeof oldAdminDirectoryCard === "function"){
+    window.adminDirectoryCard = function(s){
+      let base = oldAdminDirectoryCard.apply(this, arguments);
+      const active = pwActiveShare(s.id);
+      const add = `<div class="passwordAdminPanel" style="margin-top:8px">
+        <div class="passwordAdminGrid">
+          <div class="passwordAdminCell"><span>Password</span><b>${esc(s.password || "No password")}</b></div>
+          <div class="passwordAdminCell"><span>Shared in portal</span><b>${active ? "Yes" : "No"}</b></div>
+        </div>
+        <div class="toolbar" style="margin-top:8px">
+          <button class="passwordShareBtn" onclick="event.stopPropagation();sharePasswordToStudentPortal('${s.id}')">Share Password 24h</button>
+          <button class="btn light" onclick="event.stopPropagation();pwCopy('${String(s.password||"").replace(/'/g,"\\'")}')">Copy</button>
+        </div>
+      </div>`;
+      return base.replace(`</div>`, `${add}</div>`);
+    };
+  }
+
+  const oldFixedStudentCard = window.fixedStudentCard;
+  if(typeof oldFixedStudentCard === "function"){
+    window.fixedStudentCard = function(s){
+      let base = oldFixedStudentCard.apply(this, arguments);
+      const active = pwActiveShare(s.id);
+      const add = `<div class="passwordAdminPanel">
+        <h3>Password Control</h3>
+        <div class="passwordAdminGrid">
+          <div class="passwordAdminCell"><span>Password</span><b>${esc(s.password || "No password")}</b></div>
+          <div class="passwordAdminCell"><span>Portal Share</span><b>${active ? "Active until " + esc(pwTime(active.expiresAt)) : "Not active"}</b></div>
+        </div>
+        <div class="toolbar" style="margin-top:8px">
+          <button class="passwordShareBtn" onclick="sharePasswordToStudentPortal('${s.id}')">Share Password to Portal 24h</button>
+          <button class="passwordRevokeBtn" onclick="revokePasswordShare('${s.id}')">Revoke</button>
+        </div>
+      </div>`;
+      return base.replace(`</div>`, `${add}</div>`);
+    };
+  }
+
+  const oldDownloadCSV = window.downloadCSV;
+  if(typeof oldDownloadCSV === "function"){
+    window.downloadCSV = function(){
+      const csv=[["Name","Code","Class","Subject","Phone","Password","Password Share Status","Password Share Expires"],...state.students.map(s=>{
+        const active = pwActiveShare(s.id);
+        return [s.name,s.code,s.className,subjectForClass(s.className),s.phone,s.password,active?"Active":"Not active",active?pwTime(active.expiresAt):""];
+      })].map(r=>r.map(x=>`"${String(x||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+      download("students_with_passwords.csv",csv,"text/csv");
+    };
+  }
+
+  setTimeout(()=>{ try{ pwExpireOld(); }catch(e){} }, 1200);
+
+  try{
+    eval("sharePasswordToStudentPortal=window.sharePasswordToStudentPortal; revokePasswordShare=window.revokePasswordShare; pwCopy=window.pwCopy; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; finishStudentLogin=window.finishStudentLogin;");
   }catch(e){}
 })();
 
