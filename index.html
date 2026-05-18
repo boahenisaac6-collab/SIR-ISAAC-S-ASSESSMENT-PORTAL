@@ -3281,6 +3281,395 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== EXERCISE QUIZ, DOCUMENT SUBMISSION, TIMER, RESULTS, AND DIGITAL MARKING ===== */
+.exercisePresetPanel{
+  border:2px solid #d9e7f3;
+  border-left:7px solid #071f3d;
+  background:#fff;
+  border-radius:20px;
+  padding:14px;
+  margin:14px 0;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.exercisePresetPanel h2,.exercisePresetPanel h3{margin:0 0 8px;color:#071f3d}
+.exercisePresetPanel p{margin:0 0 10px;color:#667085;line-height:1.45}
+.quizTimerBar{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  border-radius:16px;
+  padding:12px 14px;
+  margin-bottom:12px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  box-shadow:0 10px 24px rgba(7,31,61,.22);
+}
+.quizTimerClock{
+  font-size:22px;
+  font-weight:950;
+  color:#f4c430;
+}
+.quizTimerClock.danger{
+  color:#ffb4a8;
+  animation:pulseTimer 1s infinite;
+}
+@keyframes pulseTimer{50%{opacity:.55}}
+.exerciseResultsTable{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+}
+.exerciseResultsTable th{
+  background:#071f3d;
+  color:#fff;
+  border:1px solid #071f3d;
+  padding:7px;
+  text-align:left;
+}
+.exerciseResultsTable td{
+  border:1px solid #d9e7f3;
+  padding:7px;
+}
+.docAssignmentCard{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:16px;
+  padding:12px;
+  margin:10px 0;
+}
+.docAssignmentCard h3{margin:0 0 5px;color:#071f3d}
+.docUploadBox{
+  border:2px dashed #cbd9e8;
+  border-radius:18px;
+  background:#fff;
+  padding:14px;
+  margin:12px 0;
+}
+.docSubmissionFiles{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+.docFileCard{
+  border:1px solid #d9e7f3;
+  border-radius:14px;
+  background:#fff;
+  padding:10px;
+}
+.docFileCard img{
+  width:100%;
+  max-height:220px;
+  object-fit:contain;
+  border-radius:10px;
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+}
+.markerOverlay{
+  position:fixed;
+  inset:0;
+  z-index:2147483905;
+  background:rgba(4,18,37,.86);
+  display:grid;
+  place-items:center;
+  padding:14px;
+}
+.markerModal{
+  width:min(1100px,100%);
+  height:min(92vh,920px);
+  background:#fff;
+  border-radius:22px;
+  border:1px solid #d9e7f3;
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  box-shadow:0 28px 90px rgba(0,0,0,.35);
+}
+.markerHeader{
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  padding:12px 16px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+}
+.markerHeader h2{margin:0;font-size:18px}
+.markerHeader button{
+  border:0;
+  border-radius:10px;
+  background:#f4c430;
+  color:#071f3d;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.markerTools{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:10px;
+  border-bottom:1px solid #d9e7f3;
+  background:#f8fbff;
+}
+.markerTools button,.markerTools input{
+  min-height:36px;
+  border:0;
+  border-radius:10px;
+  padding:7px 10px;
+  font-weight:950;
+}
+.markerTools button{
+  cursor:pointer;
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+}
+.markerTools button.active{
+  background:#071f3d;
+  color:#fff;
+}
+.markerCanvasWrap{
+  overflow:auto;
+  position:relative;
+  background:#eef5fc;
+  padding:14px;
+}
+.markerPage{
+  position:relative;
+  display:inline-block;
+  background:#fff;
+  box-shadow:0 8px 25px rgba(7,31,61,.18);
+}
+.markerPage img{
+  display:block;
+  max-width:1000px;
+  width:auto;
+  height:auto;
+}
+.markerPage canvas{
+  position:absolute;
+  left:0;
+  top:0;
+  cursor:crosshair;
+}
+.markerFooter{
+  padding:10px;
+  border-top:1px solid #d9e7f3;
+  background:#fff;
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr) auto auto;
+  gap:8px;
+  align-items:center;
+}
+.markerFooter input,.markerFooter textarea{
+  border:1px solid #cbd9e8;
+  border-radius:10px;
+  padding:8px 10px;
+}
+.markerFooter textarea{min-height:42px;resize:vertical}
+.docMarkedPreview{
+  border:2px solid #0f7b4f;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:12px;
+  padding:8px;
+  margin-top:8px;
+  font-weight:900;
+}
+.exercisePrintOnly{
+  display:none;
+}
+@media(max-width:760px){
+  .quizTimerBar,.markerFooter{
+    grid-template-columns:1fr;
+    display:grid;
+  }
+  .markerPage img{max-width:92vw}
+}
+@media print{
+  body.printExerciseResults *{visibility:hidden!important}
+  body.printExerciseResults #exerciseResultsPrintArea,
+  body.printExerciseResults #exerciseResultsPrintArea *{visibility:visible!important}
+  body.printExerciseResults #exerciseResultsPrintArea{
+    position:absolute!important;
+    left:0!important;
+    top:0!important;
+    width:100%!important;
+  }
+  @page{size:A4 portrait;margin:10mm}
+}
+
+
+/* ===== ADMIN EXERCISE REVIEW, PREVIEW, STUDENT WORK SUMMARY ===== */
+.adminExerciseHub{
+  border:2px solid #d9e7f3;
+  border-left:7px solid #071f3d;
+  background:#fff;
+  border-radius:22px;
+  padding:14px;
+  margin:14px 0;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.adminExerciseHub h2,.adminExerciseHub h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.adminExerciseHub p{
+  margin:0 0 10px;
+  color:#667085;
+  line-height:1.45;
+}
+.exerciseHubGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+  gap:12px;
+}
+.exerciseHubCard{
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  padding:12px;
+  background:#f8fbff;
+}
+.exerciseHubCard h3{
+  color:#071f3d;
+  margin:0 0 5px;
+}
+.exerciseStatusBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 10px;
+  font-weight:950;
+  font-size:12px;
+  margin:5px 0;
+}
+.exerciseStatusBadge.published{
+  background:#ecfdf3;
+  color:#0f6b47;
+  border:1px solid #bce8ce;
+}
+.exerciseStatusBadge.draft{
+  background:#fff7d1;
+  color:#071f3d;
+  border:1px solid #f4c430;
+}
+.exercisePreviewModal{
+  position:fixed;
+  inset:0;
+  z-index:2147483908;
+  background:rgba(4,18,37,.86);
+  display:grid;
+  place-items:center;
+  padding:14px;
+}
+.exercisePreviewBox{
+  width:min(960px,100%);
+  max-height:92vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:22px;
+  box-shadow:0 28px 90px rgba(0,0,0,.35);
+  border:1px solid #d9e7f3;
+}
+.exercisePreviewHead{
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  padding:14px 18px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+}
+.exercisePreviewHead h2{
+  margin:0;
+  font-size:18px;
+}
+.exercisePreviewHead button{
+  border:0;
+  border-radius:10px;
+  background:#f4c430;
+  color:#071f3d;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.exercisePreviewBody{
+  padding:14px;
+}
+.previewQuestionCard{
+  border:1px solid #d9e7f3;
+  border-radius:16px;
+  background:#fff;
+  padding:12px;
+  margin-bottom:10px;
+}
+.previewQuestionCard h4{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.previewChoice{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px dashed #edf2f7;
+}
+.correctChoice{
+  background:#ecfdf3;
+  border:1px solid #bce8ce;
+  border-radius:10px;
+  padding:6px;
+}
+.studentWorkPanel{
+  border:2px solid #d9e7f3;
+  border-left:7px solid #0f7b4f;
+  border-radius:20px;
+  padding:12px;
+  margin-top:12px;
+  background:#fff;
+}
+.studentWorkPanel h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.studentWorkItem{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:14px;
+  padding:10px;
+  margin:8px 0;
+}
+.studentWorkItem b{
+  color:#071f3d;
+}
+.workStatusPublished{
+  color:#0f6b47;
+  font-weight:950;
+}
+.workStatusDraft{
+  color:#b54708;
+  font-weight:950;
+}
+.studentAnswerMini{
+  background:#fff;
+  border:1px solid #edf2f7;
+  border-radius:10px;
+  padding:8px;
+  margin-top:7px;
+  max-height:180px;
+  overflow:auto;
+}
+@media(max-width:760px){
+  .exerciseHubGrid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -7647,6 +8036,663 @@ ${printable}
 
   try{
     eval("previewPictureClassList = window.previewPictureClassList; printPictureClassList = window.printPictureClassList;");
+  }catch(e){}
+})();
+
+
+/* ===== EXERCISE QUIZ + DOCUMENT SUBMISSION + DIGITAL MARKING ADD-ON ===== */
+(function(){
+  let exerciseTimer = null;
+  let exerciseSecondsLeft = 0;
+  let exerciseSubmitting = false;
+  let markerState = {subId:null,fileIndex:0,tool:"red",drawing:false,lastX:0,lastY:0};
+
+  function safeSaveAll(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("Live save skipped", e); }
+  }
+  function exUid(prefix){ return typeof uid==="function" ? uid(prefix) : prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function exNow(){ return typeof now==="function" ? now() : new Date().toLocaleString(); }
+  function exEnsure(){
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.docAssignments = Array.isArray(state.docAssignments) ? state.docAssignments : [];
+    state.docSubmissions = Array.isArray(state.docSubmissions) ? state.docSubmissions : [];
+  }
+  function exSubject(kind){
+    const subjects = (state.subjects||[]).map(s=>s.name);
+    if(kind==="add"){
+      return subjects.find(n=>String(n).toLowerCase().includes("additional")) || "Additional Mathematics";
+    }
+    return subjects.find(n=>String(n).toLowerCase().includes("mathematics") && !String(n).toLowerCase().includes("additional")) || subjects[0] || "Mathematics";
+  }
+  function exClassesForSubject(subject){
+    try{
+      const found = (state.subjects||[]).find(s=>s.name===subject);
+      if(found && Array.isArray(found.classes)) return found.classes.slice();
+      return classesForSubject(subject).slice();
+    }catch(e){ return (state.classes||[]).slice(); }
+  }
+  function mathQuestions(){
+    return [
+      {id:"mq1",type:"mcq",marks:1,prompt:"Which of the following is an irrational number?",choices:["\\(\\frac{3}{5}\\)","\\(\\sqrt{2}\\)","\\(0.75\\)","\\(-4\\)"],answer:"B"},
+      {id:"mq2",type:"mcq",marks:1,prompt:"Simplify \\(\\frac{3}{4}+\\frac{2}{5}\\).",choices:["\\(\\frac{5}{9}\\)","\\(\\frac{6}{20}\\)","\\(\\frac{23}{20}\\)","\\(\\frac{8}{9}\\)"],answer:"C"},
+      {id:"mq3",type:"mcq",marks:1,prompt:"Write \\(0.35\\) as a fraction in its lowest term.",choices:["\\(\\frac{7}{20}\\)","\\(\\frac{35}{10}\\)","\\(\\frac{3}{5}\\)","\\(\\frac{5}{7}\\)"],answer:"A"},
+      {id:"mq4",type:"mcq",marks:1,prompt:"Find \\(25\\%\\) of GH\\(\\unicode{x20B5}240\\).",choices:["GH\\(\\unicode{x20B5}40\\)","GH\\(\\unicode{x20B5}50\\)","GH\\(\\unicode{x20B5}60\\)","GH\\(\\unicode{x20B5}80\\)"],answer:"C"},
+      {id:"mq5",type:"mcq",marks:1,prompt:"A trader gives \\(15\\%\\) discount on an item marked GH\\(\\unicode{x20B5}200\\). Find the selling price.",choices:["GH\\(\\unicode{x20B5}150\\)","GH\\(\\unicode{x20B5}170\\)","GH\\(\\unicode{x20B5}185\\)","GH\\(\\unicode{x20B5}215\\)"],answer:"B"},
+      {id:"mq6",type:"mcq",marks:1,prompt:"A sales agent receives \\(8\\%\\) commission on sales of GH\\(\\unicode{x20B5}1,500\\). Find the commission.",choices:["GH\\(\\unicode{x20B5}80\\)","GH\\(\\unicode{x20B5}100\\)","GH\\(\\unicode{x20B5}120\\)","GH\\(\\unicode{x20B5}150\\)"],answer:"C"},
+      {id:"mq7",type:"mcq",marks:1,prompt:"Find the simple interest on GH\\(\\unicode{x20B5}600\\) for \\(3\\) years at \\(10\\%\\) per annum.",choices:["GH\\(\\unicode{x20B5}60\\)","GH\\(\\unicode{x20B5}120\\)","GH\\(\\unicode{x20B5}180\\)","GH\\(\\unicode{x20B5}780\\)"],answer:"C"},
+      {id:"mq8",type:"mcq",marks:1,prompt:"Find the compound amount on GH\\(\\unicode{x20B5}1,000\\) for \\(2\\) years at \\(10\\%\\) per annum.",choices:["GH\\(\\unicode{x20B5}1,100\\)","GH\\(\\unicode{x20B5}1,200\\)","GH\\(\\unicode{x20B5}1,210\\)","GH\\(\\unicode{x20B5}1,220\\)"],answer:"C"},
+      {id:"mq9",type:"mcq",marks:1,prompt:"Which set contains only integers?",choices:["\\(\\{ -2,0,3,7\\}\\)","\\(\\{\\frac{1}{2},2,3\\}\\)","\\(\\{\\sqrt{3},4,5\\}\\)","\\(\\{0.5,1.5,2.5\\}\\)"],answer:"A"},
+      {id:"mq10",type:"mcq",marks:1,prompt:"Convert \\(\\frac{3}{8}\\) to a percentage.",choices:["\\(30\\%\\)","\\(37.5\\%\\)","\\(38\\%\\)","\\(75\\%\\)"],answer:"B"}
+    ];
+  }
+  function addMathQuestions(){
+    return [
+      {id:"amq1",type:"mcq",marks:1,prompt:"If \\(A=\\{1,2,3,4\\}\\) and \\(B=\\{3,4,5\\}\\), find \\(A\\cap B\\).",choices:["\\(\\{1,2\\}\\)","\\(\\{3,4\\}\\)","\\(\\{1,2,3,4,5\\}\\)","\\(\\{5\\}\\)"],answer:"B"},
+      {id:"amq2",type:"mcq",marks:1,prompt:"Simplify \\(\\sqrt{50}\\).",choices:["\\(5\\sqrt{2}\\)","\\(10\\sqrt{5}\\)","\\(25\\sqrt{2}\\)","\\(2\\sqrt{5}\\)"],answer:"A"},
+      {id:"amq3",type:"mcq",marks:1,prompt:"If \\(a*b=a^2+b\\), find \\(3*4\\).",choices:["\\(7\\)","\\(10\\)","\\(13\\)","\\(21\\)"],answer:"C"},
+      {id:"amq4",type:"mcq",marks:1,prompt:"Find the coefficient of \\(x^2\\) in \\((1+x)^5\\).",choices:["\\(5\\)","\\(10\\)","\\(15\\)","\\(20\\)"],answer:"B"},
+      {id:"amq5",type:"mcq",marks:1,prompt:"Simplify \\(2^3\\times 2^4\\).",choices:["\\(2^7\\)","\\(2^{12}\\)","\\(4^7\\)","\\(2\\)"],answer:"A"},
+      {id:"amq6",type:"mcq",marks:1,prompt:"Evaluate \\(\\log_{10}1000\\).",choices:["\\(2\\)","\\(3\\)","\\(10\\)","\\(100\\)"],answer:"B"},
+      {id:"amq7",type:"mcq",marks:1,prompt:"Simplify \\(\\sqrt{18}+\\sqrt{8}\\).",choices:["\\(5\\sqrt{2}\\)","\\(7\\sqrt{2}\\)","\\(\\sqrt{26}\\)","\\(10\\sqrt{2}\\)"],answer:"A"},
+      {id:"amq8",type:"mcq",marks:1,prompt:"If \\(U=\\{1,2,3,4,5,6\\}\\) and \\(A=\\{2,4,6\\}\\), find \\(A'\\).",choices:["\\(\\{1,3,5\\}\\)","\\(\\{2,4,6\\}\\)","\\(\\{1,2,3\\}\\)","\\(\\{4,5,6\\}\\)"],answer:"A"},
+      {id:"amq9",type:"mcq",marks:1,prompt:"Simplify \\(\\log_a x+\\log_a y\\).",choices:["\\(\\log_a(x+y)\\)","\\(\\log_a(x-y)\\)","\\(\\log_a(xy)\\)","\\(\\log_a\\frac{x}{y}\\)"],answer:"C"},
+      {id:"amq10",type:"mcq",marks:1,prompt:"In the expansion of \\((a+b)^4\\), the third term is",choices:["\\(4a^3b\\)","\\(6a^2b^2\\)","\\(4ab^3\\)","\\(b^4\\)"],answer:"B"}
+    ];
+  }
+
+  window.installDefaultExercisesOnce = function(force=false){
+    exEnsure();
+    if(state.defaultExercisesInstalled && !force) return;
+    const mathSubj = exSubject("math");
+    const addSubj = exSubject("add");
+    const mathClasses = exClassesForSubject(mathSubj);
+    const addClasses = exClassesForSubject(addSubj);
+
+    if(!state.quizzes.some(q=>q.id==="preset_math_exercise_001")){
+      state.quizzes.push({
+        id:"preset_math_exercise_001",
+        title:"Exercise 1: Mathematics MCQ Exercise",
+        subject:mathSubj,
+        classNames:mathClasses,
+        status:"Draft",
+        assignmentType:"Exercise",
+        durationMinutes:30,
+        createdAt:exNow(),
+        questions:mathQuestions()
+      });
+    }
+    if(!state.quizzes.some(q=>q.id==="preset_addmath_exercise_001")){
+      state.quizzes.push({
+        id:"preset_addmath_exercise_001",
+        title:"Exercise 1: Additional Mathematics MCQ Exercise",
+        subject:addSubj,
+        classNames:addClasses,
+        status:"Draft",
+        assignmentType:"Exercise",
+        durationMinutes:30,
+        createdAt:exNow(),
+        questions:addMathQuestions()
+      });
+    }
+    state.defaultExercisesInstalled = true;
+    safeSaveAll();
+  };
+
+  window.reinstallDefaultExercises = function(){
+    if(!confirm("Install or restore the prepared Mathematics and Additional Mathematics exercises as Draft?")) return;
+    state.defaultExercisesInstalled = false;
+    installDefaultExercisesOnce(true);
+    alert("Prepared exercises installed. You can now publish them when ready.");
+    if(typeof quizzes==="function") quizzes();
+  };
+
+  const oldRenderForExercises = window.render;
+  if(typeof oldRenderForExercises==="function"){
+    window.render = function(){
+      installDefaultExercisesOnce(false);
+      return oldRenderForExercises.apply(this, arguments);
+    };
+  }
+
+  const oldQuizListHTML = typeof quizListHTML==="function" ? quizListHTML : null;
+  window.quizListHTML = function(){
+    exEnsure();
+    return state.quizzes.map(q=>`<div class="quizCard">
+      <h3>${esc(q.title)}</h3>
+      <p>${esc(q.subject)} • ${esc((q.classNames||[]).join(", "))} • ${esc(q.status)} • ${q.durationMinutes||30} minutes</p>
+      <div class="toolbar">
+        <button class="btn ${q.status==="Published"?"light":"green"}" onclick="qToggle('${q.id}')">${q.status==="Published"?"Hide":"Publish"}</button>
+        <button class="btn gold" onclick="publishQuizResults('${q.id}')">Publish Results</button>
+        <button class="btn light" onclick="printQuizResults('${q.id}')">Print Results</button>
+        <button class="btn red" onclick="deleteQuiz('${q.id}')">Delete</button>
+      </div>
+    </div>`).join("") || `<div class="empty">No quiz saved.</div>`;
+  };
+
+  window.publishQuizResults = function(qid){
+    const q = quiz(qid);
+    if(!q) return;
+    const subs = state.submissions.filter(s=>s.quizId===qid);
+    if(!subs.length) return alert("No submission yet for this exercise.");
+    subs.forEach(s=>s.published=true);
+    safeSaveAll();
+    alert("Results published for " + q.title + ".");
+    if(typeof quizzes==="function") quizzes();
+  };
+  window.unpublishQuizResults = function(qid){
+    state.submissions.filter(s=>s.quizId===qid).forEach(s=>s.published=false);
+    safeSaveAll();
+    if(typeof quizzes==="function") quizzes();
+  };
+  window.printQuizResults = function(qid){
+    const q = quiz(qid);
+    if(!q) return;
+    const subs = state.submissions.filter(s=>s.quizId===qid).map(s=>({sub:s, stu:student(s.studentId)||{}})).sort((a,b)=>String(a.stu.className||"").localeCompare(String(b.stu.className||"")) || String(a.stu.name||"").localeCompare(String(b.stu.name||"")));
+    const html = `<div id="exerciseResultsPrintArea"><h2>${esc(q.title)} Results</h2><p>${esc(q.subject)} • ${esc((q.classNames||[]).join(", "))}<br>Generated: ${exNow()}</p>
+      <table class="exerciseResultsTable"><thead><tr><th>No.</th><th>Student</th><th>Class</th><th>Score</th><th>Status</th><th>Submitted</th></tr></thead><tbody>
+      ${subs.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.stu.name||"")}</td><td>${esc(r.stu.className||"")}</td><td>${r.sub.teacherScore ?? r.sub.autoScore} / ${r.sub.maxScore}</td><td>${r.sub.published?"Published":"Not Published"}</td><td>${esc(r.sub.submittedAt||"")}</td></tr>`).join("") || `<tr><td colspan="6">No submission yet.</td></tr>`}
+      </tbody></table></div>`;
+    const old=document.getElementById("exerciseResultsOverlay"); if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="exerciseResultsOverlay" class="printClassModal"><div class="printClassBox"><div class="printClassHead"><h2>Exercise Results</h2><button onclick="document.getElementById('exerciseResultsOverlay').remove()">Close</button></div><div class="printClassBody"><button class="btn green noPrint" onclick="document.body.classList.add('printExerciseResults');setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove('printExerciseResults'),500)},100)">Print / Save PDF</button>${html}</div></div></div>`);
+  };
+
+  window.quizzes = function(){
+    installDefaultExercisesOnce(false);
+    $("view").innerHTML = `<div class="exercisePresetPanel">
+      <h2>Prepared Exercise Work</h2>
+      <p>Two 30-minute MCQ exercises have been prepared as Draft: one for Mathematics classes and one for Additional Mathematics classes. Publish them when you are ready for students to see them.</p>
+      <button class="btn gold" onclick="reinstallDefaultExercises()">Install / Restore Prepared Exercises</button>
+    </div>
+    <div class="grid two">
+      <div class="card"><h2>Create / Edit Quiz</h2>
+        <label class="label">Title</label><input id="quizTitle" class="input" placeholder="Quiz title">
+        <div class="grid three">
+          <div><label class="label">Subject</label><select id="quizSubject" class="select" onchange="refreshQuizClasses()">${subjectOptions(state.subjects[0]?.name||"")}</select></div>
+          <div><label class="label">Status</label><select id="quizStatus" class="select"><option>Draft</option><option>Published</option></select></div>
+          <div><label class="label">Duration (minutes)</label><input id="quizDuration" class="input" type="number" min="1" value="30"></div>
+        </div>
+        <div><label class="label">Assign Classes</label><div id="quizClasses" class="grid two"></div></div>
+        <div class="toolbar"><button class="btn light" onclick="addBuilderQuestion('mcq')">Add MCQ</button><button class="btn light" onclick="addBuilderQuestion('fill')">Add Fill-in</button><button class="btn light" onclick="addBuilderQuestion('theory')">Add Theory</button><button class="btn light" onclick="addBuilderQuestion('upload')">Add Upload</button></div>
+        <div id="builderQuestions"></div>
+        <button class="btn green full" onclick="saveQuiz()">Save Quiz</button>
+      </div>
+      <div class="card"><h2>Saved Quizzes / Exercises</h2><div id="quizList">${quizListHTML()}</div></div>
+    </div>
+    ${docAssignmentAdminPanel()}`;
+    refreshQuizClasses(); renderBuilder();
+  };
+
+  window.saveQuiz = function(){
+    const title=$("quizTitle").value.trim(); if(!title)return alert("Type quiz title.");
+    const subj=$("quizSubject").value; const classes=[...document.querySelectorAll("#quizClasses input:checked")].map(x=>x.value);
+    if(!classes.length)return alert("Select at least one class.");
+    if(!builderQuestions.length)return alert("Add questions.");
+    state.quizzes.push({id:exUid("quiz"),title,subject:subj,classNames:classes,status:$("quizStatus").value,createdAt:exNow(),durationMinutes:Number($("quizDuration")?.value)||30,assignmentType:"Exercise",questions:JSON.parse(JSON.stringify(builderQuestions))});
+    builderQuestions=[]; safeSaveAll(); quizzes();
+  };
+
+  window.availableQuizzes = function(){
+    const s=student(currentStudentId); if(!s)return[];
+    return (state.quizzes||[]).filter(q=>q.status==="Published" && q.subject===subjectForClass(s.className) && (q.classNames||[]).includes(s.className));
+  };
+
+  window.takeQuiz = function(id){
+    const q=quiz(id); if(!q)return;
+    exerciseSubmitting=false;
+    const mins = Number(q.durationMinutes)||30;
+    exerciseSecondsLeft = mins*60;
+    if(exerciseTimer) clearInterval(exerciseTimer);
+    $("view").innerHTML=`<div class="quizTimerBar"><div><b>${esc(q.title)}</b><br><small>${esc(q.subject)} • ${esc((q.classNames||[]).join(", "))}</small></div><div>Time left: <span id="quizTimerClock" class="quizTimerClock">${formatExerciseTime(exerciseSecondsLeft)}</span></div></div>
+      <div class="card"><h2>${esc(q.title)}</h2><p>This exercise will submit automatically when the time is up.</p><form id="quizForm">${q.questions.map((qq,i)=>answerHTML(qq,i)).join("")}</form><button class="btn green full" onclick="submitQuiz('${q.id}',false)">Submit Exercise</button></div>`;
+    exerciseTimer = setInterval(()=>{exerciseSecondsLeft--; updateExerciseTimer(q.id);},1000);
+    typeset();
+  };
+  window.formatExerciseTime = function(sec){
+    sec=Math.max(0,sec);
+    const m=Math.floor(sec/60), s=sec%60;
+    return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  };
+  window.updateExerciseTimer = function(qid){
+    const el=$("quizTimerClock"); if(el){el.textContent=formatExerciseTime(exerciseSecondsLeft); if(exerciseSecondsLeft<=60) el.classList.add("danger");}
+    if(exerciseSecondsLeft<=0){
+      clearInterval(exerciseTimer);
+      submitQuiz(qid,true);
+    }
+  };
+
+  window.submitQuiz = function(id,auto=false){
+    if(exerciseSubmitting) return;
+    exerciseSubmitting=true;
+    if(exerciseTimer) clearInterval(exerciseTimer);
+    const q=quiz(id); const form=$("quizForm"); if(!q||!form)return;
+    let answers={}, score=0, max=0; const fileReads=[];
+    q.questions.forEach(qq=>{
+      max+=Number(qq.marks)||1;
+      const name="ans_"+qq.id;
+      if(qq.type==="mcq"){
+        const v=form.querySelector(`[name="${name}"]:checked`)?.value||""; answers[qq.id]=v;
+        if(v.toUpperCase()===String(qq.answer||"").toUpperCase())score+=Number(qq.marks)||1;
+      }else if(qq.type==="upload"){
+        const files=[...(form.querySelector(`[name="${name}"]`)?.files||[])];
+        if(files.length){
+          answers[qq.id]=[];
+          files.forEach(f=>fileReads.push(new Promise(res=>{const r=new FileReader(); r.onload=()=>{answers[qq.id].push({name:f.name,type:f.type,data:r.result});res()}; r.readAsDataURL(f)})));
+        } else answers[qq.id]="";
+      }else{
+        const v=form.querySelector(`[name="${name}"]`)?.value||""; answers[qq.id]=v;
+        if(qq.type==="fill" && v.trim().toLowerCase()===String(qq.answer||"").trim().toLowerCase())score+=Number(qq.marks)||1;
+      }
+    });
+    Promise.all(fileReads).then(()=>{
+      state.submissions.push({id:exUid("sub"),quizId:id,studentId:currentStudentId,answers,autoScore:score,teacherScore:null,maxScore:max,published:false,submittedAt:exNow(),feedback:"",autoSubmitted:!!auto});
+      safeSaveAll();
+      alert(auto ? "Time is up. Your exercise has been submitted automatically." : "Submitted successfully.");
+      setRoute("studentResults");
+    });
+  };
+
+  window.availableDocAssignments = function(){
+    const s=student(currentStudentId); if(!s)return[];
+    return (state.docAssignments||[]).filter(a=>a.status==="Published" && a.subject===subjectForClass(s.className) && (a.classNames||[]).includes(s.className));
+  };
+  window.docAssignmentAdminPanel = function(){
+    exEnsure();
+    const subj = state.subjects[0]?.name || "Mathematics";
+    return `<div class="exercisePresetPanel">
+      <h2>Document Sharing / Scanned Work Submission</h2>
+      <p>Create a document-upload assignment. Students can scan pages and upload them. You can open their submitted images with red pen, eraser, and marking tools.</p>
+      <div class="grid three">
+        <input id="docTitle" class="input" placeholder="Assignment title, e.g. Exercise 2 Written Work">
+        <select id="docSubject" class="select" onchange="refreshDocClasses()">${subjectOptions(subj)}</select>
+        <select id="docStatus" class="select"><option>Draft</option><option>Published</option></select>
+      </div>
+      <div class="grid two">
+        <input id="docMax" class="input" type="number" value="10" placeholder="Maximum score">
+        <input id="docInstructions" class="input" placeholder="Instructions to students">
+      </div>
+      <div><label class="label">Assign Classes</label><div id="docClasses" class="grid two"></div></div>
+      <button class="btn green" onclick="saveDocAssignment()">Save Document Assignment</button>
+      <div style="margin-top:12px">${state.docAssignments.map(a=>`<div class="docAssignmentCard"><h3>${esc(a.title)}</h3><p>${esc(a.subject)} • ${esc((a.classNames||[]).join(", "))} • ${esc(a.status)} • Max: ${a.maxScore}</p><div class="toolbar"><button class="btn ${a.status==="Published"?"light":"green"}" onclick="toggleDocAssignment('${a.id}')">${a.status==="Published"?"Hide":"Publish"}</button><button class="btn gold" onclick="publishDocResults('${a.id}')">Publish Marks</button><button class="btn red" onclick="deleteDocAssignment('${a.id}')">Delete</button></div></div>`).join("") || `<div class="empty">No document assignment yet.</div>`}</div>
+    </div>`;
+  };
+  window.refreshDocClasses = function(){
+    const subj=$("docSubject")?.value || state.subjects[0]?.name;
+    const box=$("docClasses"); if(!box)return;
+    box.innerHTML = exClassesForSubject(subj).map(c=>`<label class="notice"><input type="checkbox" value="${esc(c)}"> ${esc(c)}</label>`).join("");
+  };
+  window.saveDocAssignment = function(){
+    const title=($("docTitle")?.value||"").trim(); if(!title)return alert("Type assignment title.");
+    const subj=$("docSubject").value;
+    const classes=[...document.querySelectorAll("#docClasses input:checked")].map(x=>x.value);
+    if(!classes.length)return alert("Select at least one class.");
+    state.docAssignments.push({id:exUid("doc"),title,subject:subj,classNames:classes,status:$("docStatus").value,createdAt:exNow(),instructions:($("docInstructions")?.value||""),maxScore:Number($("docMax")?.value)||10});
+    safeSaveAll(); quizzes();
+  };
+  window.toggleDocAssignment = function(id){
+    const a=state.docAssignments.find(x=>x.id===id); if(!a)return;
+    a.status=a.status==="Published"?"Draft":"Published";
+    safeSaveAll(); quizzes();
+  };
+  window.deleteDocAssignment = function(id){
+    if(!confirm("Delete this document assignment and its submissions?"))return;
+    state.docAssignments=state.docAssignments.filter(a=>a.id!==id);
+    state.docSubmissions=state.docSubmissions.filter(s=>s.assignmentId!==id);
+    safeSaveAll(); quizzes();
+  };
+  window.publishDocResults = function(id){
+    const subs=state.docSubmissions.filter(s=>s.assignmentId===id);
+    if(!subs.length)return alert("No document submission yet.");
+    subs.forEach(s=>s.published=true);
+    safeSaveAll();
+    alert("Document assignment marks published.");
+    quizzes();
+  };
+
+  const oldStudentQuizzes = typeof studentQuizzes==="function" ? studentQuizzes : null;
+  window.studentQuizzes = function(){
+    const qs=availableQuizzes();
+    const docs=availableDocAssignments();
+    $("view").innerHTML=`<div class="card"><h2>Available Exercises and Document Upload Work</h2><p>Timed exercises and scanned-work submissions assigned to your class will appear here.</p></div>
+      <div>${qs.map(q=>`<div class="quizCard"><h3>${esc(q.title)}</h3><p>${esc(q.questions.length)} question(s) • ${q.durationMinutes||30} minutes</p><button class="btn green" onclick="takeQuiz('${q.id}')">Start Exercise</button></div>`).join("")||`<div class="empty">No timed exercise available now.</div>`}</div>
+      <div class="card"><h2>Scan and Upload Written Work</h2>${docs.map(a=>`<div class="docAssignmentCard"><h3>${esc(a.title)}</h3><p>${esc(a.instructions||"Scan your work and upload the pages here.")}</p><p>Maximum score: ${a.maxScore}</p><button class="btn green" onclick="openDocSubmit('${a.id}')">Upload Scanned Pages</button></div>`).join("")||`<div class="empty">No document-upload assignment available now.</div>`}</div>`;
+  };
+  window.openDocSubmit = function(id){
+    const a=state.docAssignments.find(x=>x.id===id); if(!a)return;
+    const old=document.getElementById("docSubmitOverlay"); if(old)old.remove();
+    document.body.insertAdjacentHTML("beforeend",`<div id="docSubmitOverlay" class="printClassModal"><div class="printClassBox"><div class="printClassHead"><h2>${esc(a.title)}</h2><button onclick="document.getElementById('docSubmitOverlay').remove()">Close</button></div><div class="printClassBody"><p>${esc(a.instructions||"Upload scanned pages or images of your work.")}</p><div class="docUploadBox"><input id="docFiles" type="file" multiple accept="image/*,.pdf"><p>You may upload one or more scanned pages. Images are best for digital pen marking.</p></div><button class="btn green" onclick="submitDocAssignment('${a.id}')">Submit Scanned Work</button></div></div></div>`);
+  };
+  window.submitDocAssignment = function(id){
+    const files=[...($("docFiles")?.files||[])];
+    if(!files.length)return alert("Select at least one scanned page or document.");
+    const reads=files.map(f=>new Promise(res=>{const r=new FileReader(); r.onload=()=>res({name:f.name,type:f.type,data:r.result}); r.readAsDataURL(f)}));
+    Promise.all(reads).then(fileObjs=>{
+      state.docSubmissions.push({id:exUid("docsub"),assignmentId:id,studentId:currentStudentId,files:fileObjs,score:null,feedback:"",published:false,submittedAt:exNow(),markedFiles:[]});
+      safeSaveAll();
+      alert("Your scanned work has been submitted.");
+      document.getElementById("docSubmitOverlay")?.remove();
+      setRoute("studentResults");
+    });
+  };
+
+  const oldStudentResults = typeof studentResults==="function" ? studentResults : null;
+  window.studentResults = function(){
+    oldStudentResults ? oldStudentResults() : ($("view").innerHTML="");
+    const s=student(currentStudentId); if(!s)return;
+    const docs=state.docSubmissions.filter(x=>x.studentId===currentStudentId);
+    const html=`<div class="card"><h2>My Uploaded Written Work</h2>${docs.map(ds=>{const a=state.docAssignments.find(x=>x.id===ds.assignmentId)||{};return `<div class="submissionCard"><h3>${esc(a.title||"Document Assignment")}</h3><p>Submitted: ${esc(ds.submittedAt||"")}</p>${ds.published?`<b>Score: ${ds.score ?? "-"} / ${a.maxScore ?? "-"}</b><p>${esc(ds.feedback||"")}</p>`:`<div class="notice">Mark not yet published by teacher.</div>`}</div>`}).join("")||`<div class="empty">No uploaded written work yet.</div>`}</div>`;
+    $("view").insertAdjacentHTML("beforeend",html);
+  };
+
+  window.renderAns = function(a){
+    if(Array.isArray(a)){
+      return a.map((f,i)=>`<a href="${f.data}" target="_blank">${esc(f.name||"Uploaded file "+(i+1))}</a>`).join("<br>");
+    }
+    if(a&&a.data)return `<a href="${a.data}" target="_blank">${esc(a.name||"Uploaded file")}</a>`;
+    return esc(typeof a==="object"?JSON.stringify(a):a);
+  };
+
+  window.review = function(){
+    exEnsure();
+    const subs=state.submissions.slice().reverse();
+    const docSubs=state.docSubmissions.slice().reverse();
+    $("view").innerHTML = `<div class="card"><h2>Review / Marking</h2><p>Review timed exercises and scanned document submissions. Publish marks when ready.</p></div>
+      <div class="card"><h2>Timed Exercise Submissions</h2>${subs.map(s=>{const st=student(s.studentId)||{}; const q=quiz(s.quizId)||{}; return `<div class="submissionCard"><h3>${esc(st.name||"Student")} — ${esc(q.title||"Quiz")}</h3><p>${esc(st.className||"")} • ${esc(s.submittedAt||"")} ${s.autoSubmitted?"• Auto-submitted":""}</p><b>Auto Score: ${s.autoScore} / ${s.maxScore}</b><details><summary>View Answers</summary>${(q.questions||[]).map(qq=>`<div class="questionBox"><b>${esc(qq.prompt)}</b><p>Answer: ${renderAns(s.answers?.[qq.id])}</p><p>Correct/Note: ${esc(qq.answer||"")}</p></div>`).join("")}</details><div class="grid three"><input class="input" type="number" value="${s.teacherScore ?? s.autoScore}" onchange="setTeacherScore('${s.id}',this.value)"><input class="input" value="${esc(s.feedback||"")}" placeholder="Feedback" onchange="setFeedback('${s.id}',this.value)"><button class="btn ${s.published?'light':'green'}" onclick="publishSub('${s.id}')">${s.published?'Unpublish':'Publish'}</button></div></div>`}).join("")||`<div class="empty">No timed exercise submissions yet.</div>`}</div>
+      <div class="card"><h2>Scanned Document Submissions</h2>${docSubs.map(ds=>docSubmissionReviewHTML(ds)).join("")||`<div class="empty">No scanned document submission yet.</div>`}</div>`;
+    typeset();
+  };
+  window.docSubmissionReviewHTML = function(ds){
+    const st=student(ds.studentId)||{};
+    const a=state.docAssignments.find(x=>x.id===ds.assignmentId)||{};
+    return `<div class="submissionCard"><h3>${esc(st.name||"Student")} — ${esc(a.title||"Document Assignment")}</h3><p>${esc(st.className||"")} • Submitted: ${esc(ds.submittedAt||"")}</p>
+      <div class="docSubmissionFiles">${(ds.files||[]).map((f,i)=>`<div class="docFileCard">${String(f.type||"").startsWith("image/")?`<img src="${f.data}" alt="">`:`<p><b>${esc(f.name||"PDF / file")}</b></p><a class="btn light" href="${f.data}" target="_blank">Open File</a>`}<p>${esc(f.name||"Uploaded file")}</p>${String(f.type||"").startsWith("image/")?`<button class="btn gold" onclick="openDigitalMarker('${ds.id}',${i})">Open Marking Board</button>`:`<p class="notice">PDF can be opened in a new tab. Image scans support direct red-pen marking.</p>`}${ds.markedFiles?.[i]?.data?`<div class="docMarkedPreview">Marked copy saved. <a href="${ds.markedFiles[i].data}" target="_blank">Open marked copy</a></div>`:""}</div>`).join("")}</div>
+      <div class="grid three"><input class="input" type="number" value="${ds.score ?? ""}" placeholder="Score" onchange="setDocScore('${ds.id}',this.value)"><input class="input" value="${esc(ds.feedback||"")}" placeholder="Feedback" onchange="setDocFeedback('${ds.id}',this.value)"><button class="btn ${ds.published?'light':'green'}" onclick="publishDocSubmission('${ds.id}')">${ds.published?'Unpublish':'Publish'}</button></div>
+    </div>`;
+  };
+  window.setDocScore=function(id,v){const s=state.docSubmissions.find(x=>x.id===id); if(s){s.score=Number(v)||0; safeSaveAll();}};
+  window.setDocFeedback=function(id,v){const s=state.docSubmissions.find(x=>x.id===id); if(s){s.feedback=v; safeSaveAll();}};
+  window.publishDocSubmission=function(id){const s=state.docSubmissions.find(x=>x.id===id); if(s){s.published=!s.published; safeSaveAll(); review();}};
+
+  window.openDigitalMarker=function(subId,fileIndex){
+    const ds=state.docSubmissions.find(x=>x.id===subId); if(!ds)return;
+    const f=ds.files[fileIndex]; if(!f)return;
+    const old=document.getElementById("markerOverlay"); if(old)old.remove();
+    document.body.insertAdjacentHTML("beforeend",`<div id="markerOverlay" class="markerOverlay"><div class="markerModal">
+      <div class="markerHeader"><h2>Digital Marking Board</h2><button onclick="document.getElementById('markerOverlay').remove()">Close</button></div>
+      <div class="markerTools"><button id="toolRed" class="active" onclick="markerTool('red')">Red Pen</button><button id="toolBlue" onclick="markerTool('blue')">Blue Pen</button><button id="toolBlack" onclick="markerTool('black')">Black Pen</button><button id="toolEraser" onclick="markerTool('eraser')">Eraser</button><button onclick="clearMarkerCanvas()">Clear Ink</button><label>Pen Size <input id="markerSize" type="number" value="4" min="1" max="30"></label></div>
+      <div class="markerCanvasWrap"><div class="markerPage"><img id="markerImage" src="${f.data}" alt=""><canvas id="markerCanvas"></canvas></div></div>
+      <div class="markerFooter"><input id="markerScore" type="number" placeholder="Score" value="${ds.score ?? ""}"><textarea id="markerFeedback" placeholder="Feedback">${esc(ds.feedback||"")}</textarea><button class="btn green" onclick="saveMarkedWork('${subId}',${fileIndex})">Save Marked Copy</button><button class="btn gold" onclick="publishMarkedWork('${subId}',${fileIndex})">Save & Publish</button></div>
+    </div></div>`);
+    markerState={subId,fileIndex,tool:"red",drawing:false,lastX:0,lastY:0};
+    const img=$("markerImage");
+    img.onload=setupMarkerCanvas;
+  };
+  window.markerTool=function(tool){
+    markerState.tool=tool;
+    ["Red","Blue","Black","Eraser"].forEach(t=>{const b=$("tool"+t); if(b)b.classList.toggle("active",tool.toLowerCase()===t.toLowerCase());});
+  };
+  window.setupMarkerCanvas=function(){
+    const img=$("markerImage"), c=$("markerCanvas"); if(!img||!c)return;
+    c.width=img.clientWidth; c.height=img.clientHeight;
+    c.style.width=img.clientWidth+"px"; c.style.height=img.clientHeight+"px";
+    c.onpointerdown=e=>{markerState.drawing=true; const r=c.getBoundingClientRect(); markerState.lastX=e.clientX-r.left; markerState.lastY=e.clientY-r.top;};
+    c.onpointerup=()=>markerState.drawing=false;
+    c.onpointerleave=()=>markerState.drawing=false;
+    c.onpointermove=e=>{
+      if(!markerState.drawing)return;
+      const r=c.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top;
+      const ctx=c.getContext("2d"); ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineWidth=Number($("markerSize")?.value)||4;
+      if(markerState.tool==="eraser"){ctx.globalCompositeOperation="destination-out"; ctx.strokeStyle="rgba(0,0,0,1)";}
+      else {ctx.globalCompositeOperation="source-over"; ctx.strokeStyle=markerState.tool==="blue"?"#155EEF":markerState.tool==="black"?"#111111":"#D92D20";}
+      ctx.beginPath(); ctx.moveTo(markerState.lastX,markerState.lastY); ctx.lineTo(x,y); ctx.stroke();
+      markerState.lastX=x; markerState.lastY=y;
+    };
+  };
+  window.clearMarkerCanvas=function(){const c=$("markerCanvas"); if(c)c.getContext("2d").clearRect(0,0,c.width,c.height);};
+  window.saveMarkedWork=function(subId,fileIndex){
+    const ds=state.docSubmissions.find(x=>x.id===subId); if(!ds)return;
+    const img=$("markerImage"), c=$("markerCanvas"); if(!img||!c)return;
+    const out=document.createElement("canvas"); out.width=c.width; out.height=c.height;
+    const ctx=out.getContext("2d"); ctx.drawImage(img,0,0,c.width,c.height); ctx.drawImage(c,0,0);
+    ds.markedFiles=Array.isArray(ds.markedFiles)?ds.markedFiles:[];
+    ds.markedFiles[fileIndex]={name:"marked_"+(ds.files[fileIndex]?.name||"work.png"),type:"image/png",data:out.toDataURL("image/png"),savedAt:exNow()};
+    ds.score=Number($("markerScore")?.value)||0;
+    ds.feedback=$("markerFeedback")?.value||"";
+    safeSaveAll();
+    alert("Marked work saved.");
+  };
+  window.publishMarkedWork=function(subId,fileIndex){
+    saveMarkedWork(subId,fileIndex);
+    const ds=state.docSubmissions.find(x=>x.id===subId); if(ds){ds.published=true; safeSaveAll(); alert("Marked work saved and published."); document.getElementById("markerOverlay")?.remove(); review();}
+  };
+
+  setTimeout(()=>installDefaultExercisesOnce(false),1000);
+
+  try{
+    eval("installDefaultExercisesOnce=window.installDefaultExercisesOnce; reinstallDefaultExercises=window.reinstallDefaultExercises; publishQuizResults=window.publishQuizResults; printQuizResults=window.printQuizResults; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; availableQuizzes=window.availableQuizzes; studentQuizzes=window.studentQuizzes; review=window.review; quizzes=window.quizzes;");
+  }catch(e){}
+})();
+
+
+/* ===== ADMIN EXERCISE REVIEW, PREVIEW, PUBLISH, AND STUDENT WORK SUMMARY ===== */
+(function(){
+  function aeEnsure(){
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.docAssignments = Array.isArray(state.docAssignments) ? state.docAssignments : [];
+    state.docSubmissions = Array.isArray(state.docSubmissions) ? state.docSubmissions : [];
+  }
+  function aeSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("save skipped", e); }
+  }
+  function aeNow(){ return typeof now==="function" ? now() : new Date().toLocaleString(); }
+  function aeQuizSubmissions(qid){ return (state.submissions||[]).filter(s=>s.quizId===qid); }
+  function aeStudentName(id){ const s=student(id); return s ? s.name : "Student"; }
+  function aeStudentClass(id){ const s=student(id); return s ? s.className : ""; }
+  function aeQuizLabel(q){
+    const count = aeQuizSubmissions(q.id).length;
+    const published = aeQuizSubmissions(q.id).filter(s=>s.published).length;
+    return `${count} submission(s), ${published} result(s) published`;
+  }
+  function aeOptionLetter(i){ return ["A","B","C","D","E","F"][i] || String(i+1); }
+
+  window.adminExerciseReviewHub = function(){
+    aeEnsure();
+    try{ if(typeof installDefaultExercisesOnce==="function") installDefaultExercisesOnce(false); }catch(e){}
+    const exercises = (state.quizzes||[]).filter(q => (q.assignmentType==="Exercise") || String(q.title||"").toLowerCase().includes("exercise"));
+    return `<div class="adminExerciseHub" id="adminExerciseReviewHub">
+      <h2>Exercise Review and Publishing Centre</h2>
+      <p>Go through the prepared Mathematics and Additional Mathematics exercises here. When you are satisfied, publish them. Students will only see the exercise assigned to their own subject and class.</p>
+      <div class="toolbar" style="margin-bottom:10px">
+        <button class="btn gold" onclick="reinstallDefaultExercises && reinstallDefaultExercises()">Install / Restore Prepared Exercises</button>
+        <button class="btn light" onclick="adminExerciseRefreshHub()">Refresh Exercise Centre</button>
+      </div>
+      <div class="exerciseHubGrid">
+        ${exercises.map(q=>`<div class="exerciseHubCard">
+          <h3>${esc(q.title||"Exercise")}</h3>
+          <span class="exerciseStatusBadge ${q.status==="Published"?"published":"draft"}">${esc(q.status||"Draft")}</span>
+          <p><b>Subject:</b> ${esc(q.subject||"")}<br><b>Classes:</b> ${esc((q.classNames||[]).join(", "))}<br><b>Duration:</b> ${q.durationMinutes||30} minutes<br><b>Questions:</b> ${(q.questions||[]).length}<br><b>Submissions:</b> ${esc(aeQuizLabel(q))}</p>
+          <div class="toolbar">
+            <button class="btn light" onclick="previewExerciseQuiz('${q.id}')">Preview Questions</button>
+            <button class="btn ${q.status==="Published"?"light":"green"}" onclick="adminPublishExercise('${q.id}')">${q.status==="Published"?"Hide from Students":"Publish to Students"}</button>
+            <button class="btn gold" onclick="publishQuizResults('${q.id}')">Publish All Results</button>
+            <button class="btn light" onclick="printQuizResults('${q.id}')">Print Results</button>
+            <button class="btn red" onclick="deleteQuiz('${q.id}')">Delete</button>
+          </div>
+        </div>`).join("") || `<div class="empty">No exercise found. Click Install / Restore Prepared Exercises.</div>`}
+      </div>
+    </div>`;
+  };
+
+  window.adminExerciseRefreshHub = function(){
+    const old=document.getElementById("adminExerciseReviewHub");
+    if(old) old.outerHTML = adminExerciseReviewHub();
+    if(typeof typeset==="function") typeset();
+  };
+
+  window.adminPublishExercise = function(qid){
+    const q = quiz(qid);
+    if(!q) return;
+    q.status = q.status==="Published" ? "Draft" : "Published";
+    aeSave();
+    alert(q.status==="Published" ? "Exercise published. Students in the assigned classes can now see it." : "Exercise hidden from students.");
+    adminExerciseRefreshHub();
+  };
+
+  window.previewExerciseQuiz = function(qid){
+    const q = quiz(qid);
+    if(!q) return alert("Exercise not found.");
+    const old = document.getElementById("exercisePreviewModal");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="exercisePreviewModal" class="exercisePreviewModal">
+      <div class="exercisePreviewBox">
+        <div class="exercisePreviewHead">
+          <h2>Preview Exercise: ${esc(q.title||"Exercise")}</h2>
+          <button onclick="document.getElementById('exercisePreviewModal').remove()">Close</button>
+        </div>
+        <div class="exercisePreviewBody">
+          <p><b>Subject:</b> ${esc(q.subject||"")}<br><b>Classes:</b> ${esc((q.classNames||[]).join(", "))}<br><b>Duration:</b> ${q.durationMinutes||30} minutes<br><b>Status:</b> ${esc(q.status||"Draft")}</p>
+          ${(q.questions||[]).map((qq,i)=>`<div class="previewQuestionCard">
+            <h4>Question ${i+1}</h4>
+            <p>${qq.prompt||""}</p>
+            ${(qq.choices||[]).map((c,j)=>{const letter=aeOptionLetter(j); const correct=String(qq.answer||"").toUpperCase()===letter; return `<div class="previewChoice ${correct?"correctChoice":""}"><b>${letter}.</b><span>${c}</span></div>`}).join("")}
+            <p><b>Correct Answer:</b> ${esc(qq.answer||"")}</p>
+          </div>`).join("")}
+          <div class="toolbar">
+            <button class="btn ${q.status==="Published"?"light":"green"}" onclick="adminPublishExercise('${q.id}');document.getElementById('exercisePreviewModal').remove()">${q.status==="Published"?"Hide from Students":"Publish to Students"}</button>
+          </div>
+        </div>
+      </div>
+    </div>`);
+    if(typeof typeset==="function") typeset();
+  };
+
+  const oldQuizzes = window.quizzes;
+  if(typeof oldQuizzes === "function"){
+    window.quizzes = function(){
+      oldQuizzes.apply(this, arguments);
+      const view=document.getElementById("view");
+      if(view && !document.getElementById("adminExerciseReviewHub")){
+        view.insertAdjacentHTML("afterbegin", adminExerciseReviewHub());
+      }
+      if(typeof typeset==="function") typeset();
+    };
+  }
+
+  window.studentWorkSummaryHTML = function(studentId){
+    aeEnsure();
+    const qs = (state.submissions||[]).filter(s=>s.studentId===studentId);
+    const docs = (state.docSubmissions||[]).filter(s=>s.studentId===studentId);
+    return `<div class="studentWorkPanel" id="studentWorkPanel_${studentId}">
+      <h3>Student Exercise and Submitted Work</h3>
+      <p>All exercise submissions and scanned-work submissions for this selected student appear here. You can publish the student's result directly.</p>
+      <h3>Timed Exercise Submissions</h3>
+      ${qs.map(sub=>{const q=quiz(sub.quizId)||{}; return `<div class="studentWorkItem">
+        <b>${esc(q.title||"Exercise")}</b><br>
+        Score: <b>${sub.teacherScore ?? sub.autoScore} / ${sub.maxScore}</b><br>
+        Status: <span class="${sub.published?'workStatusPublished':'workStatusDraft'}">${sub.published?'Published':'Not Published'}</span><br>
+        Submitted: ${esc(sub.submittedAt||"")}
+        <div class="toolbar" style="margin-top:8px">
+          <button class="btn ${sub.published?'light':'green'}" onclick="publishSub('${sub.id}');refreshStudentWorkPanel('${studentId}')">${sub.published?'Unpublish Result':'Publish Result'}</button>
+          <button class="btn light" onclick="viewStudentExerciseAnswers('${sub.id}')">View Answers</button>
+        </div>
+      </div>`}).join("") || `<div class="empty">No timed exercise submitted yet.</div>`}
+      <h3 style="margin-top:12px">Scanned Document Submissions</h3>
+      ${docs.map(ds=>{const a=(state.docAssignments||[]).find(x=>x.id===ds.assignmentId)||{}; return `<div class="studentWorkItem">
+        <b>${esc(a.title||"Document Assignment")}</b><br>
+        Score: <b>${ds.score ?? "-"} / ${a.maxScore ?? "-"}</b><br>
+        Status: <span class="${ds.published?'workStatusPublished':'workStatusDraft'}">${ds.published?'Published':'Not Published'}</span><br>
+        Submitted: ${esc(ds.submittedAt||"")}
+        <div class="toolbar" style="margin-top:8px">
+          <button class="btn ${ds.published?'light':'green'}" onclick="publishDocSubmission('${ds.id}');refreshStudentWorkPanel('${studentId}')">${ds.published?'Unpublish Mark':'Publish Mark'}</button>
+          <button class="btn light" onclick="openDocSubmissionFromStudent('${ds.id}')">Open Submitted Work</button>
+        </div>
+      </div>`}).join("") || `<div class="empty">No scanned work submitted yet.</div>`}
+    </div>`;
+  };
+
+  window.refreshStudentWorkPanel = function(studentId){
+    const old=document.getElementById(`studentWorkPanel_${studentId}`);
+    if(old) old.outerHTML = studentWorkSummaryHTML(studentId);
+  };
+
+  window.viewStudentExerciseAnswers = function(subId){
+    const sub=(state.submissions||[]).find(s=>s.id===subId);
+    if(!sub) return;
+    const q=quiz(sub.quizId)||{};
+    const old=document.getElementById("exercisePreviewModal");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="exercisePreviewModal" class="exercisePreviewModal">
+      <div class="exercisePreviewBox">
+        <div class="exercisePreviewHead">
+          <h2>Student Answers: ${esc(q.title||"Exercise")}</h2>
+          <button onclick="document.getElementById('exercisePreviewModal').remove()">Close</button>
+        </div>
+        <div class="exercisePreviewBody">
+          <p><b>Student:</b> ${esc(aeStudentName(sub.studentId))}<br><b>Class:</b> ${esc(aeStudentClass(sub.studentId))}<br><b>Score:</b> ${sub.teacherScore ?? sub.autoScore} / ${sub.maxScore}<br><b>Status:</b> ${sub.published?'Published':'Not Published'}</p>
+          ${(q.questions||[]).map((qq,i)=>{const ans=sub.answers?.[qq.id]||""; const correct=String(ans).toUpperCase()===String(qq.answer||"").toUpperCase(); return `<div class="previewQuestionCard">
+            <h4>Question ${i+1}</h4>
+            <p>${qq.prompt||""}</p>
+            <p><b>Student Answer:</b> ${esc(ans||"No answer")}</p>
+            <p><b>Correct Answer:</b> ${esc(qq.answer||"")}</p>
+            <p><b>Status:</b> ${correct?"Correct":"Wrong / Needs review"}</p>
+          </div>`}).join("")}
+          <div class="toolbar">
+            <button class="btn ${sub.published?'light':'green'}" onclick="publishSub('${sub.id}');document.getElementById('exercisePreviewModal').remove()">${sub.published?'Unpublish Result':'Publish Result'}</button>
+          </div>
+        </div>
+      </div>
+    </div>`);
+    if(typeof typeset==="function") typeset();
+  };
+
+  window.openDocSubmissionFromStudent = function(docSubId){
+    const ds=(state.docSubmissions||[]).find(s=>s.id===docSubId);
+    if(!ds) return;
+    if(typeof openDigitalMarker==="function" && ds.files && ds.files[0] && String(ds.files[0].type||"").startsWith("image/")){
+      openDigitalMarker(ds.id,0);
+    }else if(ds.files && ds.files[0]){
+      window.open(ds.files[0].data,"_blank");
+    }else{
+      alert("No file found.");
+    }
+  };
+
+  const oldAdminProfileAll = window.adminShowStudentProfileAll;
+  if(typeof oldAdminProfileAll === "function"){
+    window.adminShowStudentProfileAll = function(studentId){
+      const result = oldAdminProfileAll.apply(this, arguments);
+      const box = document.getElementById("adminSelectedStudentProfile") || document.getElementById("adminSmartProfile");
+      if(box && !document.getElementById(`studentWorkPanel_${studentId}`)){
+        box.insertAdjacentHTML("beforeend", studentWorkSummaryHTML(studentId));
+      }
+      return result;
+    };
+  }
+
+  const oldReview = window.review;
+  if(typeof oldReview === "function"){
+    window.review = function(){
+      oldReview.apply(this, arguments);
+      const view=document.getElementById("view");
+      if(view && !document.getElementById("adminExerciseReviewHub")){
+        view.insertAdjacentHTML("afterbegin", adminExerciseReviewHub());
+      }
+    };
+  }
+
+  try{
+    eval("adminExerciseReviewHub=window.adminExerciseReviewHub; previewExerciseQuiz=window.previewExerciseQuiz; adminPublishExercise=window.adminPublishExercise; refreshStudentWorkPanel=window.refreshStudentWorkPanel; viewStudentExerciseAnswers=window.viewStudentExerciseAnswers; openDocSubmissionFromStudent=window.openDocSubmissionFromStudent;");
   }catch(e){}
 })();
 
