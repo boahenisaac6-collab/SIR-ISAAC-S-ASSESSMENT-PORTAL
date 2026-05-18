@@ -3762,6 +3762,203 @@ body.caFullscreenLock{
   color:#071f3d;
 }
 
+
+/* ===== UNIFORM ASSIGNMENT NOTICE, PHONE LINK OPTIONS, START PROMPT ===== */
+.phoneLinkSmart{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:999px;
+  padding:5px 9px;
+  font-weight:950;
+  cursor:pointer;
+  text-decoration:none;
+  line-height:1.2;
+}
+.phoneLinkSmart:hover{
+  background:#dcfae6;
+  border-color:#0f7b4f;
+}
+.phoneEditBox{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:16px;
+  padding:10px;
+  margin-top:10px;
+}
+.phoneEditBox label{
+  display:block;
+  font-size:11px;
+  color:#667085;
+  font-weight:950;
+  text-transform:uppercase;
+  margin-bottom:5px;
+}
+.phoneEditRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+}
+.phoneEditRow input{
+  min-height:40px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+}
+.phoneEditRow button{
+  min-height:40px;
+  border:0;
+  border-radius:12px;
+  background:#0f7b4f;
+  color:#fff;
+  font-weight:950;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.phoneOptionsOverlay{
+  position:fixed;
+  inset:0;
+  z-index:2147483915;
+  background:rgba(4,18,37,.80);
+  display:grid;
+  place-items:center;
+  padding:16px;
+}
+.phoneOptionsBox{
+  width:min(430px,100%);
+  background:#fff;
+  border-radius:22px;
+  border:1px solid #d9e7f3;
+  box-shadow:0 28px 90px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.phoneOptionsHead{
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  padding:14px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.phoneOptionsHead h2{
+  margin:0;
+  font-size:18px;
+}
+.phoneOptionsHead button{
+  border:0;
+  background:#f4c430;
+  color:#071f3d;
+  border-radius:10px;
+  padding:7px 10px;
+  font-weight:950;
+  cursor:pointer;
+}
+.phoneOptionsBody{
+  padding:14px;
+  display:grid;
+  gap:9px;
+}
+.phoneOptionsBody a,.phoneOptionsBody button{
+  min-height:42px;
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  color:#071f3d;
+  border-radius:13px;
+  padding:9px 11px;
+  text-align:left;
+  font-weight:950;
+  cursor:pointer;
+  text-decoration:none;
+}
+.phoneOptionsBody a:hover,.phoneOptionsBody button:hover{
+  background:#fffdf0;
+  border-color:#f4c430;
+}
+.startQuizPromptOverlay{
+  position:fixed;
+  inset:0;
+  z-index:2147483920;
+  background:rgba(4,18,37,.84);
+  display:grid;
+  place-items:center;
+  padding:16px;
+}
+.startQuizPromptBox{
+  width:min(520px,100%);
+  background:#fff;
+  border-radius:24px;
+  border:1px solid #d9e7f3;
+  box-shadow:0 28px 90px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.startQuizPromptHead{
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  padding:16px 18px;
+}
+.startQuizPromptHead h2{
+  margin:0;
+  font-size:20px;
+}
+.startQuizPromptBody{
+  padding:16px;
+  color:#071f3d;
+}
+.startQuizPromptBody p{
+  margin:0 0 10px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.startQuizPromptBody ol{
+  margin:8px 0 0 20px;
+  line-height:1.55;
+  font-weight:850;
+}
+.startQuizPromptActions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  padding:0 16px 16px;
+}
+.startQuizPromptActions button{
+  min-height:42px;
+  border:0;
+  border-radius:13px;
+  padding:9px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.startQuizPromptActions .continue{
+  background:#0f7b4f;
+  color:#fff;
+}
+.startQuizPromptActions .cancel{
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+}
+.uniformAssignmentNoticeTag{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 10px;
+  background:#071f3d;
+  color:#fff;
+  font-weight:950;
+  font-size:12px;
+  margin-bottom:8px;
+}
+@media(max-width:760px){
+  .phoneEditRow,.startQuizPromptActions{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -9038,6 +9235,327 @@ ${printable}
 
   try{
     eval("resetQuizForStudent=window.resetQuizForStudent; adminPublishExercise=window.adminPublishExercise; qToggle=window.qToggle; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; studentQuizzes=window.studentQuizzes; studentHome=window.studentHome;");
+  }catch(e){}
+})();
+
+
+/* ===== UNIFORM NOTICE + PHONE LINK + SAFE PHONE EDIT + START QUIZ PROMPT ===== */
+(function(){
+  function upEnsure(){
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.assignmentNotifications = Array.isArray(state.assignmentNotifications) ? state.assignmentNotifications : [];
+  }
+  function upSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("save skipped", e); }
+  }
+  function upNowISO(){ return new Date().toISOString(); }
+  function upUid(prefix){ return typeof uid==="function" ? uid(prefix) : prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function upDisplay(iso){ try{return new Date(iso).toLocaleString();}catch(e){return iso||"";} }
+  function upCleanPhone(phone){
+    return String(phone||"").replace(/[^\d+]/g,"").replace(/^00/,"+");
+  }
+  function upWhatsAppPhone(phone){
+    let p = upCleanPhone(phone).replace(/[^\d]/g,"");
+    if(p.length===10 && p.startsWith("0")) p = "233" + p.slice(1);
+    return p;
+  }
+
+  window.smartPhoneHTML = function(phone, studentId="", label=""){
+    const raw = String(phone||"").trim();
+    if(!raw) return `<span style="color:#667085;font-weight:850">No phone number</span>`;
+    return `<button type="button" class="phoneLinkSmart" onclick="openPhoneOptions('${String(studentId||"").replace(/'/g,"")}','${raw.replace(/'/g,"\\'")}')">📱 ${esc(label||raw)}</button>`;
+  };
+
+  window.openPhoneOptions = function(studentId, phone){
+    const raw = String(phone||"").trim();
+    const clean = upCleanPhone(raw);
+    const wa = upWhatsAppPhone(raw);
+    const s = studentId ? student(studentId) : null;
+    const old = document.getElementById("phoneOptionsOverlay");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="phoneOptionsOverlay" class="phoneOptionsOverlay">
+      <div class="phoneOptionsBox">
+        <div class="phoneOptionsHead"><h2>Phone Options</h2><button onclick="closePhoneOptions()">Close</button></div>
+        <div class="phoneOptionsBody">
+          <p><b>${esc(s?.name || "Student")}</b><br>${esc(raw)}</p>
+          <a href="https://wa.me/${wa}" target="_blank">Open WhatsApp Chat</a>
+          <a href="tel:${clean}">Call Phone Number</a>
+          <button onclick="navigator.clipboard && navigator.clipboard.writeText('${raw.replace(/'/g,"\\'")}'); alert('Phone number copied.')">Copy Phone Number</button>
+        </div>
+      </div>
+    </div>`);
+  };
+  window.closePhoneOptions = function(){
+    document.getElementById("phoneOptionsOverlay")?.remove();
+  };
+
+  window.saveStudentPhoneSelf = function(){
+    const s = student(currentStudentId);
+    if(!s) return;
+    const input = document.getElementById("selfPhone");
+    const value = (input?.value || "").trim();
+    if(!value) return alert("Please type your phone number before saving.");
+    if(!confirm("Save this phone number?\n\n" + value)) return;
+    s.phone = value;
+    upSave();
+    alert("Phone number saved successfully.");
+    if(typeof studentHome==="function") studentHome();
+  };
+
+  window.adminSavePhoneFixed = function(studentId){
+    const s = student(studentId);
+    if(!s) return;
+    const input = document.getElementById("adminPhoneEditFixed") || document.getElementById("adminPhoneEdit");
+    const value = (input?.value || "").trim();
+    if(!value) return alert("Please type the phone number before saving.");
+    if(!confirm("Save this phone number for " + s.name + "?\n\n" + value)) return;
+    s.phone = value;
+    upSave();
+    alert("Phone number saved.");
+    if(typeof adminShowStudentProfileAll==="function") adminShowStudentProfileAll(studentId);
+    else if(typeof adminShowStudentProfileFixed==="function") adminShowStudentProfileFixed(studentId);
+  };
+
+  function upPublishedExerciseQuizzes(){
+    upEnsure();
+    return (state.quizzes||[]).filter(q=>
+      q.status==="Published" &&
+      ((q.assignmentType==="Exercise") || String(q.title||"").toLowerCase().includes("exercise"))
+    );
+  }
+
+  window.ensureUniformAssignmentNotices = function(){
+    upEnsure();
+    const now = Date.now();
+    // clear expired
+    state.assignmentNotifications.forEach(n=>{
+      if(n.expiresAt && new Date(n.expiresAt).getTime() <= now) n.active = false;
+    });
+    upPublishedExerciseQuizzes().forEach(q=>{
+      let n = state.assignmentNotifications.find(x=>x.quizId===q.id && x.active!==false);
+      const publishedAt = q.publishedAt || q.createdAt || upNowISO();
+      const expiresAt = new Date(new Date(publishedAt).getTime() + 24*60*60*1000).toISOString();
+      if(!n){
+        n = {
+          id: upUid("assnNotice"),
+          quizId: q.id,
+          title: q.title,
+          subject: q.subject,
+          classNames: q.classNames || [],
+          durationMinutes: q.durationMinutes || 30,
+          createdAt: publishedAt,
+          expiresAt,
+          active: true
+        };
+        state.assignmentNotifications.push(n);
+      }else{
+        n.title = q.title;
+        n.subject = q.subject;
+        n.classNames = q.classNames || [];
+        n.durationMinutes = q.durationMinutes || 30;
+        n.expiresAt = n.expiresAt || expiresAt;
+        if(new Date(n.expiresAt).getTime() > now) n.active = true;
+      }
+    });
+  };
+
+  window.qaActiveNoticesForStudent = function(studentId){
+    upEnsure();
+    ensureUniformAssignmentNotices();
+    const s = student(studentId);
+    if(!s) return [];
+    const subj = subjectForClass(s.className);
+    const now = Date.now();
+    return (state.assignmentNotifications||[])
+      .filter(n=>n.active!==false)
+      .filter(n=>!n.expiresAt || new Date(n.expiresAt).getTime() > now)
+      .filter(n=>n.subject===subj && (n.classNames||[]).includes(s.className))
+      .filter(n=>!(state.submissions||[]).some(sub=>sub.studentId===studentId && sub.quizId===n.quizId));
+  };
+
+  window.qaNoticeHTML = function(studentId){
+    const notices = qaActiveNoticesForStudent(studentId);
+    if(!notices.length) return "";
+    return `<div class="assignmentNotice24">
+      <span class="uniformAssignmentNoticeTag">Mathematics / Additional Mathematics Assignment Notice</span>
+      <h2>📌 New Exercise Uploaded</h2>
+      ${notices.map(n=>`<div style="margin-bottom:10px">
+        <p><b>${esc(n.title||"New Exercise")}</b> has been assigned to your class.</p>
+        <p>You have <b>${n.durationMinutes||30} minutes</b> to complete it once you start. After submission, you cannot attempt it again unless Sir Isaac resets it for you.</p>
+        <ol>
+          <li>Click <b>My Quizzes</b> or <b>Open Assignments / Quizzes</b>.</li>
+          <li>Read the instructions carefully before starting.</li>
+          <li>Click <b>Start Exercise</b>.</li>
+          <li>Confirm that you are ready to start the 30-minute timed work.</li>
+          <li>Submit before the timer ends. If the time ends, the exercise will submit automatically.</li>
+        </ol>
+        <span class="noticeTime">This notice will disappear after 24 hours. Posted: ${esc(upDisplay(n.createdAt))}</span>
+      </div>`).join("")}
+    </div>`;
+  };
+
+  const oldAdminPublishExercise = window.adminPublishExercise;
+  window.adminPublishExercise = function(qid){
+    const q = quiz(qid);
+    const wasPublished = q && q.status==="Published";
+    if(typeof oldAdminPublishExercise==="function") oldAdminPublishExercise.apply(this, arguments);
+    const updated = quiz(qid);
+    if(updated && updated.status==="Published" && !wasPublished){
+      updated.publishedAt = upNowISO();
+    }
+    ensureUniformAssignmentNotices();
+    upSave();
+    if(typeof adminExerciseRefreshHub==="function") adminExerciseRefreshHub();
+  };
+
+  const oldQToggle = window.qToggle;
+  window.qToggle = function(id){
+    const q = quiz(id);
+    const wasPublished = q && q.status==="Published";
+    if(typeof oldQToggle==="function") oldQToggle.apply(this, arguments);
+    const updated = quiz(id);
+    if(updated && updated.status==="Published" && !wasPublished){
+      updated.publishedAt = upNowISO();
+    }
+    ensureUniformAssignmentNotices();
+    upSave();
+  };
+
+  function startPromptHTML(qid){
+    const q = quiz(qid);
+    return `<div id="startQuizPromptOverlay" class="startQuizPromptOverlay">
+      <div class="startQuizPromptBox">
+        <div class="startQuizPromptHead"><h2>Start 30-Minute Exercise?</h2></div>
+        <div class="startQuizPromptBody">
+          <p>You are about to start: <b>${esc(q?.title||"Exercise")}</b>.</p>
+          <ol>
+            <li>The time limit is <b>${q?.durationMinutes||30} minutes</b>.</li>
+            <li>Once you start, the timer will begin immediately.</li>
+            <li>You cannot reverse or restart the exercise after submission.</li>
+            <li>If the time ends before you submit, the exercise will submit automatically.</li>
+            <li>Start only when you are ready and your internet is stable.</li>
+          </ol>
+        </div>
+        <div class="startQuizPromptActions">
+          <button class="cancel" onclick="closeStartQuizPrompt()">Cancel / Not Ready</button>
+          <button class="continue" onclick="confirmStartExerciseNow('${qid}')">Continue and Start</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const oldTakeQuiz = window.takeQuiz;
+  window.takeQuiz = function(id){
+    const q = quiz(id);
+    if(!q) return alert("Exercise not found.");
+    if(window.qaCanAttempt && currentStudentId && !qaCanAttempt(currentStudentId, id)){
+      alert("You have already submitted this exercise. It is now closed for you.");
+      if(typeof setRoute==="function") setRoute("studentResults");
+      return;
+    }
+    const old = document.getElementById("startQuizPromptOverlay");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", startPromptHTML(id));
+  };
+
+  window.closeStartQuizPrompt = function(){
+    document.getElementById("startQuizPromptOverlay")?.remove();
+  };
+
+  window.confirmStartExerciseNow = function(id){
+    document.getElementById("startQuizPromptOverlay")?.remove();
+    if(typeof oldTakeQuiz==="function") oldTakeQuiz(id);
+  };
+
+  function patchPhoneDisplays(){
+    document.querySelectorAll(".adminStudentDirectoryCard, .studentFullListItem, .adminProfilePanel, .profilePhotoLargeBox").forEach(card=>{
+      // Avoid destructive text manipulation. Phone links are mainly added in profiles below.
+    });
+  }
+
+  const oldStudentHome = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHome ? oldStudentHome.apply(this, arguments) : undefined;
+    const s = student(currentStudentId);
+    const view = document.getElementById("view");
+    if(view && s){
+      // Replace/create a clear, safe phone editor at the top if not already present
+      if(!document.getElementById("safeStudentPhoneEditor")){
+        const target = view.querySelector(".studentProfileBox") || view.querySelector(".card");
+        if(target){
+          target.insertAdjacentHTML("beforebegin", `<div id="safeStudentPhoneEditor" class="phoneEditBox">
+            <label>My telephone number</label>
+            <div style="margin-bottom:8px">${smartPhoneHTML(s.phone, s.id)}</div>
+            <div class="phoneEditRow">
+              <input id="selfPhone" value="${esc(s.phone||"")}" placeholder="Enter or edit phone number">
+              <button onclick="saveStudentPhoneSelf()">Save Phone</button>
+            </div>
+            <small style="display:block;color:#667085;margin-top:6px;font-weight:800">Your number will not change until you click Save Phone and confirm.</small>
+          </div>`);
+        }
+      }
+      if(!document.getElementById("assignmentNotice24Home")){
+        const notice = qaNoticeHTML(s.id);
+        if(notice) view.insertAdjacentHTML("afterbegin", `<div id="assignmentNotice24Home">${notice}</div>`);
+      }
+    }
+    patchPhoneDisplays();
+    return result;
+  };
+
+  const oldStudentQuizzes = window.studentQuizzes;
+  window.studentQuizzes = function(){
+    ensureUniformAssignmentNotices();
+    const result = oldStudentQuizzes ? oldStudentQuizzes.apply(this, arguments) : undefined;
+    const s = student(currentStudentId);
+    const view = document.getElementById("view");
+    if(view && s && !document.getElementById("assignmentNotice24QuizPage")){
+      const notice = qaNoticeHTML(s.id);
+      if(notice) view.insertAdjacentHTML("afterbegin", `<div id="assignmentNotice24QuizPage">${notice}</div>`);
+    }
+    return result;
+  };
+
+  const oldAdminShowStudentProfileAll = window.adminShowStudentProfileAll;
+  if(typeof oldAdminShowStudentProfileAll==="function"){
+    window.adminShowStudentProfileAll = function(studentId){
+      const result = oldAdminShowStudentProfileAll.apply(this, arguments);
+      const s = student(studentId);
+      const box = document.getElementById("adminSelectedStudentProfile") || document.getElementById("adminSmartProfile");
+      if(box && s && !document.getElementById("safeAdminPhoneEditor_"+studentId)){
+        box.insertAdjacentHTML("beforeend", `<div id="safeAdminPhoneEditor_${studentId}" class="phoneEditBox">
+          <label>Telephone number options</label>
+          <div style="margin-bottom:8px">${smartPhoneHTML(s.phone, s.id)}</div>
+          <div class="phoneEditRow">
+            <input id="adminPhoneEditFixed" value="${esc(s.phone||"")}" placeholder="Enter or edit phone number">
+            <button onclick="adminSavePhoneFixed('${s.id}')">Save Phone</button>
+          </div>
+          <small style="display:block;color:#667085;margin-top:6px;font-weight:800">The phone number changes only after you click Save Phone and confirm.</small>
+        </div>`);
+      }
+      return result;
+    };
+  }
+
+  const oldBuildStudentVisibleList = window.buildStudentVisibleList;
+  if(typeof oldBuildStudentVisibleList==="function"){
+    window.buildStudentVisibleList = function(list, mode="student"){
+      const html = oldBuildStudentVisibleList.apply(this, arguments);
+      // Keep original layout but make phone action available by appending after render through event delegation not safe here.
+      return html;
+    };
+  }
+
+  setTimeout(()=>{ try{ ensureUniformAssignmentNotices(); upSave(); }catch(e){} }, 1200);
+
+  try{
+    eval("smartPhoneHTML=window.smartPhoneHTML; openPhoneOptions=window.openPhoneOptions; closePhoneOptions=window.closePhoneOptions; saveStudentPhoneSelf=window.saveStudentPhoneSelf; adminSavePhoneFixed=window.adminSavePhoneFixed; qaNoticeHTML=window.qaNoticeHTML; qaActiveNoticesForStudent=window.qaActiveNoticesForStudent; takeQuiz=window.takeQuiz; closeStartQuizPrompt=window.closeStartQuizPrompt; confirmStartExerciseNow=window.confirmStartExerciseNow; adminPublishExercise=window.adminPublishExercise; qToggle=window.qToggle;");
   }catch(e){}
 })();
 
