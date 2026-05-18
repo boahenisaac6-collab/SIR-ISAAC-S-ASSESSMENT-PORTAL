@@ -4396,6 +4396,217 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== ADMIN STUDENTS NEAT LAYOUT + ROBUST QUIZ RESET FIX ===== */
+.adminStudentsCleanPage{
+  display:grid;
+  gap:14px;
+}
+.adminStudentsTools{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:12px;
+  align-items:start;
+}
+.adminStudentsTools .card{
+  height:auto!important;
+  overflow:visible!important;
+}
+.adminStudentDirectoryClean{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(330px,1fr));
+  gap:14px;
+  align-items:start;
+}
+.studentAdminCardClean{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:20px;
+  padding:14px;
+  box-shadow:0 8px 22px rgba(7,31,61,.07);
+  overflow:visible!important;
+  display:grid;
+  gap:10px;
+  min-width:0;
+}
+.studentAdminTopClean{
+  display:grid;
+  grid-template-columns:76px minmax(0,1fr);
+  gap:12px;
+  align-items:center;
+}
+.studentAdminPhotoClean img,
+.studentAdminPhotoClean .clickableAvatar,
+.studentAdminPhotoClean .bigAvatar{
+  width:76px!important;
+  height:76px!important;
+  border-radius:18px!important;
+  object-fit:cover!important;
+  border:3px solid #f4c430!important;
+  background:#eef5fc!important;
+  display:grid;
+  place-items:center;
+  color:#071f3d;
+  font-weight:950;
+}
+.studentAdminNameClean{
+  min-width:0;
+}
+.studentAdminNameClean h3{
+  margin:0 0 4px;
+  color:#071f3d;
+  font-size:17px;
+  line-height:1.2;
+  overflow-wrap:anywhere;
+}
+.studentAdminNameClean small{
+  display:block;
+  color:#667085;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+.studentAdminDetailClean{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+  gap:8px;
+}
+.studentAdminDetailItem{
+  border:1px solid #edf2f7;
+  background:#f8fbff;
+  border-radius:12px;
+  padding:8px;
+  min-width:0;
+}
+.studentAdminDetailItem span{
+  display:block;
+  font-size:10px;
+  color:#667085;
+  text-transform:uppercase;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.studentAdminDetailItem b{
+  color:#071f3d;
+  overflow-wrap:anywhere;
+}
+.studentAdminActionClean{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(118px,1fr));
+  gap:8px;
+}
+.studentAdminActionClean button,
+.studentAdminActionClean label{
+  min-height:38px;
+  border-radius:12px;
+  padding:8px 10px;
+  font-size:12px;
+  font-weight:950;
+  cursor:pointer;
+  text-align:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #d9e7f3;
+  background:#eef5fc;
+  color:#071f3d;
+}
+.studentAdminActionClean .green{background:#0f7b4f;color:#fff;border:0}
+.studentAdminActionClean .gold{background:#f4c430;color:#071f3d;border:0}
+.studentAdminActionClean .navy{background:#071f3d;color:#fff;border:0}
+.studentAdminActionClean .red{background:#fff1f0;color:#b42318;border:1px solid #ffd4d0}
+.studentAdminActionClean .light{background:#eef5fc;color:#071f3d;border:1px solid #d9e7f3}
+.adminProfilePanel,
+.studentWorkPanel,
+.passwordAdminPanel,
+.phoneEditBox{
+  clear:both!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  position:relative!important;
+}
+.adminProfilePanel * ,
+.studentWorkPanel * ,
+.passwordAdminPanel * ,
+.phoneEditBox *{
+  box-sizing:border-box!important;
+  max-width:100%;
+}
+.profileInfoGrid,
+.passwordAdminGrid{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(165px,1fr))!important;
+  gap:8px!important;
+}
+.toolbar,
+.passwordActionRow,
+.fixedActionGrid{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+.toolbar button,
+.passwordActionRow button,
+.fixedActionGrid button,
+.fixedActionGrid label{
+  flex:0 1 auto!important;
+  white-space:normal!important;
+  line-height:1.2!important;
+}
+.studentWorkItem{
+  overflow:visible!important;
+}
+.resetStatusBox{
+  border:1px solid #ffd4d0;
+  border-left:6px solid #d92d20;
+  background:#fff8f7;
+  color:#7a271a;
+  border-radius:14px;
+  padding:10px;
+  margin-top:8px;
+  font-weight:850;
+  line-height:1.45;
+}
+.resetSuccessBox{
+  border:1px solid #bce8ce;
+  border-left:6px solid #0f7b4f;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:10px;
+  margin-top:8px;
+  font-weight:850;
+  line-height:1.45;
+}
+.adminStudentsFilterBar{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+.adminStudentsFilterBar input,
+.adminStudentsFilterBar select{
+  min-height:42px;
+}
+@media(max-width:760px){
+  .adminStudentDirectoryClean{
+    grid-template-columns:1fr;
+  }
+  .studentAdminTopClean{
+    grid-template-columns:1fr;
+    text-align:center;
+  }
+  .studentAdminPhotoClean{
+    display:grid;
+    place-items:center;
+  }
+  .studentAdminActionClean{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -10788,6 +10999,306 @@ ${printable}
 
   try{
     eval("studentCardLogin=window.studentCardLogin; studentInlineFocus=window.studentInlineFocus; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; finishStudentLogin=window.finishStudentLogin; buildStudentVisibleList=window.buildStudentVisibleList; changeOwnPasswordAnytime=window.changeOwnPasswordAnytime;");
+  }catch(e){}
+})();
+
+
+/* ===== ADMIN STUDENTS NEAT LAYOUT + ROBUST QUIZ RESET FIX ===== */
+(function(){
+  function asEnsure(){
+    state.students = Array.isArray(state.students) ? state.students : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.quizResets = Array.isArray(state.quizResets) ? state.quizResets : [];
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.docSubmissions = Array.isArray(state.docSubmissions) ? state.docSubmissions : [];
+  }
+  function asSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("admin students/reset save skipped", e); }
+  }
+  function asNow(){ return new Date().toISOString(); }
+  function asShowTime(iso){ try{return new Date(iso).toLocaleString();}catch(e){return iso||"";} }
+  function asUid(prefix){ return typeof uid==="function" ? uid(prefix) : prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function asEsc(v){ return typeof esc==="function" ? esc(v) : String(v??""); }
+  function asSubject(c){ try{return subjectForClass(c)||"";}catch(e){return "";} }
+  function asStudent(id){ try{return student(id);}catch(e){return (state.students||[]).find(s=>s.id===id);} }
+  function asQuiz(id){ try{return quiz(id);}catch(e){return (state.quizzes||[]).find(q=>q.id===id);} }
+  function asActiveShare(studentId){ try{return typeof pwActiveShare==="function" ? pwActiveShare(studentId) : null;}catch(e){return null;} }
+  function asPhoto(studentId){
+    try{ if(typeof clickableStudentPhoto==="function") return clickableStudentPhoto(studentId); }catch(e){}
+    const s=asStudent(studentId);
+    if(!s) return "";
+    if(s.photo) return `<img class="clickablePhoto" src="${s.photo}" alt="${asEsc(s.name)}" onclick="event.stopPropagation();viewStudentPicture && viewStudentPicture('${s.id}')">`;
+    const initials=String(s.name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+    return `<div class="clickableAvatar" onclick="event.stopPropagation();viewStudentPicture && viewStudentPicture('${s.id}')">${asEsc(initials)}</div>`;
+  }
+  function asCalc(studentId){
+    try{ return typeof calculateReportScore==="function" ? calculateReportScore(studentId) : {}; }catch(e){ return {}; }
+  }
+  function asPhoneHtml(s){
+    try{ if(typeof smartPhoneHTML==="function") return smartPhoneHTML(s.phone,s.id); }catch(e){}
+    return asEsc(s.phone||"No phone number");
+  }
+
+  window.adminStudentCardClean = function(s){
+    const calc = asCalc(s.id);
+    const active = asActiveShare(s.id);
+    const submitted = (state.submissions||[]).filter(x=>String(x.studentId)===String(s.id)).length;
+    const docs = (state.docSubmissions||[]).filter(x=>String(x.studentId)===String(s.id)).length;
+    return `<div class="studentAdminCardClean">
+      <div class="studentAdminTopClean">
+        <div class="studentAdminPhotoClean">${asPhoto(s.id)}</div>
+        <div class="studentAdminNameClean">
+          <h3>${asEsc(s.name)}</h3>
+          <small>${asEsc(s.code||"")} • ${asEsc(s.className||"")} • ${asEsc(asSubject(s.className))}</small>
+          <small>${asPhoneHtml(s)}</small>
+        </div>
+      </div>
+      <div class="studentAdminDetailClean">
+        <div class="studentAdminDetailItem"><span>Password</span><b>${asEsc(s.password || "No password")}</b></div>
+        <div class="studentAdminDetailItem"><span>24h Access</span><b>${active ? "Active until " + asEsc(asShowTime(active.expiresAt)) : "Not active"}</b></div>
+        <div class="studentAdminDetailItem"><span>Exercise submissions</span><b>${submitted}</b></div>
+        <div class="studentAdminDetailItem"><span>Scanned work</span><b>${docs}</b></div>
+        <div class="studentAdminDetailItem"><span>Final score</span><b>${calc.finalScore ?? "-"}%</b></div>
+        <div class="studentAdminDetailItem"><span>Grade</span><b>${calc.grade ?? "-"}</b></div>
+      </div>
+      <div class="studentAdminActionClean">
+        <button class="navy" onclick="adminShowStudentProfileAll('${s.id}')">Full Profile</button>
+        <button class="light" onclick="viewStudentPicture && viewStudentPicture('${s.id}')">Picture</button>
+        <button class="gold" onclick="adminAssignMarks && adminAssignMarks('${s.id}')">CA Marks</button>
+        <button class="green" onclick="comm2OpenChat && comm2OpenChat('${s.id}')">Chat</button>
+        <button class="green" onclick="sharePasswordToStudentPortal && sharePasswordToStudentPortal('${s.id}')">Share Password 24h</button>
+        <button class="gold" onclick="resetStudentPassword && resetStudentPassword('${s.id}')">Reset Password</button>
+        <button class="light" onclick="pwCopy ? pwCopy('${String(s.password||"").replace(/'/g,"\\'")}') : navigator.clipboard.writeText('${String(s.password||"").replace(/'/g,"\\'")}')">Copy Password</button>
+      </div>
+    </div>`;
+  };
+
+  window.students = function(){
+    asEnsure();
+    let subj=document.getElementById("stSubj")?.value || "ALL";
+    let cls=document.getElementById("stClass")?.value || "ALL";
+    let q=(document.getElementById("stSearch")?.value||"").toLowerCase();
+    const list=state.students.filter(s=>
+      (subj==="ALL" || asSubject(s.className)===subj) &&
+      (cls==="ALL" || s.className===cls) &&
+      (!q || String(s.name||"").toLowerCase().includes(q) || String(s.code||"").toLowerCase().includes(q) || String(s.phone||"").toLowerCase().includes(q) || String(s.password||"").toLowerCase().includes(q))
+    );
+
+    const subjectSelect = `<select id="stSubj" class="select" onchange="students()"><option value="ALL">All Subjects</option>${(state.subjects||[]).map(s=>`<option value="${asEsc(s.name)}" ${subj===s.name?'selected':''}>${asEsc(s.name)}</option>`).join("")}</select>`;
+    const classSelect = `<select id="stClass" class="select" onchange="students()"><option value="ALL">All Classes</option>${(state.classes||[]).map(c=>`<option value="${asEsc(c)}" ${cls===c?'selected':''}>${asEsc(c)}</option>`).join("")}</select>`;
+    const pwCentre = typeof passwordControlCentreHTML==="function" ? passwordControlCentreHTML() : "";
+    document.getElementById("view").innerHTML = `<div class="adminStudentsCleanPage">
+      ${pwCentre}
+      <div class="allStudentsPanel">
+        <h2>Students Management</h2>
+        <p>All student details are arranged clearly below. Use the filters to find students, view profiles, share passwords, reset passwords, and check submitted work.</p>
+        <div class="adminStudentsFilterBar">
+          ${subjectSelect}
+          ${classSelect}
+          <input id="stSearch" class="input" value="${asEsc(q)}" oninput="students()" placeholder="Search name, code, phone, or password">
+          <button class="btn gold" onclick="openClassPrintModal && openClassPrintModal()">Print Class List</button>
+          <button class="btn navy" onclick="openPasswordPrintModal && openPasswordPrintModal()">Print Passwords</button>
+          <button class="btn light" onclick="downloadCSV && downloadCSV()">Export CSV</button>
+        </div>
+      </div>
+      <div class="adminStudentsTools">
+        <div class="card"><h3>Create Class</h3><div class="grid">
+          <input id="newClass" class="input" placeholder="New class name">
+          <select id="newClassSubject" class="select">${typeof subjectOptions==="function" ? subjectOptions("Mathematics") : ""}</select>
+          <button class="btn green full" onclick="addClass()">Add Class</button>
+        </div></div>
+        <div class="card"><h3>Add One Student</h3><div class="grid">
+          <input id="newStudentName" class="input" placeholder="Student full name">
+          <select id="newStudentClass" class="select">${typeof classOptions==="function" ? classOptions((state.classes||[])[0]||"") : ""}</select>
+          <input id="newStudentPhone" class="input" placeholder="Phone optional">
+          <button class="btn green full" onclick="addStudent()">Add Student</button>
+        </div></div>
+        <div class="card"><h3>Bulk Import</h3><p>Paste names one per line or separated by commas.</p>
+          <select id="bulkClass" class="select">${typeof classOptions==="function" ? classOptions((state.classes||[])[0]||"") : ""}</select>
+          <textarea id="bulkNames" placeholder="Paste names here"></textarea>
+          <button class="btn gold full" onclick="bulkImport()">Import Names into Selected Class</button>
+        </div>
+      </div>
+      <div class="allStudentsPanel">
+        <h2>All Students Directory</h2>
+        <p>Showing ${list.length} student(s).</p>
+        <div id="adminSelectedStudentProfile"></div>
+        <div class="adminStudentDirectoryClean">${list.map(adminStudentCardClean).join("") || `<div class="empty">No students found.</div>`}</div>
+      </div>
+    </div>`;
+  };
+
+  window.adminShowStudentProfileAll = function(studentId){
+    asEnsure();
+    const s = asStudent(studentId);
+    if(!s) return alert("Student not found.");
+    const calc = asCalc(s.id);
+    const box = document.getElementById("adminSelectedStudentProfile") || document.getElementById("adminSmartProfile");
+    if(!box) return;
+    box.innerHTML = `<div class="adminProfilePanel">
+      <div class="adminProfileHead">
+        ${asPhoto(s.id)}
+        <div><h2 style="margin:0;color:#071f3d">${asEsc(s.name)}</h2>
+        <p style="margin:4px 0 8px;color:#667085">${asPhoneHtml(s)}<br>${asEsc(s.code||"")} • ${asEsc(s.className||"")} • ${asEsc(asSubject(s.className))}</p>
+        <div class="toolbar"><button class="btn light" onclick="viewStudentPicture && viewStudentPicture('${s.id}')">View Profile Picture</button><button class="btn navy" onclick="adminAssignMarks && adminAssignMarks('${s.id}')">Assign / Edit CA Marks</button><button class="btn green" onclick="comm2OpenChat && comm2OpenChat('${s.id}')">Chat</button></div></div>
+      </div>
+      <div class="profileInfoGrid">
+        <div class="profileInfo"><span>Telephone</span><b>${asPhoneHtml(s)}</b></div>
+        <div class="profileInfo"><span>Password</span><b>${asEsc(s.password || "No password")}</b></div>
+        <div class="profileInfo"><span>Class Raw</span><b>${calc.classRaw ?? "-"} /100</b></div>
+        <div class="profileInfo"><span>30% Class</span><b>${calc.class30 ?? "-"}</b></div>
+        <div class="profileInfo"><span>Exam Raw</span><b>${calc.examRaw ?? "-"} /100</b></div>
+        <div class="profileInfo"><span>Exam 70%</span><b>${calc.exam70 ?? "-"}</b></div>
+        <div class="profileInfo"><span>Final Score</span><b>${calc.finalScore ?? "-"}%</b></div>
+        <div class="profileInfo"><span>Grade</span><b>${calc.grade ?? "-"}</b></div>
+      </div>
+      <div class="phoneEditBox">
+        <label>Telephone number</label>
+        <div class="phoneEditRow"><input id="adminPhoneEditFixed" value="${asEsc(s.phone||"")}" placeholder="Enter or edit phone number"><button onclick="adminSavePhoneFixed ? adminSavePhoneFixed('${s.id}') : editStudent('${s.id}','phone',document.getElementById('adminPhoneEditFixed').value)">Save Phone</button></div>
+      </div>
+      ${typeof pwAdminPanelHTML==="function" ? pwAdminPanelHTML(s.id) : ""}
+      ${typeof studentWorkSummaryHTML==="function" ? studentWorkSummaryHTML(s.id) : ""}
+    </div>`;
+    box.scrollIntoView({behavior:"smooth",block:"start"});
+    if(typeof typeset==="function") typeset();
+  };
+  window.adminShowStudentProfileFixed = window.adminShowStudentProfileAll;
+
+  function resetLogHTML(studentId){
+    const logs=(state.quizResets||[]).filter(r=>String(r.studentId)===String(studentId)).slice(-5).reverse();
+    if(!logs.length) return "";
+    return `<div class="resetSuccessBox"><b>Recent reset record(s)</b><br>${logs.map(r=>`${asEsc(asQuiz(r.quizId)?.title||r.quizId)} — ${asEsc(r.createdAt ? asShowTime(r.createdAt) : "")} ${r.active?"(ready for fresh attempt)":"(used/closed)"}`).join("<br>")}</div>`;
+  }
+
+  window.studentWorkSummaryHTML = function(studentId){
+    asEnsure();
+    const qs = (state.submissions||[]).filter(s=>String(s.studentId)===String(studentId));
+    const docs = (state.docSubmissions||[]).filter(s=>String(s.studentId)===String(studentId));
+    const submittedQuizIds = [...new Set(qs.map(s=>s.quizId))];
+
+    return `<div class="studentWorkPanel" id="studentWorkPanel_${studentId}">
+      <h3>Student Exercise and Submitted Work</h3>
+      <p>All exercise submissions and scanned-work submissions for this selected student appear here. Use Reset only when there was a genuine technical problem.</p>
+      ${resetLogHTML(studentId)}
+      <h3>Timed Exercise Submissions</h3>
+      ${qs.map(sub=>{const q=asQuiz(sub.quizId)||{}; return `<div class="studentWorkItem">
+        <b>${asEsc(q.title||"Exercise")}</b><br>
+        Score: <b>${sub.teacherScore ?? sub.autoScore} / ${sub.maxScore}</b><br>
+        Status: <span class="${sub.published?'workStatusPublished':'workStatusDraft'}">${sub.published?'Published':'Not Published'}</span><br>
+        Submitted: ${asEsc(sub.submittedAt||"")} ${sub.autoSubmitted?"• Auto-submitted":""}
+        <div class="toolbar" style="margin-top:8px">
+          <button class="btn ${sub.published?'light':'green'}" onclick="publishSub('${sub.id}');refreshStudentWorkPanel('${studentId}')">${sub.published?'Unpublish Result':'Publish Result'}</button>
+          <button class="btn light" onclick="viewStudentExerciseAnswers('${sub.id}')">View Answers</button>
+          <button class="resetQuizBtn" onclick="resetQuizForStudent('${studentId}','${sub.quizId}')">Reset This Quiz</button>
+        </div>
+      </div>`}).join("") || `<div class="empty">No timed exercise submitted yet.</div>`}
+      <h3 style="margin-top:12px">Reset Exercise for This Student</h3>
+      ${submittedQuizIds.length ? `<div class="resetStatusBox">Resetting removes the student's previous submission, score, publication status, and answers for that quiz. The student will be able to start fresh.</div>` : `<div class="empty">No submitted exercise to reset.</div>`}
+      <h3 style="margin-top:12px">Scanned Document Submissions</h3>
+      ${docs.map(ds=>{const a=(state.docAssignments||[]).find(x=>x.id===ds.assignmentId)||{}; return `<div class="studentWorkItem">
+        <b>${asEsc(a.title||"Document Assignment")}</b><br>
+        Score: <b>${ds.score ?? "-"} / ${a.maxScore ?? "-"}</b><br>
+        Status: <span class="${ds.published?'workStatusPublished':'workStatusDraft'}">${ds.published?'Published':'Not Published'}</span><br>
+        Submitted: ${asEsc(ds.submittedAt||"")}
+        <div class="toolbar" style="margin-top:8px">
+          <button class="btn ${ds.published?'light':'green'}" onclick="publishDocSubmission('${ds.id}');refreshStudentWorkPanel('${studentId}')">${ds.published?'Unpublish Mark':'Publish Mark'}</button>
+          <button class="btn light" onclick="openDocSubmissionFromStudent && openDocSubmissionFromStudent('${ds.id}')">Open Submitted Work</button>
+        </div>
+      </div>`}).join("") || `<div class="empty">No scanned work submitted yet.</div>`}
+    </div>`;
+  };
+
+  window.refreshStudentWorkPanel = function(studentId){
+    const old=document.getElementById(`studentWorkPanel_${studentId}`);
+    if(old) old.outerHTML = studentWorkSummaryHTML(studentId);
+  };
+
+  window.resetQuizForStudent = function(studentId, quizId){
+    asEnsure();
+    const st=asStudent(studentId), q=asQuiz(quizId);
+    if(!st || !q) return alert("Student or quiz not found.");
+    const matching = (state.submissions||[]).filter(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId));
+    if(!matching.length){
+      // Still create an access reset if teacher wants to allow a fresh attempt.
+      if(!confirm(st.name + " has no recorded submission for this quiz.\n\nDo you still want to allow a fresh attempt?")) return;
+    }else{
+      if(!confirm("Reset this quiz for " + st.name + "?\n\nThis will remove the previous submission, answers, score, and published result for this quiz. The student will be able to do it afresh.")) return;
+    }
+
+    // Remove every old submission/score/answers for this student and quiz.
+    state.submissions = (state.submissions||[]).filter(s=>!(String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId)));
+
+    // Clear any old active reset records for this exact student and quiz, then add a fresh access record.
+    state.quizResets = (state.quizResets||[]).map(r=>{
+      if(String(r.studentId)===String(studentId) && String(r.quizId)===String(quizId) && r.active){
+        return {...r, active:false, replacedAt:asNow()};
+      }
+      return r;
+    });
+    state.quizResets.push({
+      id:asUid("reset"),
+      studentId,
+      quizId,
+      createdAt:asNow(),
+      active:true,
+      reason:"Teacher reset after complaint / technical issue"
+    });
+
+    // Keep the quiz available to that student even if hidden from the general class list.
+    q.resetAvailableFor = Array.isArray(q.resetAvailableFor) ? q.resetAvailableFor : [];
+    if(!q.resetAvailableFor.includes(studentId)) q.resetAvailableFor.push(studentId);
+
+    asSave();
+    alert("Quiz reset successfully.\n\nPrevious answers and marks have been removed. The student can now start the quiz afresh.");
+    refreshStudentWorkPanel(studentId);
+    if(typeof adminExerciseRefreshHub==="function") adminExerciseRefreshHub();
+  };
+
+  const oldAvailableQuizzes = window.availableQuizzes;
+  window.availableQuizzes = function(){
+    asEnsure();
+    const s=asStudent(currentStudentId);
+    if(!s) return [];
+    const subj=asSubject(s.className);
+    const activeResetQuizIds = new Set((state.quizResets||[])
+      .filter(r=>String(r.studentId)===String(s.id) && r.active)
+      .map(r=>String(r.quizId)));
+    const list=(state.quizzes||[]).filter(q=>{
+      const assigned = q.subject===subj && (q.classNames||[]).includes(s.className);
+      const normallyVisible = q.status==="Published" && assigned;
+      const resetVisible = assigned && (activeResetQuizIds.has(String(q.id)) || (q.resetAvailableFor||[]).includes(s.id));
+      return normallyVisible || resetVisible;
+    });
+    const seen=new Set();
+    return list.filter(q=>{ if(seen.has(q.id)) return false; seen.add(q.id); return true; });
+  };
+
+  const oldSubmitQuiz = window.submitQuiz;
+  if(typeof oldSubmitQuiz==="function"){
+    window.submitQuiz = function(id, auto=false){
+      asEnsure();
+      // Mark the reset as used only when a new submission is starting.
+      (state.quizResets||[]).forEach(r=>{
+        if(String(r.studentId)===String(currentStudentId) && String(r.quizId)===String(id) && r.active){
+          r.active=false;
+          r.usedAt=asNow();
+        }
+      });
+      const q=asQuiz(id);
+      if(q && Array.isArray(q.resetAvailableFor)){
+        q.resetAvailableFor = q.resetAvailableFor.filter(x=>String(x)!==String(currentStudentId));
+      }
+      return oldSubmitQuiz.apply(this, arguments);
+    };
+  }
+
+  try{
+    eval("students=window.students; adminShowStudentProfileAll=window.adminShowStudentProfileAll; adminShowStudentProfileFixed=window.adminShowStudentProfileFixed; studentWorkSummaryHTML=window.studentWorkSummaryHTML; refreshStudentWorkPanel=window.refreshStudentWorkPanel; resetQuizForStudent=window.resetQuizForStudent; availableQuizzes=window.availableQuizzes; submitQuiz=window.submitQuiz;");
   }catch(e){}
 })();
 
