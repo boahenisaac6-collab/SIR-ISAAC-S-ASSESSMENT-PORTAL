@@ -14271,6 +14271,208 @@ ${printable}
   }catch(e){}
 })();
 
+
+/* ===== MARKED SCRIPT PDF DOWNLOAD FIX: ADMIN + STUDENT ===== */
+(function(){
+  function pdfEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function pdfSafeFileName(name){
+    return String(name || "marked_script").replace(/\.[^.]+$/,"").replace(/[^\w\-]+/g,"_").replace(/^_+|_+$/g,"") || "marked_script";
+  }
+
+  async function dataUrlToImage(dataUrl){
+    return new Promise((resolve,reject)=>{
+      const img = new Image();
+      img.onload = ()=>resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
+  function binaryStringFromUint8(arr){
+    let out = "";
+    const chunk = 8192;
+    for(let i=0;i<arr.length;i+=chunk){
+      out += String.fromCharCode.apply(null, arr.subarray(i,i+chunk));
+    }
+    return out;
+  }
+
+  function arrayBufferFromBinaryString(str){
+    const buf = new Uint8Array(str.length);
+    for(let i=0;i<str.length;i++) buf[i] = str.charCodeAt(i) & 255;
+    return buf;
+  }
+
+  function dataUrlToBytes(dataUrl){
+    const parts = String(dataUrl).split(",");
+    const b64 = parts[1] || "";
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  async function imageDataUrlToJpegInfo(dataUrl){
+    const img = await dataUrlToImage(dataUrl);
+    const maxSide = 1600;
+    let w = img.naturalWidth || img.width || 1000;
+    let h = img.naturalHeight || img.height || 1400;
+    const scale = Math.min(1, maxSide / Math.max(w,h));
+    const cw = Math.max(1, Math.round(w*scale));
+    const ch = Math.max(1, Math.round(h*scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = cw;
+    canvas.height = ch;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,cw,ch);
+    ctx.drawImage(img,0,0,cw,ch);
+    const jpeg = canvas.toDataURL("image/jpeg", 0.92);
+    return {bytes:dataUrlToBytes(jpeg), width:cw, height:ch};
+  }
+
+  function makePdfFromJpegs(images){
+    const pageW = 595.28; // A4 portrait in points
+    const pageH = 841.89;
+    const margin = 28.35;
+    const objects = [];
+    const addObj = (s)=>{ objects.push(s); return objects.length; };
+
+    const catalogId = 1;
+    const pagesId = 2;
+    objects.push(""); // placeholder catalog
+    objects.push(""); // placeholder pages
+
+    const pageIds = [];
+
+    images.forEach(info=>{
+      const imgId = objects.length + 1;
+      const imgStream = binaryStringFromUint8(info.bytes);
+      addObj(`<< /Type /XObject /Subtype /Image /Width ${info.width} /Height ${info.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${info.bytes.length} >>\nstream\n${imgStream}\nendstream`);
+
+      const maxW = pageW - margin*2;
+      const maxH = pageH - margin*2;
+      const scale = Math.min(maxW/info.width, maxH/info.height);
+      const drawW = info.width * scale;
+      const drawH = info.height * scale;
+      const x = (pageW - drawW) / 2;
+      const y = (pageH - drawH) / 2;
+
+      const content = `q\n${drawW.toFixed(2)} 0 0 ${drawH.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im0 Do\nQ`;
+      const contentId = objects.length + 1;
+      addObj(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+
+      const pageId = objects.length + 1;
+      pageIds.push(pageId);
+      addObj(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 ${imgId} 0 R >> >> /Contents ${contentId} 0 R >>`);
+    });
+
+    objects[catalogId-1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+    objects[pagesId-1] = `<< /Type /Pages /Kids [${pageIds.map(id=>id+" 0 R").join(" ")}] /Count ${pageIds.length} >>`;
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((obj,i)=>{
+      offsets.push(pdf.length);
+      pdf += `${i+1} 0 obj\n${obj}\nendobj\n`;
+    });
+    const xref = pdf.length;
+    pdf += `xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;
+    for(let i=1;i<offsets.length;i++){
+      pdf += String(offsets[i]).padStart(10,"0") + " 00000 n \n";
+    }
+    pdf += `trailer\n<< /Size ${objects.length+1} /Root ${catalogId} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return new Blob([arrayBufferFromBinaryString(pdf)], {type:"application/pdf"});
+  }
+
+  async function downloadPdfFromDataUrls(dataUrls, filename){
+    const valid = (dataUrls||[]).filter(Boolean).filter(x=>String(x).startsWith("data:image"));
+    if(!valid.length){
+      alert("No marked image was found for PDF download.");
+      return;
+    }
+    const infos = [];
+    for(const url of valid){
+      infos.push(await imageDataUrlToJpegInfo(url));
+    }
+    const blob = makePdfFromJpegs(infos);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = pdfSafeFileName(filename) + ".pdf";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    a.remove();
+  }
+
+  // Old buttons in admin/student mode call this function. It now always downloads a PDF.
+  window.downloadMarkedScriptFile = function(data, name){
+    downloadPdfFromDataUrls([data], name || "marked_script");
+  };
+
+  window.downloadMarkedSubmissionPDF = function(subId){
+    const ds = (state.docSubmissions||[]).find(x=>x.id===subId);
+    if(!ds) return alert("Submission not found.");
+    const a = (state.docAssignments||[]).find(x=>x.id===ds.assignmentId) || {};
+    const st = (state.students||[]).find(x=>x.id===ds.studentId) || {};
+    const files = (ds.markedFiles||[]).filter(Boolean).map(f=>f.data);
+    const name = (a.title || "marked_script") + "_" + (st.name || "student");
+    downloadPdfFromDataUrls(files, name);
+  };
+
+  function pdfDownloadButtonForSubmission(ds){
+    if(!ds || !(ds.markedFiles||[]).filter(Boolean).length) return "";
+    return `<button class="downloadMarkedBtn" onclick="downloadMarkedSubmissionPDF('${ds.id}')">Download Marked Script as PDF</button>`;
+  }
+
+  function pdfMarkedFilesHTML(ds){
+    const files = (ds.markedFiles||[]).filter(Boolean);
+    if(!files.length) return `<span>Marked script not published yet.</span>`;
+    return `${pdfDownloadButtonForSubmission(ds)} ${files.map((f,i)=>`<a class="studentDownloadBtn" href="${f.data}" target="_blank">Open Page ${i+1}</a>`).join(" ")}`;
+  }
+
+  // Student submitted work/results page: all marked-script downloads become PDF downloads.
+  const oldStudentResults = window.studentResults;
+  window.studentResults = function(){
+    const qs=(state.submissions||[]).filter(s=>s.studentId===currentStudentId).sort((a,b)=>String(b.submittedAt||"").localeCompare(String(a.submittedAt||"")));
+    const docs=(state.docSubmissions||[]).filter(s=>s.studentId===currentStudentId).sort((a,b)=>String(b.submittedAt||"").localeCompare(String(a.submittedAt||"")));
+    const swQuiz = (id)=>{ try{ if(typeof quiz==="function") return quiz(id); }catch(e){} return (state.quizzes||[]).find(q=>q.id===id)||{}; };
+    const swAssign = (id)=> (state.docAssignments||[]).find(a=>a.id===id) || {};
+
+    document.getElementById("view").innerHTML = `<div class="studentAssignmentCentre">
+      <div class="studentAssignmentHero"><h2>Submitted Work and Marked Scripts</h2><p>All submitted work appears here. When your marked script is published, download it as PDF.</p></div>
+      <div class="studentAssignmentSection"><h2>Quiz Results</h2>
+        <table class="submittedWorkTable"><thead><tr><th>Quiz</th><th>Submitted</th><th>Score</th><th>Status</th></tr></thead><tbody>
+          ${qs.map(sub=>{const q=swQuiz(sub.quizId)||{};return `<tr><td>${pdfEsc(q.title||"Quiz")}</td><td>${pdfEsc(sub.submittedAt||"")}</td><td>${sub.published ? `${sub.teacherScore ?? sub.autoScore} / ${sub.maxScore}` : "Not published yet"}</td><td>${sub.published?"Published":"Waiting for teacher"}</td></tr>`}).join("") || `<tr><td colspan="4">No quiz submitted yet.</td></tr>`}
+        </tbody></table>
+      </div>
+      <div class="studentAssignmentSection"><h2>Theory / Scanned Work</h2>
+        <table class="submittedWorkTable"><thead><tr><th>Assignment</th><th>Submitted</th><th>Score</th><th>Teacher Comment</th><th>Marked Script</th></tr></thead><tbody>
+          ${docs.map(ds=>{const a=swAssign(ds.assignmentId);return `<tr><td>${pdfEsc(a.title||"Assignment")}</td><td>${pdfEsc(ds.submittedAt||"")}</td><td>${ds.published ? `${ds.score ?? "-"} / ${a.maxScore ?? "-"}` : "Not published yet"}</td><td>${ds.published ? pdfEsc(ds.feedback||"") : "Waiting for teacher"}</td><td>${ds.published ? pdfMarkedFilesHTML(ds) : "Marked script not published yet"}</td></tr>`}).join("") || `<tr><td colspan="5">No scanned work submitted yet.</td></tr>`}
+        </tbody></table>
+      </div>
+      <div class="studentWorkActions"><button class="green" onclick="openStudentAssignmentsAndQuizzes && openStudentAssignmentsAndQuizzes()">View Available Assignments / Quizzes</button></div>
+    </div>`;
+  };
+
+  // Student home marked-script cards: PDF download, not image/audio extension.
+  if(typeof window.studentMarkedScriptsHTML === "function"){
+    window.studentMarkedScriptsHTML = function(){
+      const sid=currentStudentId;
+      const rows=(state.docSubmissions||[]).filter(ds=>ds.studentId===sid && ds.published).sort((a,b)=>String(b.publishedAt||b.submittedAt||"").localeCompare(String(a.publishedAt||a.submittedAt||"")));
+      if(!rows.length) return `<div class="markedScriptStudentPanel" id="studentMarkedScriptsPanel"><h2>My Marked Scripts</h2><p>No marked script has been published yet.</p></div>`;
+      return `<div class="markedScriptStudentPanel" id="studentMarkedScriptsPanel"><h2>My Marked Scripts and Scores</h2><p>Download your marked script as PDF here.</p>
+        ${rows.map(ds=>{const a=(state.docAssignments||[]).find(x=>x.id===ds.assignmentId)||{};return `<div class="markedScriptCard"><h3>${pdfEsc(a.title||"Marked Work")}</h3><div class="markedScriptMeta"><div><span>Score</span><b>${ds.score ?? "-"} / ${a.maxScore ?? "-"}</b></div><div><span>Status</span><b>Published</b></div><div><span>Submitted</span><b>${pdfEsc(ds.submittedAt||"")}</b></div></div>${ds.feedback?`<p><b>Teacher Comment:</b> ${pdfEsc(ds.feedback)}</p>`:""}${pdfMarkedFilesHTML(ds)}</div>`}).join("")}
+      </div>`;
+    };
+  }
+
+  try{
+    eval("downloadMarkedScriptFile=window.downloadMarkedScriptFile; downloadMarkedSubmissionPDF=window.downloadMarkedSubmissionPDF; studentResults=window.studentResults; studentMarkedScriptsHTML=window.studentMarkedScriptsHTML;");
+  }catch(e){}
+})();
+
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(render);
