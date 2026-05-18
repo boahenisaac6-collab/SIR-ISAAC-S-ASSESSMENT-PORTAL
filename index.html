@@ -4297,6 +4297,105 @@ body.caFullscreenLock{
   @page{size:A4 portrait;margin:10mm}
 }
 
+
+/* ===== STUDENT INLINE PASSWORD LOGIN + ALWAYS CHANGE PASSWORD ===== */
+.studentInlineLoginBox{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  margin-top:9px;
+  padding-top:9px;
+  border-top:1px dashed #d9e7f3;
+}
+.studentInlineLoginBox input{
+  min-height:38px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  font-size:14px;
+}
+.studentInlineLoginBox button{
+  min-height:38px;
+  border:0;
+  border-radius:12px;
+  background:#0f7b4f;
+  color:#fff;
+  font-weight:950;
+  padding:8px 12px;
+  cursor:pointer;
+}
+.studentInlineLoginHint{
+  grid-column:1/-1;
+  font-size:11px;
+  color:#667085;
+  font-weight:850;
+  line-height:1.35;
+}
+.studentFullListItem.inlinePasswordReady{
+  grid-template-columns:64px minmax(0,1fr);
+}
+.studentFullListItem.inlinePasswordReady .studentFullInfo{
+  min-width:0;
+}
+.changePasswordAnytimeBox{
+  border:2px solid #d9e7f3;
+  border-left:7px solid #071f3d;
+  background:#fff;
+  border-radius:18px;
+  padding:12px;
+  margin:12px 0;
+  color:#071f3d;
+  box-shadow:0 8px 22px rgba(7,31,61,.06);
+}
+.changePasswordAnytimeBox h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.changePasswordAnytimeBox p{
+  margin:0 0 10px;
+  color:#667085;
+  font-weight:800;
+  line-height:1.45;
+}
+.changePasswordGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+  gap:8px;
+  align-items:end;
+}
+.changePasswordGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.changePasswordGrid input{
+  min-height:40px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+}
+.changePasswordGrid button{
+  min-height:40px;
+  border:0;
+  border-radius:12px;
+  background:#071f3d;
+  color:#fff;
+  font-weight:950;
+  padding:8px 12px;
+  cursor:pointer;
+}
+@media(max-width:760px){
+  .studentInlineLoginBox,
+  .changePasswordGrid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -10503,6 +10602,192 @@ ${printable}
 
   try{
     eval("sharePasswordToAllStudentsPortal=window.sharePasswordToAllStudentsPortal; sharePasswordToClassPortal=window.sharePasswordToClassPortal; resetStudentPassword=window.resetStudentPassword; studentChangeOwnPassword=window.studentChangeOwnPassword; openPasswordPrintModal=window.openPasswordPrintModal; previewPasswordPrintList=window.previewPasswordPrintList; printPasswordList=window.printPasswordList; previewPictureClassList=window.previewPictureClassList; openClassPrintModal=window.openClassPrintModal;");
+  }catch(e){}
+})();
+
+
+/* ===== STUDENT INLINE PASSWORD LOGIN + ALWAYS CHANGE PASSWORD ===== */
+(function(){
+  function ilSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("inline login save skipped", e); }
+  }
+  function ilActiveShare(studentId){
+    try{
+      if(typeof pwActiveShare==="function") return pwActiveShare(studentId);
+    }catch(e){}
+    return null;
+  }
+  function ilCanOpenWithoutPassword(studentId){
+    return !state.settings.requireStudentPassword || !!ilActiveShare(studentId);
+  }
+  function ilPhoto(studentId){
+    try{
+      if(typeof clickableStudentPhoto==="function") return clickableStudentPhoto(studentId);
+      const s = student(studentId);
+      if(!s) return "";
+      if(s.photo) return `<img class="clickablePhoto" src="${s.photo}" alt="${esc(s.name)}">`;
+      const initials = String(s.name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+      return `<div class="clickableAvatar">${esc(initials)}</div>`;
+    }catch(e){ return ""; }
+  }
+  function ilOpenStudent(id){
+    currentStudentId = id;
+    role = "student";
+    route = "studentHome";
+    renderShell();
+  }
+
+  window.studentCardLogin = function(studentId){
+    const s = student(studentId);
+    if(!s) return alert("Student not found.");
+    currentStudentId = studentId;
+
+    if(ilCanOpenWithoutPassword(studentId)){
+      ilOpenStudent(studentId);
+      return;
+    }
+
+    const input = document.getElementById("inlinePass_"+studentId);
+    const typed = (input?.value || "").trim();
+    if(!typed){
+      if(input) input.focus();
+      return alert("Please type your password first.");
+    }
+    if(typed !== String(s.password || "")){
+      if(input){ input.value=""; input.focus(); }
+      return alert("Wrong password. Please check the password and try again.");
+    }
+    ilOpenStudent(studentId);
+  };
+
+  window.studentInlineFocus = function(studentId){
+    setTimeout(()=>{
+      const input = document.getElementById("inlinePass_"+studentId);
+      if(input) input.focus();
+    },50);
+  };
+
+  window.selectStudentLogin = function(id){
+    currentStudentId = id;
+    if(ilCanOpenWithoutPassword(id)){
+      ilOpenStudent(id);
+      return;
+    }
+    studentInlineFocus(id);
+  };
+
+  window.quickOpenStudentPortal = function(id){
+    currentStudentId = id;
+    if(ilCanOpenWithoutPassword(id)){
+      ilOpenStudent(id);
+      return;
+    }
+    studentInlineFocus(id);
+  };
+
+  window.finishStudentLogin = function(){
+    const s = student(currentStudentId);
+    if(!s) return;
+    if(ilCanOpenWithoutPassword(s.id)){
+      ilOpenStudent(s.id);
+      return;
+    }
+    const input = document.getElementById("stuPass") || document.getElementById("studentPass") || document.getElementById("inlinePass_"+s.id);
+    if((input?.value || "").trim() !== String(s.password || "")){
+      return alert("Wrong password.");
+    }
+    ilOpenStudent(s.id);
+  };
+
+  const oldBuildStudentVisibleList = window.buildStudentVisibleList;
+  window.buildStudentVisibleList = function(list, mode="student"){
+    if(mode !== "student"){
+      if(typeof oldBuildStudentVisibleList==="function") return oldBuildStudentVisibleList.apply(this, arguments);
+    }
+    return `<div class="studentFullListGrid">
+      ${list.map(s=>`<div class="studentFullListItem inlinePasswordReady" ondblclick="quickOpenStudentPortal('${s.id}')">
+        ${ilPhoto(s.id)}
+        <div class="studentFullInfo">
+          <b>${esc(s.name)}</b>
+          <small>${esc(s.phone || "No phone number")}</small>
+          <small>${esc(s.code || "")} • ${esc(s.className || "")} • ${esc(subjectForClass(s.className)||"")}</small>
+          <small class="openLine">${ilCanOpenWithoutPassword(s.id) ? "Click Open Portal to enter directly during the 24-hour window" : "Type your password and click Open Portal"}</small>
+        </div>
+        <div class="studentInlineLoginBox" onclick="event.stopPropagation()">
+          <input id="inlinePass_${s.id}" type="password" placeholder="Password" onkeydown="if(event.key==='Enter'){studentCardLogin('${s.id}')}">
+          <button onclick="studentCardLogin('${s.id}')">Open Portal</button>
+          <div class="studentInlineLoginHint">Tip: Type your password on your own name card, then click Open Portal. If Sir Isaac has shared a 24-hour access window, you can open without typing password.</div>
+        </div>
+      </div>`).join("") || `<div class="empty">No student found.</div>`}
+    </div>`;
+  };
+
+  window.changeOwnPasswordAnytime = function(){
+    const s = student(currentStudentId);
+    if(!s) return;
+    const p1 = (document.getElementById("changePasswordAnytime1")?.value || "").trim();
+    const p2 = (document.getElementById("changePasswordAnytime2")?.value || "").trim();
+    if(!p1 || !p2) return alert("Type the new password twice.");
+    if(p1.length < 4) return alert("Password should be at least 4 characters.");
+    if(p1 !== p2) return alert("The two passwords do not match.");
+    if(!confirm("Save this as your new portal password?")) return;
+    s.password = p1;
+    if(Array.isArray(state.passwordShares)){
+      state.passwordShares.forEach(p=>{
+        if(p.studentId===s.id && p.active!==false){
+          p.password = p1;
+          p.changedByStudentAt = new Date().toISOString();
+        }
+      });
+    }
+    ilSave();
+    alert("Your password has been changed successfully. Use the new password next time.");
+    if(typeof studentHome==="function") studentHome();
+  };
+
+  function changePasswordAnytimeHTML(studentId){
+    const s = student(studentId);
+    if(!s) return "";
+    return `<div id="changePasswordAnytimeBox_${studentId}" class="changePasswordAnytimeBox">
+      <h3>Change Your Password Anytime</h3>
+      <p>You can change your portal password anytime after logging in. Keep the new password safely because you will use it for your next login.</p>
+      <div class="changePasswordGrid">
+        <div><label>New Password</label><input id="changePasswordAnytime1" type="password" placeholder="Enter new password"></div>
+        <div><label>Confirm Password</label><input id="changePasswordAnytime2" type="password" placeholder="Repeat new password"></div>
+        <button onclick="changeOwnPasswordAnytime()">Save New Password</button>
+      </div>
+    </div>`;
+  }
+
+  const oldStudentHome = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHome ? oldStudentHome.apply(this, arguments) : undefined;
+    const s = student(currentStudentId);
+    const view = document.getElementById("view");
+    if(view && s && !document.getElementById("changePasswordAnytimeBox_"+s.id)){
+      const existing24 = document.getElementById("studentPasswordChangeBox_"+s.id);
+      if(existing24) existing24.insertAdjacentHTML("afterend", changePasswordAnytimeHTML(s.id));
+      else view.insertAdjacentHTML("beforeend", changePasswordAnytimeHTML(s.id));
+    }
+    return result;
+  };
+
+  // Re-render student login once after page opens so the inline boxes appear even on cached views.
+  const oldStudentLogin = window.studentLogin;
+  if(typeof oldStudentLogin==="function"){
+    window.studentLogin = function(){
+      const result = oldStudentLogin.apply(this, arguments);
+      return result;
+    };
+  }
+
+  try{
+    eval("studentCardLogin=window.studentCardLogin; studentInlineFocus=window.studentInlineFocus; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; finishStudentLogin=window.finishStudentLogin; buildStudentVisibleList=window.buildStudentVisibleList; changeOwnPasswordAnytime=window.changeOwnPasswordAnytime;");
   }catch(e){}
 })();
 
