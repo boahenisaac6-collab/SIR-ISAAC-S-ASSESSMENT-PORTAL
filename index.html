@@ -3670,6 +3670,98 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== ONE-ATTEMPT QUIZ, ADMIN RESET, 24-HOUR ASSIGNMENT NOTIFICATION ===== */
+.assignmentNotice24{
+  border:3px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#fffdf0,#ffffff);
+  color:#071f3d;
+  border-radius:20px;
+  padding:16px;
+  margin:14px 0;
+  box-shadow:0 12px 30px rgba(7,31,61,.12);
+}
+.assignmentNotice24 h2{
+  margin:0 0 8px;
+  color:#071f3d;
+  font-size:22px;
+}
+.assignmentNotice24 p{
+  margin:0 0 8px;
+  color:#344054;
+  line-height:1.45;
+  font-weight:800;
+}
+.assignmentNotice24 ol{
+  margin:8px 0 0 20px;
+  color:#071f3d;
+  font-weight:800;
+  line-height:1.55;
+}
+.assignmentNotice24 .noticeTime{
+  display:inline-flex;
+  margin-top:8px;
+  border-radius:999px;
+  padding:5px 10px;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border:1px solid #bce8ce;
+  font-weight:950;
+  font-size:12px;
+}
+.quizClosedCard{
+  border:1px solid #d9e7f3;
+  border-left:7px solid #667085;
+  background:#f8fbff;
+  border-radius:16px;
+  padding:12px;
+  margin:10px 0;
+}
+.quizClosedCard h3{
+  margin:0 0 6px;
+  color:#071f3d;
+}
+.quizClosedCard p{
+  margin:0 0 8px;
+  color:#667085;
+  line-height:1.45;
+}
+.quizClosedBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 10px;
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+  font-weight:950;
+  font-size:12px;
+}
+.resetQuizBtn{
+  border:0;
+  border-radius:10px;
+  background:#d92d20;
+  color:#fff;
+  font-weight:950;
+  padding:7px 10px;
+  cursor:pointer;
+}
+.resetQuizBtn.light{
+  background:#fff1f0;
+  color:#b42318;
+  border:1px solid #ffd4d0;
+}
+.studentAttemptBox{
+  border:1px solid #d9e7f3;
+  border-radius:14px;
+  padding:10px;
+  margin:8px 0;
+  background:#fff;
+}
+.studentAttemptBox b{
+  color:#071f3d;
+}
+
 </style>
 </head>
 <body>
@@ -8693,6 +8785,259 @@ ${printable}
 
   try{
     eval("adminExerciseReviewHub=window.adminExerciseReviewHub; previewExerciseQuiz=window.previewExerciseQuiz; adminPublishExercise=window.adminPublishExercise; refreshStudentWorkPanel=window.refreshStudentWorkPanel; viewStudentExerciseAnswers=window.viewStudentExerciseAnswers; openDocSubmissionFromStudent=window.openDocSubmissionFromStudent;");
+  }catch(e){}
+})();
+
+
+/* ===== ONE-ATTEMPT QUIZ + ADMIN RESET + 24-HOUR NEW ASSIGNMENT NOTICE ===== */
+(function(){
+  function qaEnsure(){
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.quizResets = Array.isArray(state.quizResets) ? state.quizResets : [];
+    state.assignmentNotifications = Array.isArray(state.assignmentNotifications) ? state.assignmentNotifications : [];
+  }
+  function qaSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("save skipped", e); }
+  }
+  function qaNowISO(){ return new Date().toISOString(); }
+  function qaDisplayTime(iso){
+    try{return new Date(iso).toLocaleString();}catch(e){return iso||"";}
+  }
+  function qaUid(prefix){
+    return typeof uid==="function" ? uid(prefix) : prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function qaStudentSubmission(studentId, quizId){
+    return (state.submissions||[]).find(s=>s.studentId===studentId && s.quizId===quizId);
+  }
+  function qaHasSubmitted(studentId, quizId){
+    return !!qaStudentSubmission(studentId, quizId);
+  }
+  function qaResetRecord(studentId, quizId){
+    return (state.quizResets||[]).find(r=>r.studentId===studentId && r.quizId===quizId && r.active);
+  }
+  function qaCanAttempt(studentId, quizId){
+    if(!qaHasSubmitted(studentId, quizId)) return true;
+    return !!qaResetRecord(studentId, quizId);
+  }
+  function qaClearActiveReset(studentId, quizId){
+    (state.quizResets||[]).forEach(r=>{
+      if(r.studentId===studentId && r.quizId===quizId && r.active){
+        r.active=false;
+        r.usedAt=qaNowISO();
+      }
+    });
+  }
+  function qaNotifyForQuiz(q){
+    qaEnsure();
+    const now=qaNowISO();
+    const exists = state.assignmentNotifications.find(n=>n.quizId===q.id && n.active!==false);
+    if(exists){
+      exists.createdAt = now;
+      exists.subject = q.subject;
+      exists.classNames = q.classNames || [];
+      exists.title = q.title;
+      exists.durationMinutes = q.durationMinutes || 30;
+      exists.expiresAt = new Date(Date.now()+24*60*60*1000).toISOString();
+      exists.active = true;
+    }else{
+      state.assignmentNotifications.push({
+        id:qaUid("assnNotice"),
+        quizId:q.id,
+        title:q.title,
+        subject:q.subject,
+        classNames:q.classNames || [],
+        durationMinutes:q.durationMinutes || 30,
+        createdAt:now,
+        expiresAt:new Date(Date.now()+24*60*60*1000).toISOString(),
+        active:true
+      });
+    }
+    q.publishedAt = now;
+  }
+  function qaActiveNoticesForStudent(studentId){
+    qaEnsure();
+    const s = student(studentId);
+    if(!s) return [];
+    const subj = subjectForClass(s.className);
+    const now = Date.now();
+    return (state.assignmentNotifications||[])
+      .filter(n=>n.active!==false)
+      .filter(n=>!n.expiresAt || new Date(n.expiresAt).getTime() > now)
+      .filter(n=>n.subject===subj && (n.classNames||[]).includes(s.className))
+      .filter(n=>!qaHasSubmitted(studentId, n.quizId));
+  }
+  function qaNoticeHTML(studentId){
+    const notices = qaActiveNoticesForStudent(studentId);
+    if(!notices.length) return "";
+    return `<div class="assignmentNotice24">
+      <h2>📌 New Assignment / Exercise Uploaded</h2>
+      ${notices.map(n=>`<div style="margin-bottom:10px">
+        <p><b>${esc(n.title||"New Exercise")}</b> has been assigned to your class.</p>
+        <p>You have <b>${n.durationMinutes||30} minutes</b> to complete it once you start. After submission, you cannot attempt it again unless Sir Isaac resets it for you.</p>
+        <ol>
+          <li>Click <b>My Quizzes</b> or <b>Open Assignments / Quizzes</b>.</li>
+          <li>Read the instructions carefully.</li>
+          <li>Click <b>Start Exercise</b>.</li>
+          <li>Submit before the timer ends. If time finishes, it will submit automatically.</li>
+        </ol>
+        <span class="noticeTime">This notice will disappear after 24 hours. Posted: ${esc(qaDisplayTime(n.createdAt))}</span>
+      </div>`).join("")}
+    </div>`;
+  }
+
+  const oldAdminPublishExercise = window.adminPublishExercise;
+  window.adminPublishExercise = function(qid){
+    qaEnsure();
+    const q = quiz(qid);
+    if(!q) return;
+    const wasPublished = q.status==="Published";
+    if(typeof oldAdminPublishExercise==="function"){
+      oldAdminPublishExercise.apply(this, arguments);
+    }else{
+      q.status = wasPublished ? "Draft" : "Published";
+    }
+    const q2 = quiz(qid);
+    if(q2 && q2.status==="Published"){
+      qaNotifyForQuiz(q2);
+      qaSave();
+      alert("Exercise published. A 24-hour notification has been placed in the student portal.");
+    }else{
+      qaSave();
+    }
+    if(typeof adminExerciseRefreshHub==="function") adminExerciseRefreshHub();
+  };
+
+  const oldQToggle = window.qToggle;
+  window.qToggle = function(id){
+    qaEnsure();
+    const q = quiz(id);
+    const wasPublished = q && q.status==="Published";
+    if(typeof oldQToggle==="function") oldQToggle.apply(this, arguments);
+    else if(q) q.status = wasPublished ? "Draft" : "Published";
+    const q2 = quiz(id);
+    if(q2 && q2.status==="Published"){
+      qaNotifyForQuiz(q2);
+      qaSave();
+      alert("Exercise/quiz published. A 24-hour notification has been placed in the student portal.");
+    }else{
+      qaSave();
+    }
+  };
+
+  const oldTakeQuiz = window.takeQuiz;
+  window.takeQuiz = function(id){
+    qaEnsure();
+    if(currentStudentId && !qaCanAttempt(currentStudentId, id)){
+      const sub = qaStudentSubmission(currentStudentId, id);
+      alert("You have already submitted this exercise. It is now closed for you. Contact Sir Isaac Boahen if there was a technical problem.");
+      if(typeof setRoute==="function") setRoute("studentResults");
+      return;
+    }
+    if(typeof oldTakeQuiz==="function") return oldTakeQuiz.apply(this, arguments);
+  };
+
+  const oldSubmitQuiz = window.submitQuiz;
+  window.submitQuiz = function(id, auto=false){
+    qaEnsure();
+    if(currentStudentId && !qaCanAttempt(currentStudentId, id)){
+      alert("This exercise has already been submitted and is closed for you.");
+      if(typeof setRoute==="function") setRoute("studentResults");
+      return;
+    }
+    qaClearActiveReset(currentStudentId, id);
+    if(typeof oldSubmitQuiz==="function") return oldSubmitQuiz.apply(this, arguments);
+  };
+
+  const oldStudentQuizzes = window.studentQuizzes;
+  window.studentQuizzes = function(){
+    qaEnsure();
+    const s=student(currentStudentId);
+    const qs = typeof availableQuizzes==="function" ? availableQuizzes() : [];
+    const openQs = qs.filter(q=>qaCanAttempt(currentStudentId, q.id));
+    const closedQs = qs.filter(q=>!qaCanAttempt(currentStudentId, q.id));
+    const docs = typeof availableDocAssignments==="function" ? availableDocAssignments() : [];
+
+    $("view").innerHTML=`${s?qaNoticeHTML(s.id):""}<div class="card"><h2>Available Exercises and Document Upload Work</h2><p>Timed exercises and scanned-work submissions assigned to your class will appear here.</p></div>
+      <div>${openQs.map(q=>`<div class="quizCard"><h3>${esc(q.title)}</h3><p>${esc(q.questions.length)} question(s) • ${q.durationMinutes||30} minutes</p><button class="btn green" onclick="takeQuiz('${q.id}')">Start Exercise</button></div>`).join("")||`<div class="empty">No new timed exercise available now.</div>`}</div>
+      <div class="card"><h2>Closed / Submitted Exercises</h2>${closedQs.map(q=>{const sub=qaStudentSubmission(currentStudentId,q.id)||{}; return `<div class="quizClosedCard"><h3>${esc(q.title)}</h3><p>You submitted this exercise on ${esc(sub.submittedAt||"")}. You cannot attempt it again unless the teacher resets it for you.</p><span class="quizClosedBadge">Closed after submission</span></div>`}).join("")||`<div class="empty">No closed exercise yet.</div>`}</div>
+      <div class="card"><h2>Scan and Upload Written Work</h2>${docs.map(a=>`<div class="docAssignmentCard"><h3>${esc(a.title)}</h3><p>${esc(a.instructions||"Scan your work and upload the pages here.")}</p><p>Maximum score: ${a.maxScore}</p><button class="btn green" onclick="openDocSubmit('${a.id}')">Upload Scanned Pages</button></div>`).join("")||`<div class="empty">No document-upload assignment available now.</div>`}</div>`;
+  };
+
+  const oldStudentHome = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHome ? oldStudentHome.apply(this, arguments) : undefined;
+    const s = student(currentStudentId);
+    const view = document.getElementById("view");
+    if(view && s && !document.getElementById("assignmentNotice24Home")){
+      const notice = qaNoticeHTML(s.id);
+      if(notice){
+        view.insertAdjacentHTML("afterbegin", `<div id="assignmentNotice24Home">${notice}</div>`);
+      }
+    }
+    return result;
+  };
+
+  const oldStudentLogin = window.studentLogin;
+  window.studentLogin = function(){
+    const result = oldStudentLogin ? oldStudentLogin.apply(this, arguments) : undefined;
+    return result;
+  };
+
+  window.resetQuizForStudent = function(studentId, quizId){
+    qaEnsure();
+    const st=student(studentId), q=quiz(quizId);
+    if(!st || !q) return alert("Student or quiz not found.");
+    const sub = qaStudentSubmission(studentId, quizId);
+    if(!sub) return alert("This student has not submitted this exercise yet.");
+    if(!confirm("Reset this exercise for " + st.name + "?\n\nThis will remove the previous submission and allow the student to try again.")) return;
+
+    state.submissions = state.submissions.filter(s=>!(s.studentId===studentId && s.quizId===quizId));
+    state.quizResets.push({id:qaUid("reset"),studentId,quizId,createdAt:qaNowISO(),active:true,reason:"Teacher reset after complaint / technical issue"});
+    qaNotifyForQuiz(q);
+    qaSave();
+    alert("Quiz reset successfully. The student can now attempt it again.");
+    if(typeof refreshStudentWorkPanel==="function") refreshStudentWorkPanel(studentId);
+    if(typeof adminExerciseRefreshHub==="function") adminExerciseRefreshHub();
+  };
+
+  const oldStudentWorkSummaryHTML = window.studentWorkSummaryHTML;
+  window.studentWorkSummaryHTML = function(studentId){
+    qaEnsure();
+    const base = typeof oldStudentWorkSummaryHTML==="function" ? oldStudentWorkSummaryHTML(studentId) : "";
+    const submittedQuizIds = new Set((state.submissions||[]).filter(s=>s.studentId===studentId).map(s=>s.quizId));
+    const resetBlock = `<div class="studentWorkPanel">
+      <h3>Reset Exercise for This Student</h3>
+      <p>If a student had a genuine technical problem, use this section to remove the submitted attempt and allow the student to try again.</p>
+      ${[...submittedQuizIds].map(qid=>{const q=quiz(qid); const sub=qaStudentSubmission(studentId,qid); if(!q)return ""; return `<div class="studentAttemptBox">
+        <b>${esc(q.title||"Exercise")}</b><br>
+        Submitted: ${esc(sub?.submittedAt||"")}<br>
+        Score: ${sub?.teacherScore ?? sub?.autoScore} / ${sub?.maxScore}
+        <div style="margin-top:8px"><button class="resetQuizBtn" onclick="resetQuizForStudent('${studentId}','${qid}')">Reset This Student's Quiz</button></div>
+      </div>`}).join("") || `<div class="empty">No submitted exercise to reset.</div>`}
+    </div>`;
+    return base + resetBlock;
+  };
+
+  const oldAdminExerciseRefreshHub = window.adminExerciseRefreshHub;
+  window.adminExerciseRefreshHub = function(){
+    if(typeof oldAdminExerciseRefreshHub==="function") oldAdminExerciseRefreshHub.apply(this, arguments);
+    const hub = document.getElementById("adminExerciseReviewHub");
+    if(hub && !hub.querySelector(".assignmentNotice24AdminHelp")){
+      hub.insertAdjacentHTML("afterbegin", `<div class="assignmentNotice24 assignmentNotice24AdminHelp">
+        <h2>Student Attempt Control</h2>
+        <p>After a student submits an exercise, the exercise automatically closes for that student. To allow a second attempt, go to <b>Admin Mode → Students</b>, click the student’s name, and use <b>Reset This Student's Quiz</b>.</p>
+      </div>`);
+    }
+  };
+
+  try{
+    eval("resetQuizForStudent=window.resetQuizForStudent; adminPublishExercise=window.adminPublishExercise; qToggle=window.qToggle; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; studentQuizzes=window.studentQuizzes; studentHome=window.studentHome;");
   }catch(e){}
 })();
 
