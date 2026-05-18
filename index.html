@@ -4752,6 +4752,26 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== CLEAR PASSWORD AUTOFILL + REVOKE ALL PASSWORD WINDOWS ===== */
+.passwordBulkToggleBtn.shareAll{
+  border:0;
+  background:#0f7b4f;
+  color:#fff;
+}
+.passwordBulkToggleBtn.revokeAll{
+  border:1px solid #ffd4d0;
+  background:#fff1f0;
+  color:#b42318;
+}
+.passwordAutofillGuardNote{
+  grid-column:1/-1;
+  font-size:10px;
+  color:#667085;
+  font-weight:800;
+  line-height:1.3;
+}
+
 </style>
 </head>
 <body>
@@ -11626,6 +11646,187 @@ ${printable}
 
   try{
     eval("togglePasswordView=window.togglePasswordView; simpleStudentSavePassword=window.simpleStudentSavePassword; spCopy=window.spCopy; buildStudentVisibleList=window.buildStudentVisibleList; studentHome=window.studentHome;");
+  }catch(e){}
+})();
+
+
+/* ===== CLEAR PASSWORD AUTOFILL + REVOKE ALL PASSWORD WINDOWS ===== */
+(function(){
+  function rgEnsure(){
+    state.passwordShares = Array.isArray(state.passwordShares) ? state.passwordShares : [];
+    state.students = Array.isArray(state.students) ? state.students : [];
+  }
+  function rgSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("revoke/autofill save skipped", e); }
+  }
+  function rgNowISO(){ return new Date().toISOString(); }
+  function rgActiveShare(studentId){
+    rgEnsure();
+    const now = Date.now();
+    return state.passwordShares
+      .filter(p=>p.studentId===studentId && p.active!==false)
+      .filter(p=>!p.expiresAt || new Date(p.expiresAt).getTime() > now)[0] || null;
+  }
+  function rgActiveCount(){
+    rgEnsure();
+    return state.students.filter(s=>!!rgActiveShare(s.id)).length;
+  }
+  function rgAllActive(){
+    rgEnsure();
+    return state.students.length > 0 && rgActiveCount() === state.students.length;
+  }
+
+  window.revokePasswordShareForAllStudents = function(){
+    rgEnsure();
+    const active = rgActiveCount();
+    if(!active) return alert("There is no active 24-hour password window to revoke.");
+    if(!confirm("Revoke the 24-hour password window for ALL students?\n\nAfter this, students will need their password to enter the portal.")) return;
+    state.passwordShares.forEach(p=>{
+      if(p.active !== false){
+        p.active = false;
+        p.revokedAt = rgNowISO();
+        p.revokedReason = "Revoked for all students by admin";
+      }
+    });
+    rgSave();
+    alert("The 24-hour password window has been revoked for all students.");
+    if(typeof students==="function" && role==="admin" && route==="students") students();
+    else if(typeof dashboard==="function" && role==="admin" && route==="dashboard") dashboard();
+  };
+
+  window.toggleAllPasswordWindows = function(){
+    if(rgAllActive()){
+      revokePasswordShareForAllStudents();
+    }else{
+      if(typeof sharePasswordToAllStudentsPortal==="function") sharePasswordToAllStudentsPortal();
+      else alert("Share all function not found.");
+    }
+  };
+
+  window.passwordBulkToggleButtonHTML = function(){
+    const allActive = rgAllActive();
+    const active = rgActiveCount();
+    if(allActive){
+      return `<button class="passwordBulkToggleBtn revokeAll" onclick="toggleAllPasswordWindows()">Revoke 24-Hour Password Window for All Students</button>`;
+    }
+    return `<button class="passwordBulkToggleBtn shareAll" onclick="toggleAllPasswordWindows()">Share Passwords to All Students for 24 Hours</button>`;
+  };
+
+  const oldPasswordControlCentreHTML = window.passwordControlCentreHTML;
+  window.passwordControlCentreHTML = function(){
+    rgEnsure();
+    const activeCount = rgActiveCount();
+    const classOptionsHtml = (state.classes||[]).map(c=>`<option value="${String(c).replace(/"/g,'&quot;')}">${esc(c)}</option>`).join("");
+    return `<div class="passwordControlCentre" id="passwordControlCentre">
+      <h2>Password Control Centre</h2>
+      <p>Share portal passwords to students for 24 hours, revoke access windows, reset forgotten passwords, and print password lists when needed.</p>
+      <div class="passwordCentreGrid">
+        <div class="passwordCentreCard"><span>Total Students</span><b>${state.students.length}</b></div>
+        <div class="passwordCentreCard"><span>Active 24-hour password windows</span><b>${activeCount}</b></div>
+        <div class="passwordCentreCard"><span>Default rule</span><b>Students need password after the 24-hour window</b></div>
+      </div>
+      <div class="passwordActionRow">
+        ${passwordBulkToggleButtonHTML()}
+        <select id="bulkPasswordClassSelect" class="select" style="min-height:38px;max-width:260px"><option value="">Select class for sharing</option>${classOptionsHtml}</select>
+        <button class="gold" onclick="const c=document.getElementById('bulkPasswordClassSelect').value;if(!c)alert('Select a class first.');else sharePasswordToClassPortal(c)">Share to Selected Class</button>
+        <button class="red" onclick="revokePasswordShareForAllStudents()">Revoke All</button>
+        <button class="navy" onclick="openPasswordPrintModal()">Print Password List</button>
+      </div>
+    </div>`;
+  };
+
+  function rgPhoto(studentId){
+    try{ if(typeof clickableStudentPhoto==="function") return clickableStudentPhoto(studentId); }catch(e){}
+    const s=student(studentId);
+    if(!s) return "";
+    if(s.photo) return `<img class="clickablePhoto" src="${s.photo}" alt="${esc(s.name)}">`;
+    const initials = String(s.name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+    return `<div class="clickableAvatar">${esc(initials)}</div>`;
+  }
+  function rgCanOpenWithoutPassword(studentId){
+    try{return !state.settings.requireStudentPassword || !!rgActiveShare(studentId);}catch(e){return false;}
+  }
+
+  // Rebuild the student visible list so no browser/password manager can autofill the admin password.
+  window.buildStudentVisibleList = function(list, mode="student"){
+    if(mode !== "student"){
+      return `<div class="studentFullListGrid">
+        ${list.map(s=>`<div class="studentFullListItem" onclick="adminShowStudentProfileAll && adminShowStudentProfileAll('${s.id}')">
+          ${rgPhoto(s.id)}
+          <div class="studentFullInfo">
+            <b>${esc(s.name)}</b>
+            <small>${esc(s.phone || "No phone number")}</small>
+            <small>${esc(s.code || "")} • ${esc(s.className || "")} • ${esc(subjectForClass(s.className)||"")}</small>
+            <small class="openLine">Click to view full profile</small>
+          </div>
+        </div>`).join("") || `<div class="empty">No student found.</div>`}
+      </div>`;
+    }
+
+    return `<div class="studentFullListGrid">
+      ${list.map((s,i)=>`<div class="studentFullListItem inlinePasswordReady">
+        ${rgPhoto(s.id)}
+        <div class="studentFullInfo">
+          <b>${esc(s.name)}</b>
+          <small>${esc(s.phone || "No phone number")}</small>
+          <small>${esc(s.code || "")} • ${esc(s.className || "")} • ${esc(subjectForClass(s.className)||"")}</small>
+          <small class="openLine">${rgCanOpenWithoutPassword(s.id) ? "You may open the portal now. Your password is shown inside." : "Type your password below."}</small>
+        </div>
+        <div class="studentInlineLoginBox" onclick="event.stopPropagation()">
+          <input id="inlinePass_${s.id}" type="password" placeholder="Password" value="" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" name="student_password_${i}_${s.id}" readonly onfocus="this.removeAttribute('readonly'); this.value='';" onmousedown="this.removeAttribute('readonly'); this.value='';" onkeydown="if(event.key==='Enter'){studentCardLogin('${s.id}')}">
+          <button type="button" class="inlineViewPassBtn" onclick="togglePasswordView('inlinePass_${s.id}', this)">View</button>
+          <button onclick="studentCardLogin('${s.id}')">Open Portal</button>
+          <div class="studentInlineLoginHint">Type your password, then click Open Portal.</div>
+        </div>
+      </div>`).join("") || `<div class="empty">No student found.</div>`}
+    </div>`;
+  };
+
+  // Clear any autofilled password fields after rendering.
+  window.clearStudentLoginAutofill = function(){
+    document.querySelectorAll('input[id^="inlinePass_"]').forEach(inp=>{
+      inp.value = "";
+      inp.setAttribute("autocomplete","new-password");
+      inp.setAttribute("readonly","readonly");
+      inp.setAttribute("data-lpignore","true");
+      inp.setAttribute("data-1p-ignore","true");
+    });
+  };
+
+  const oldStudentLogin = window.studentLogin;
+  if(typeof oldStudentLogin==="function"){
+    window.studentLogin = function(){
+      const result = oldStudentLogin.apply(this, arguments);
+      setTimeout(clearStudentLoginAutofill, 50);
+      setTimeout(clearStudentLoginAutofill, 400);
+      return result;
+    };
+  }
+
+  const oldStudentQuickSearch = window.studentQuickSearch;
+  if(typeof oldStudentQuickSearch==="function"){
+    window.studentQuickSearch = function(){
+      const result = oldStudentQuickSearch.apply(this, arguments);
+      setTimeout(clearStudentLoginAutofill, 50);
+      return result;
+    };
+  }
+
+  const oldStudents = window.students;
+  if(typeof oldStudents==="function"){
+    window.students = function(){
+      const result = oldStudents.apply(this, arguments);
+      return result;
+    };
+  }
+
+  try{
+    eval("revokePasswordShareForAllStudents=window.revokePasswordShareForAllStudents; toggleAllPasswordWindows=window.toggleAllPasswordWindows; passwordControlCentreHTML=window.passwordControlCentreHTML; buildStudentVisibleList=window.buildStudentVisibleList; clearStudentLoginAutofill=window.clearStudentLoginAutofill; studentLogin=window.studentLogin; studentQuickSearch=window.studentQuickSearch;");
   }catch(e){}
 })();
 
