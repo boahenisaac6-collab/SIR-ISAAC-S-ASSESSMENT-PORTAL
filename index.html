@@ -5043,6 +5043,87 @@ body.caFullscreenLock{
   @page{size:A4 portrait;margin:10mm}
 }
 
+
+/* ===== DIGITAL MARKING BOARD FIX: SMOOTH INK, COLORS, ERASER, CLEAR ===== */
+.markerTools{
+  align-items:center!important;
+}
+.markerTools .colorDotBtn{
+  width:38px;
+  height:38px;
+  min-width:38px;
+  padding:0!important;
+  border-radius:50%!important;
+  border:3px solid #d9e7f3!important;
+  cursor:pointer;
+}
+.markerTools .colorDotBtn.active{
+  border:4px solid #071f3d!important;
+  box-shadow:0 0 0 3px rgba(244,196,48,.45);
+}
+.markerTools .eraserBtn.active{
+  background:#d92d20!important;
+  color:#fff!important;
+  border-color:#d92d20!important;
+}
+.markerTools .clearBtn{
+  background:#fff1f0!important;
+  color:#b42318!important;
+  border:1px solid #ffd4d0!important;
+}
+.markerTools .undoBtn{
+  background:#eef5fc!important;
+  color:#071f3d!important;
+  border:1px solid #d9e7f3!important;
+}
+.markerTools .markerSizeWrap{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid #d9e7f3;
+  background:#fff;
+  color:#071f3d;
+  border-radius:12px;
+  padding:5px 8px;
+  font-weight:950;
+}
+.markerTools .markerSizeWrap input{
+  width:72px;
+  min-height:30px;
+  border:1px solid #cbd9e8;
+  border-radius:8px;
+  padding:3px 6px;
+}
+.markerCanvasWrap{
+  touch-action:none!important;
+}
+.markerPage{
+  max-width:100%;
+  line-height:0;
+}
+.markerPage img{
+  max-width:100%!important;
+  height:auto!important;
+  user-select:none!important;
+  -webkit-user-drag:none!important;
+  pointer-events:none!important;
+}
+.markerPage canvas{
+  touch-action:none!important;
+  pointer-events:auto!important;
+  z-index:5!important;
+}
+.markerInkHelp{
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:12px;
+  padding:7px 9px;
+  font-size:12px;
+  font-weight:850;
+  line-height:1.35;
+}
+
 </style>
 </head>
 <body>
@@ -12743,6 +12824,299 @@ ${printable}
 
   try{
     eval("quizzes=window.quizzes; refreshSimpleImportClasses=window.refreshSimpleImportClasses; validateQuizPackage=window.validateQuizPackage; importQuizPackage=window.importQuizPackage; previewQuizSimple=window.previewQuizSimple; toggleQuizPublishSimple=window.toggleQuizPublishSimple; deleteQuizSimple=window.deleteQuizSimple; publishQuizResultsSimple=window.publishQuizResultsSimple; assignQuizScoresToComponent=window.assignQuizScoresToComponent; studentQuizzes=window.studentQuizzes; openDocSubmitSimple=window.openDocSubmitSimple; submitDocAssignmentSimple=window.submitDocAssignmentSimple; review=window.review;");
+  }catch(e){}
+})();
+
+
+/* ===== DIGITAL MARKING BOARD FIX: SMOOTH INK, COLORS, ERASER, CLEAR ===== */
+(function(){
+  let dmState = {
+    subId:null,
+    fileIndex:0,
+    color:"#d92d20",
+    eraser:false,
+    drawing:false,
+    lastX:0,
+    lastY:0,
+    history:[]
+  };
+
+  function dmSaveApp(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("marking save skipped", e); }
+  }
+  function dmNow(){
+    try{ return typeof now==="function" ? now() : new Date().toLocaleString(); }
+    catch(e){ return new Date().toLocaleString(); }
+  }
+  function dmGetCanvas(){
+    return document.getElementById("markerCanvas");
+  }
+  function dmGetCtx(){
+    const c = dmGetCanvas();
+    return c ? c.getContext("2d") : null;
+  }
+  function dmSetActiveButtons(){
+    document.querySelectorAll(".colorDotBtn").forEach(btn=>{
+      btn.classList.toggle("active", btn.dataset.color === dmState.color && !dmState.eraser);
+    });
+    const eraser = document.getElementById("toolEraser");
+    if(eraser) eraser.classList.toggle("active", dmState.eraser);
+  }
+  function dmPushHistory(){
+    const c = dmGetCanvas();
+    if(!c) return;
+    try{
+      dmState.history.push(c.toDataURL("image/png"));
+      if(dmState.history.length > 15) dmState.history.shift();
+    }catch(e){}
+  }
+  function dmCanvasPoint(evt){
+    const c = dmGetCanvas();
+    const r = c.getBoundingClientRect();
+    const scaleX = c.width / r.width;
+    const scaleY = c.height / r.height;
+    return {
+      x:(evt.clientX - r.left) * scaleX,
+      y:(evt.clientY - r.top) * scaleY
+    };
+  }
+  function dmLineTo(evt){
+    if(!dmState.drawing) return;
+    const c = dmGetCanvas();
+    const ctx = dmGetCtx();
+    if(!c || !ctx) return;
+
+    const p = dmCanvasPoint(evt);
+    const size = Math.max(1, Number(document.getElementById("markerSize")?.value) || 5);
+
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = size;
+
+    if(dmState.eraser){
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.strokeStyle = "rgba(0,0,0,1)";
+    }else{
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = dmState.color || "#d92d20";
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(dmState.lastX, dmState.lastY);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    ctx.restore();
+
+    dmState.lastX = p.x;
+    dmState.lastY = p.y;
+    evt.preventDefault();
+  }
+  function dmStart(evt){
+    const c = dmGetCanvas();
+    if(!c) return;
+    dmPushHistory();
+    const p = dmCanvasPoint(evt);
+    dmState.drawing = true;
+    dmState.lastX = p.x;
+    dmState.lastY = p.y;
+    try{ c.setPointerCapture(evt.pointerId); }catch(e){}
+    evt.preventDefault();
+  }
+  function dmEnd(evt){
+    dmState.drawing = false;
+    try{ dmGetCanvas()?.releasePointerCapture(evt.pointerId); }catch(e){}
+    evt.preventDefault();
+  }
+
+  window.markerTool = function(tool){
+    dmState.eraser = false;
+    if(tool === "red") dmState.color = "#d92d20";
+    else if(tool === "blue") dmState.color = "#155eef";
+    else if(tool === "black") dmState.color = "#111111";
+    else if(tool === "green") dmState.color = "#0f7b4f";
+    else if(tool === "eraser") dmState.eraser = true;
+    dmSetActiveButtons();
+  };
+
+  window.markerSetColor = function(color){
+    dmState.color = color || "#d92d20";
+    dmState.eraser = false;
+    dmSetActiveButtons();
+  };
+
+  window.clearMarkerCanvas = function(){
+    const c = dmGetCanvas();
+    if(!c) return;
+    if(!confirm("Clear all ink on this page?")) return;
+    dmPushHistory();
+    c.getContext("2d").clearRect(0,0,c.width,c.height);
+  };
+
+  window.undoMarkerInk = function(){
+    const c = dmGetCanvas();
+    const ctx = dmGetCtx();
+    if(!c || !ctx || !dmState.history.length) return alert("No ink action to undo.");
+    const url = dmState.history.pop();
+    const img = new Image();
+    img.onload = function(){
+      ctx.clearRect(0,0,c.width,c.height);
+      ctx.drawImage(img,0,0,c.width,c.height);
+    };
+    img.src = url;
+  };
+
+  window.setupMarkerCanvas = function(){
+    const img = document.getElementById("markerImage");
+    const c = document.getElementById("markerCanvas");
+    if(!img || !c) return;
+
+    // Give the image time to settle in the visible layout, then match canvas exactly to it.
+    setTimeout(()=>{
+      const rect = img.getBoundingClientRect();
+      const displayWidth = Math.max(1, Math.round(rect.width || img.clientWidth || img.naturalWidth || 800));
+      const displayHeight = Math.max(1, Math.round(rect.height || img.clientHeight || img.naturalHeight || 1000));
+      const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+
+      c.style.width = displayWidth + "px";
+      c.style.height = displayHeight + "px";
+      c.width = Math.round(displayWidth * dpr);
+      c.height = Math.round(displayHeight * dpr);
+
+      const ctx = c.getContext("2d");
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.clearRect(0,0,c.width,c.height);
+
+      c.onpointerdown = dmStart;
+      c.onpointermove = dmLineTo;
+      c.onpointerup = dmEnd;
+      c.onpointercancel = dmEnd;
+      c.onpointerleave = function(e){ if(dmState.drawing) dmEnd(e); };
+
+      dmState.history = [];
+      dmState.color = "#d92d20";
+      dmState.eraser = false;
+      dmSetActiveButtons();
+    }, 120);
+  };
+
+  window.openDigitalMarker = function(subId,fileIndex){
+    const ds = (state.docSubmissions||[]).find(x=>x.id===subId);
+    if(!ds) return alert("Submission not found.");
+    const f = ds.files?.[fileIndex];
+    if(!f) return alert("File not found.");
+    if(!String(f.type||"").startsWith("image/")){
+      window.open(f.data, "_blank");
+      return;
+    }
+
+    const old = document.getElementById("markerOverlay");
+    if(old) old.remove();
+
+    document.body.insertAdjacentHTML("beforeend",`<div id="markerOverlay" class="markerOverlay">
+      <div class="markerModal">
+        <div class="markerHeader">
+          <h2>Digital Marking Board</h2>
+          <button onclick="document.getElementById('markerOverlay').remove()">Close</button>
+        </div>
+        <div class="markerTools">
+          <button type="button" class="colorDotBtn active" data-color="#d92d20" style="background:#d92d20" title="Red pen" onclick="markerSetColor('#d92d20')"></button>
+          <button type="button" class="colorDotBtn" data-color="#155eef" style="background:#155eef" title="Blue pen" onclick="markerSetColor('#155eef')"></button>
+          <button type="button" class="colorDotBtn" data-color="#111111" style="background:#111111" title="Black pen" onclick="markerSetColor('#111111')"></button>
+          <button type="button" class="colorDotBtn" data-color="#0f7b4f" style="background:#0f7b4f" title="Green pen" onclick="markerSetColor('#0f7b4f')"></button>
+          <button id="toolEraser" class="eraserBtn" type="button" onclick="markerTool('eraser')">Eraser</button>
+          <button class="undoBtn" type="button" onclick="undoMarkerInk()">Undo</button>
+          <button class="clearBtn" type="button" onclick="clearMarkerCanvas()">Clear All Ink</button>
+          <label class="markerSizeWrap">Pen Size <input id="markerSize" type="number" value="5" min="1" max="40"></label>
+          <span class="markerInkHelp">Default ink is red. Use eraser to clean only the ink. Use Clear All to remove all ink on the page.</span>
+        </div>
+        <div class="markerCanvasWrap">
+          <div class="markerPage">
+            <img id="markerImage" src="${f.data}" alt="">
+            <canvas id="markerCanvas"></canvas>
+          </div>
+        </div>
+        <div class="markerFooter">
+          <input id="markerScore" type="number" placeholder="Score" value="${ds.score ?? ""}">
+          <textarea id="markerFeedback" placeholder="Feedback">${(typeof esc==="function"?esc(ds.feedback||""):(ds.feedback||""))}</textarea>
+          <button class="btn green" onclick="saveMarkedWork('${subId}',${fileIndex})">Save Marked Copy</button>
+          <button class="btn gold" onclick="publishMarkedWork('${subId}',${fileIndex})">Save & Publish</button>
+        </div>
+      </div>
+    </div>`);
+
+    dmState = {subId,fileIndex,color:"#d92d20",eraser:false,drawing:false,lastX:0,lastY:0,history:[]};
+
+    const img = document.getElementById("markerImage");
+    if(img.complete) setupMarkerCanvas();
+    else img.onload = setupMarkerCanvas;
+    window.addEventListener("resize", function once(){
+      if(document.getElementById("markerOverlay")) setupMarkerCanvas();
+      window.removeEventListener("resize", once);
+    });
+  };
+
+  window.saveMarkedWork = function(subId,fileIndex){
+    const ds = (state.docSubmissions||[]).find(x=>x.id===subId);
+    if(!ds) return alert("Submission not found.");
+    const img = document.getElementById("markerImage");
+    const c = document.getElementById("markerCanvas");
+    if(!img || !c) return alert("Marking board not ready.");
+
+    const out = document.createElement("canvas");
+    out.width = c.width;
+    out.height = c.height;
+    const ctx = out.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,out.width,out.height);
+    ctx.drawImage(img,0,0,out.width,out.height);
+    ctx.drawImage(c,0,0);
+
+    ds.markedFiles = Array.isArray(ds.markedFiles) ? ds.markedFiles : [];
+    ds.markedFiles[fileIndex] = {
+      name:"marked_" + (ds.files?.[fileIndex]?.name || "work.png").replace(/\.[^.]+$/,"") + ".png",
+      type:"image/png",
+      data:out.toDataURL("image/png"),
+      savedAt:dmNow()
+    };
+    ds.score = Number(document.getElementById("markerScore")?.value) || 0;
+    ds.feedback = document.getElementById("markerFeedback")?.value || "";
+
+    // If the simplified scanned-work component feature exists, also push score into the chosen cumulative component.
+    try{
+      const a = (state.docAssignments||[]).find(x=>x.id===ds.assignmentId) || {};
+      if(typeof getReportRecord==="function" && a.assessmentComponent){
+        const r = getReportRecord(ds.studentId);
+        const max = Number(a.maxScore||100);
+        const pct = max ? Math.round((Number(ds.score||0)/max)*10000)/100 : 0;
+        r[a.assessmentComponent] = pct;
+      }
+    }catch(e){}
+
+    dmSaveApp();
+    alert("Marked work saved successfully.");
+  };
+
+  window.publishMarkedWork = function(subId,fileIndex){
+    saveMarkedWork(subId,fileIndex);
+    const ds = (state.docSubmissions||[]).find(x=>x.id===subId);
+    if(ds){
+      ds.published = true;
+      dmSaveApp();
+      alert("Marked work saved and published to the student portal.");
+      document.getElementById("markerOverlay")?.remove();
+      if(typeof review==="function" && role==="admin") review();
+    }
+  };
+
+  try{
+    eval("openDigitalMarker=window.openDigitalMarker; setupMarkerCanvas=window.setupMarkerCanvas; markerTool=window.markerTool; markerSetColor=window.markerSetColor; clearMarkerCanvas=window.clearMarkerCanvas; undoMarkerInk=window.undoMarkerInk; saveMarkedWork=window.saveMarkedWork; publishMarkedWork=window.publishMarkedWork;");
   }catch(e){}
 })();
 
