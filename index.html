@@ -5593,6 +5593,45 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== SIGNED MARKED PDF + BULK PDF EXPORT ===== */
+.signedPdfActionPanel{
+  border:2px solid #d9e7f3;
+  border-left:8px solid #0f7b4f;
+  background:#fff;
+  border-radius:20px;
+  padding:12px;
+  margin:12px 0;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.signedPdfActionPanel h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.signedPdfActionPanel p{
+  margin:0 0 10px;
+  color:#667085;
+  font-weight:750;
+  line-height:1.45;
+}
+.signedPdfButtons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+}
+.signedPdfButtons button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.signedPdfButtons .green{border:0;background:#0f7b4f;color:#fff}
+.signedPdfButtons .navy{border:0;background:#071f3d;color:#fff}
+.signedPdfButtons .gold{border:0;background:#f4c430;color:#071f3d}
+.signedPdfButtons .light{border:1px solid #d9e7f3;background:#eef5fc;color:#071f3d}
+
 </style>
 </head>
 <body>
@@ -14470,6 +14509,329 @@ ${printable}
 
   try{
     eval("downloadMarkedScriptFile=window.downloadMarkedScriptFile; downloadMarkedSubmissionPDF=window.downloadMarkedSubmissionPDF; studentResults=window.studentResults; studentMarkedScriptsHTML=window.studentMarkedScriptsHTML;");
+  }catch(e){}
+})();
+
+
+/* ===== SIGNED MARKED PDF + BULK PDF EXPORT ===== */
+(function(){
+  const TEACHER_SIGNATURE_NAME = "Sir Isaac Boahen";
+
+  function spEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function spSafeFileName(name){
+    return String(name || "marked_script")
+      .replace(/\.[^.]+$/,"")
+      .replace(/[^\w\-]+/g,"_")
+      .replace(/^_+|_+$/g,"") || "marked_script";
+  }
+  function spStudent(id){
+    try{ if(typeof student==="function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>s.id===id) || {};
+  }
+  function spAssignment(id){
+    return (state.docAssignments||[]).find(a=>a.id===id) || {};
+  }
+  function spNow(){
+    try{ return typeof now==="function" ? now() : new Date().toLocaleString(); }
+    catch(e){ return new Date().toLocaleString(); }
+  }
+
+  function loadImage(dataUrl){
+    return new Promise((resolve,reject)=>{
+      const img = new Image();
+      img.onload = ()=>resolve(img);
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+  function dataUrlToBytes(dataUrl){
+    const b64 = String(dataUrl).split(",")[1] || "";
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+  function binaryStringFromUint8(arr){
+    let out = "";
+    const chunk = 8192;
+    for(let i=0;i<arr.length;i+=chunk){
+      out += String.fromCharCode.apply(null, arr.subarray(i,i+chunk));
+    }
+    return out;
+  }
+  function arrayBufferFromBinaryString(str){
+    const buf = new Uint8Array(str.length);
+    for(let i=0;i<str.length;i++) buf[i] = str.charCodeAt(i) & 255;
+    return buf;
+  }
+  function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
+    const words = String(text||"").split(/\s+/);
+    let line = "";
+    for(let n=0;n<words.length;n++){
+      const testLine = line ? line + " " + words[n] : words[n];
+      if(ctx.measureText(testLine).width > maxWidth && n > 0){
+        ctx.fillText(line, x, y);
+        line = words[n];
+        y += lineHeight;
+      }else{
+        line = testLine;
+      }
+    }
+    if(line) ctx.fillText(line, x, y);
+    return y;
+  }
+  async function makeSignedPageJpeg(dataUrl, meta){
+    const img = await loadImage(dataUrl);
+    const maxW = 1400;
+    let imgW = img.naturalWidth || img.width || 1000;
+    let imgH = img.naturalHeight || img.height || 1400;
+    const scale = Math.min(1, maxW / imgW);
+    imgW = Math.round(imgW * scale);
+    imgH = Math.round(imgH * scale);
+
+    const headerH = 150;
+    const footerH = 120;
+    const pad = 44;
+    const canvas = document.createElement("canvas");
+    canvas.width = imgW + pad*2;
+    canvas.height = imgH + headerH + footerH;
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle = "#071f3d";
+    ctx.fillRect(0,0,canvas.width,88);
+    ctx.fillStyle = "#f4c430";
+    ctx.fillRect(0,88,canvas.width,7);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 28px Arial";
+    ctx.fillText("MARKED SCRIPT", pad, 36);
+    ctx.font = "bold 20px Arial";
+    ctx.fillText(meta.assignment || "Assignment", pad, 66);
+
+    ctx.fillStyle = "#071f3d";
+    ctx.font = "bold 21px Arial";
+    ctx.fillText("Student: " + (meta.studentName || "Student"), pad, 118);
+    ctx.font = "15px Arial";
+    const details = [
+      meta.className ? "Class: " + meta.className : "",
+      meta.scoreText ? "Score: " + meta.scoreText : "",
+      meta.date ? "Published: " + meta.date : ""
+    ].filter(Boolean).join("     ");
+    ctx.fillText(details, pad, 142);
+
+    ctx.drawImage(img, pad, headerH, imgW, imgH);
+
+    const footerY = headerH + imgH + 28;
+    ctx.strokeStyle = "#f4c430";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(pad, footerY);
+    ctx.lineTo(canvas.width-pad, footerY);
+    ctx.stroke();
+
+    ctx.fillStyle = "#071f3d";
+    ctx.font = "italic 34px Georgia, 'Times New Roman', serif";
+    ctx.fillText(TEACHER_SIGNATURE_NAME, pad, footerY + 45);
+    ctx.font = "bold 14px Arial";
+    ctx.fillText("Teacher's Signature / Initial", pad, footerY + 67);
+
+    if(meta.feedback){
+      ctx.font = "14px Arial";
+      ctx.fillStyle = "#344054";
+      wrapCanvasText(ctx, "Comment: " + meta.feedback, pad + 330, footerY + 38, canvas.width - pad*2 - 330, 19);
+    }
+
+    return {
+      bytes: dataUrlToBytes(canvas.toDataURL("image/jpeg",0.92)),
+      width: canvas.width,
+      height: canvas.height
+    };
+  }
+
+  function makePdfFromJpegs(images){
+    const pageW = 595.28, pageH = 841.89, margin = 18;
+    const objects = [];
+    const catalogId = 1, pagesId = 2;
+    objects.push(""); objects.push("");
+    const pageIds = [];
+    const addObj = (s)=>{ objects.push(s); return objects.length; };
+
+    images.forEach(info=>{
+      const imgId = objects.length + 1;
+      const imgStream = binaryStringFromUint8(info.bytes);
+      addObj(`<< /Type /XObject /Subtype /Image /Width ${info.width} /Height ${info.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${info.bytes.length} >>\nstream\n${imgStream}\nendstream`);
+
+      const maxW = pageW - margin*2;
+      const maxH = pageH - margin*2;
+      const scale = Math.min(maxW/info.width, maxH/info.height);
+      const drawW = info.width * scale;
+      const drawH = info.height * scale;
+      const x = (pageW - drawW) / 2;
+      const y = (pageH - drawH) / 2;
+      const content = `q\n${drawW.toFixed(2)} 0 0 ${drawH.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im0 Do\nQ`;
+      const contentId = objects.length + 1;
+      addObj(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+
+      const pageId = objects.length + 1;
+      pageIds.push(pageId);
+      addObj(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 ${imgId} 0 R >> >> /Contents ${contentId} 0 R >>`);
+    });
+
+    objects[catalogId-1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+    objects[pagesId-1] = `<< /Type /Pages /Kids [${pageIds.map(id=>id+" 0 R").join(" ")}] /Count ${pageIds.length} >>`;
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((obj,i)=>{
+      offsets.push(pdf.length);
+      pdf += `${i+1} 0 obj\n${obj}\nendobj\n`;
+    });
+    const xref = pdf.length;
+    pdf += `xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;
+    for(let i=1;i<offsets.length;i++) pdf += String(offsets[i]).padStart(10,"0") + " 00000 n \n";
+    pdf += `trailer\n<< /Size ${objects.length+1} /Root ${catalogId} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return new Blob([arrayBufferFromBinaryString(pdf)], {type:"application/pdf"});
+  }
+
+  function saveBlob(blob, filename){
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    a.remove();
+  }
+
+  async function downloadSubmissionAsSignedPDF(ds){
+    if(!ds) return alert("Submission not found.");
+    const st = spStudent(ds.studentId);
+    const a = spAssignment(ds.assignmentId);
+    const files = (ds.markedFiles||[]).filter(Boolean).filter(f=>String(f.data||"").startsWith("data:image"));
+    if(!files.length) return alert("No marked script image found. Save the marked copy first.");
+    const scoreText = (ds.score ?? "-") + " / " + (a.maxScore ?? "-");
+    const meta = {
+      studentName: st.name || "Student",
+      className: st.className || "",
+      assignment: a.title || "Marked Work",
+      scoreText,
+      feedback: ds.feedback || "",
+      date: ds.publishedAt || spNow()
+    };
+    const pages = [];
+    for(const f of files) pages.push(await makeSignedPageJpeg(f.data, meta));
+    const pdf = makePdfFromJpegs(pages);
+    saveBlob(pdf, spSafeFileName(st.name || "student") + ".pdf");
+  }
+
+  window.downloadMarkedScriptFile = function(data,name){
+    // Single-page fallback: still add a visible teacher signature.
+    const meta = {studentName:"Student", assignment:"Marked Work", scoreText:"", feedback:"", date:spNow(), className:""};
+    makeSignedPageJpeg(data, meta).then(page=>saveBlob(makePdfFromJpegs([page]), spSafeFileName(name||"marked_script")+".pdf"));
+  };
+
+  window.downloadMarkedSubmissionPDF = function(subId){
+    const ds = (state.docSubmissions||[]).find(x=>x.id===subId);
+    downloadSubmissionAsSignedPDF(ds);
+  };
+
+  window.downloadAllMarkedScriptsPDF = async function(assignmentId="ALL"){
+    const submissions = (state.docSubmissions||[])
+      .filter(ds=>assignmentId==="ALL" || ds.assignmentId===assignmentId)
+      .filter(ds=>(ds.markedFiles||[]).filter(Boolean).some(f=>String(f.data||"").startsWith("data:image")))
+      .sort((a,b)=>{
+        const aa=spAssignment(a.assignmentId).title || "";
+        const bb=spAssignment(b.assignmentId).title || "";
+        const sa=spStudent(a.studentId).name || "";
+        const sb=spStudent(b.studentId).name || "";
+        return aa.localeCompare(bb) || sa.localeCompare(sb);
+      });
+    if(!submissions.length) return alert("No marked scripts found for PDF download.");
+
+    const pages = [];
+    for(const ds of submissions){
+      const st = spStudent(ds.studentId);
+      const a = spAssignment(ds.assignmentId);
+      const meta = {
+        studentName: st.name || "Student",
+        className: st.className || "",
+        assignment: a.title || "Marked Work",
+        scoreText: (ds.score ?? "-") + " / " + (a.maxScore ?? "-"),
+        feedback: ds.feedback || "",
+        date: ds.publishedAt || spNow()
+      };
+      const files = (ds.markedFiles||[]).filter(Boolean).filter(f=>String(f.data||"").startsWith("data:image"));
+      for(const f of files) pages.push(await makeSignedPageJpeg(f.data, meta));
+    }
+
+    const title = assignmentId==="ALL" ? "All_Marked_Scripts" : (spAssignment(assignmentId).title || "Marked_Scripts");
+    saveBlob(makePdfFromJpegs(pages), spSafeFileName(title) + ".pdf");
+  };
+
+  // Ensure student download buttons use the student's name and signed PDF.
+  function signedMarkedButtons(ds){
+    const files=(ds.markedFiles||[]).filter(Boolean);
+    if(!files.length) return "Marked script not published yet.";
+    return `<button class="studentDownloadBtn" onclick="downloadMarkedSubmissionPDF('${ds.id}')">Download Marked Script as PDF</button> ` +
+      files.map((f,i)=>`<a class="studentDownloadBtn" href="${f.data}" target="_blank">Open Page ${i+1}</a>`).join(" ");
+  }
+
+  const oldStudentResults = window.studentResults;
+  window.studentResults = function(){
+    const qs=(state.submissions||[]).filter(s=>s.studentId===currentStudentId).sort((a,b)=>String(b.submittedAt||"").localeCompare(String(a.submittedAt||"")));
+    const docs=(state.docSubmissions||[]).filter(s=>s.studentId===currentStudentId).sort((a,b)=>String(b.submittedAt||"").localeCompare(String(a.submittedAt||"")));
+    const getQuiz=(id)=>{try{if(typeof quiz==="function")return quiz(id);}catch(e){} return (state.quizzes||[]).find(q=>q.id===id)||{};};
+    document.getElementById("view").innerHTML = `<div class="studentAssignmentCentre">
+      <div class="studentAssignmentHero"><h2>Submitted Work and Marked Scripts</h2><p>Download your marked script as a signed PDF.</p></div>
+      <div class="studentAssignmentSection"><h2>Quiz Results</h2>
+        <table class="submittedWorkTable"><thead><tr><th>Quiz</th><th>Submitted</th><th>Score</th><th>Status</th></tr></thead><tbody>
+          ${qs.map(sub=>{const q=getQuiz(sub.quizId)||{};return `<tr><td>${spEsc(q.title||"Quiz")}</td><td>${spEsc(sub.submittedAt||"")}</td><td>${sub.published ? `${sub.teacherScore ?? sub.autoScore} / ${sub.maxScore}` : "Not published yet"}</td><td>${sub.published?"Published":"Waiting for teacher"}</td></tr>`}).join("") || `<tr><td colspan="4">No quiz submitted yet.</td></tr>`}
+        </tbody></table>
+      </div>
+      <div class="studentAssignmentSection"><h2>Theory / Scanned Work</h2>
+        <table class="submittedWorkTable"><thead><tr><th>Assignment</th><th>Submitted</th><th>Score</th><th>Teacher Comment</th><th>Marked Script</th></tr></thead><tbody>
+          ${docs.map(ds=>{const a=spAssignment(ds.assignmentId);return `<tr><td>${spEsc(a.title||"Assignment")}</td><td>${spEsc(ds.submittedAt||"")}</td><td>${ds.published ? `${ds.score ?? "-"} / ${a.maxScore ?? "-"}` : "Not published yet"}</td><td>${ds.published ? spEsc(ds.feedback||"") : "Waiting for teacher"}</td><td>${ds.published ? signedMarkedButtons(ds) : "Marked script not published yet"}</td></tr>`}).join("") || `<tr><td colspan="5">No scanned work submitted yet.</td></tr>`}
+        </tbody></table>
+      </div>
+      <div class="studentWorkActions"><button class="green" onclick="openStudentAssignmentsAndQuizzes && openStudentAssignmentsAndQuizzes()">View Available Assignments / Quizzes</button></div>
+    </div>`;
+  };
+
+  // Add bulk download controls to grouped review page.
+  const oldReview = window.review;
+  if(typeof oldReview === "function"){
+    window.review = function(){
+      oldReview.apply(this, arguments);
+      const view=document.getElementById("view");
+      if(view && !document.getElementById("signedPdfBulkPanel")){
+        view.insertAdjacentHTML("afterbegin", `<div id="signedPdfBulkPanel" class="signedPdfActionPanel">
+          <h3>Signed PDF Download</h3>
+          <p>Download marked scripts with student name at the top and teacher signature at the bottom.</p>
+          <div class="signedPdfButtons">
+            <button class="green" onclick="downloadAllMarkedScriptsPDF('ALL')">Download All Marked Scripts as One PDF</button>
+          </div>
+        </div>`);
+      }
+      document.querySelectorAll(".assignmentGroupPanel").forEach(panel=>{
+        const heading=panel.querySelector("h2");
+        if(!heading || panel.querySelector(".assignmentDownloadSignedBtn")) return;
+        const title=heading.textContent.trim();
+        const a=(state.docAssignments||[]).find(x=>(x.title||"").trim()===title);
+        if(a){
+          const meta=panel.querySelector(".assignmentGroupMeta");
+          if(meta){
+            meta.insertAdjacentHTML("afterend", `<div class="signedPdfButtons"><button class="gold assignmentDownloadSignedBtn" onclick="downloadAllMarkedScriptsPDF('${a.id}')">Download This Assignment as One PDF</button></div>`);
+          }
+        }
+      });
+    };
+  }
+
+  try{
+    eval("downloadMarkedScriptFile=window.downloadMarkedScriptFile; downloadMarkedSubmissionPDF=window.downloadMarkedSubmissionPDF; downloadAllMarkedScriptsPDF=window.downloadAllMarkedScriptsPDF; studentResults=window.studentResults; review=window.review;");
   }catch(e){}
 })();
 
