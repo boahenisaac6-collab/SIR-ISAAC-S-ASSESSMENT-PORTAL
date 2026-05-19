@@ -7678,6 +7678,118 @@ html,body{
   .classControlPanel{display:none!important}
 }
 
+
+/* ===== DIRECT 1 G3B IMPORT - NO RESTORE BUTTON ===== */
+#classControlPanel,
+.classControlPanel{
+  display:none!important;
+}
+.directClassDeletePanel{
+  border:3px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fffdf0,#ffffff,#ecfdf3);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.directClassDeletePanel h2{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.directClassDeletePanel p{
+  margin:0 0 12px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.directClassDeleteGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  align-items:end;
+}
+.directClassDeleteGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.directClassDeleteGrid select,
+.directClassDeleteGrid input{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  background:#fff;
+  color:#071f3d;
+  font-weight:850;
+}
+.directClassDeleteActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.directClassDeleteActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.directClassDeleteActions .navy{border:0;background:#071f3d;color:#fff}
+.directClassDeleteActions .gold{border:0;background:#f4c430;color:#071f3d}
+.directClassDeleteActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.directClassDeleteList{
+  margin-top:12px;
+  max-height:420px;
+  overflow:auto;
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:16px;
+  padding:10px;
+}
+.directClassDeleteTable{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.directClassDeleteTable th{
+  background:#071f3d;
+  color:#fff;
+  border:1px solid #071f3d;
+  padding:7px;
+  text-align:left;
+}
+.directClassDeleteTable td{
+  border:1px solid #d9e7f3;
+  padding:7px;
+  vertical-align:middle;
+}
+.directClassDeleteStatus{
+  margin-top:10px;
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:9px 11px;
+  font-size:13px;
+  font-weight:850;
+  line-height:1.45;
+}
+@media(max-width:760px){
+  .directClassDeleteGrid{grid-template-columns:1fr}
+  .directClassDeleteActions button{width:100%}
+}
+@media print{
+  .directClassDeletePanel{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -23618,6 +23730,449 @@ async function initSupabase(){
 
   try{
     eval("sealAndRestore1G3BClass=window.sealAndRestore1G3BClass; renderClassControlList=window.renderClassControlList; deleteSelectedClassStudents=window.deleteSelectedClassStudents; deleteEntireClassStudents=window.deleteEntireClassStudents; injectClassControlPanel=window.injectClassControlPanel; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; dashboard=window.dashboard; students=window.students; studentLogin=window.studentLogin; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; review=window.review; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== DIRECT 1 G3B IMPORT ENGINE V2 - NO RESTORE CLICK NEEDED =====
+   This version:
+   - Automatically puts the official 1 G3B list inside the app.
+   - Removes old 1 G3B duplicates in the background.
+   - Does NOT show Restore / Seal 1 G3B in Admin Students.
+   - Keeps only a class delete control for deleting selected students or an entire class.
+*/
+(function(){
+  const D1_CLASS = "1 G3B";
+  const D1_NAMES = ["ABDUL-RAZAK KATARI TASNIM", "ADDO EVANS NKRUMAH", "ADJEI LETICIA KAI", "ADJORNOR REGINA", "AFERDI BAAH KWAO", "AGBEVE EDWIN EDEM", "AKOTO ERICA", "AMAMU OLIVIA EMEFA", "AMANKWAH HILLARY AKUA", "ANDREWS OFORI EMMANELLA OYEBA", "ANKOH MAAME ESI", "APPIAH BERNICE YEBOAAH", "APPIAH BLESSING AKYERE", "ARTHUR GIDEON", "ARTHUR PORTIA", "ASARE RANDY", "ASHIABI ANGEL ESINAM", "ASIATEY JEDIDIAH", "ATTEH ISABELLA", "AVORYI JENNIFER", "AYORNU ANNABELLE AMANORKIE", "AZIATRE CHRISTIANA AMA", "BAMFO BEATRICE AMPOMAH", "BARBELE RUFINA", "BIANTEY AARON JUNIOR", "BOSOMTWE REBECCA", "BRAY HARRIET", "COFFIE GLORIA KORYOO", "DANKWA ELIZABETH", "DANKWAH DORCAS AGYEIWAA", "DJAN STEPHANIE AFIA POKUAH", "DZRAMADO FAITH AKOSUA", "ERZOAH JEMIMMA", "ESSEL FLORENCE ABA", "FERNANDEZ DOE VICENTIA", "FORSON PAUL", "GABAH JOSEPH", "GYAMBIBI FRANCISCA AFUA", "GYASI RUTH AKABEHUNU", "HANSON JOANA", "INKOOM ISAAC ASSAN", "KATAMANI DAVID KWESI", "KUMI NATHANIEL KOFI", "LARTEY DINAH KORKOR KEENOR", "LARYEA DANIEL", "LAWER FELICIA", "MATEY PASCALINE DARLEY", "MENSAH MORINA", "MOHAMMED ABDUL-HAKEEM", "MOHAMMED RAHA", "NARH PRINCESS KORKOR", "NKETIAH ROLAND", "NTUMY GIFTY MAWULORM", "OBENG LOVE JANELLE", "OBENG NANA POKUAH", "OCANSEY PRINCE KANOR", "OFFORI-ATTA ISABELLA", "OSABUTEY JUDITH", "OTOO ANITA", "QUANSAH SHERRIF KOFI", "QUARSHIE LESLIE LARTEY", "SARPONG EMMANUEL ANTWI", "SERCHIE NARTEY EVELYN NARKIE", "SURAKA RUWEIDA", "TAKYIWAA ANITA", "TEI-NORTEY VANESSA NARKIE", "TETTEH BARACK KEKELI", "TETTEH LAURA AMAKI", "TETTEH RUTH DEDE", "TETTEY RICHARD", "TEYE-DOKU ISAAC", "YAKUBU ABDUL JALEEL", "YEHOUESSI FRANCIS SENANU", "YUSIF ZAINAB BANCE", "ZIGAH EMMANUELLA ELIKPLIM", "ZOWADAH DELCY NHYIRA"];
+  const D1_EXPECTED_TOTAL = 205;
+  const D1_BUCKET = "__direct_1g3b_import_v2__";
+  const D1_LOCAL = "amest_direct_1g3b_import_v2";
+  let d1Busy = false;
+  let d1Persisting = false;
+
+  function d1Now(){ return new Date().toISOString(); }
+  function d1Key(bucket,id){ return String(bucket)+"::"+String(id); }
+  function d1Esc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function d1CleanName(name){
+    return String(name||"")
+      .toUpperCase()
+      .normalize("NFKD")
+      .replace(/\b(MR|MRS|MISS|SIR|MADAM)\b/g,"")
+      .replace(/\s+/g," ")
+      .replace(/[^\p{L}\p{N}\s-]/gu,"")
+      .trim();
+  }
+  function d1SafeId(name,idx){
+    return "stu_1g3b_" + String(idx+1).padStart(3,"0") + "_" + d1CleanName(name).toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,32);
+  }
+  function d1ClassNorm(c){ return String(c||"").toUpperCase().replace(/\s+/g,"").replace(/-/g,"").trim(); }
+  function d1IsG3BClass(c){
+    const x = d1ClassNorm(c);
+    return x==="1G3B" || x==="G3B" || x==="GENERALARTS3B" || x==="GENERALARTSB" || x==="1GENERALARTSB";
+  }
+  function d1NameIsOfficial(name){
+    const n=d1CleanName(name);
+    return D1_NAMES.some(x=>d1CleanName(x)===n);
+  }
+  function d1LoadLocks(){
+    let locks={};
+    try{ locks=JSON.parse(localStorage.getItem(D1_LOCAL)||"{}")||{}; }catch(e){}
+    try{ (state._direct1G3BLocks||[]).forEach(x=>{ if(x && x.bucket && x.itemId) locks[d1Key(x.bucket,x.itemId)]=x; }); }catch(e){}
+    return locks;
+  }
+  function d1SaveLocks(locks){
+    try{ localStorage.setItem(D1_LOCAL, JSON.stringify(locks||{})); }catch(e){}
+    state._direct1G3BLocks = Object.values(locks||{});
+  }
+  function d1AddLock(bucket,id,reason,extra={}){
+    if(!id) return;
+    const locks=d1LoadLocks();
+    locks[d1Key(bucket,id)] = Object.assign({bucket,itemId:String(id),reason:reason||"deleted",deletedAt:d1Now()}, extra||{});
+    d1SaveLocks(locks);
+  }
+  function d1LockedIds(bucket){
+    return new Set(Object.values(d1LoadLocks()).filter(x=>x.bucket===bucket).map(x=>String(x.itemId)));
+  }
+  function d1LockedNames(){
+    return new Set(Object.values(d1LoadLocks()).filter(x=>x.bucket==="g3bNames").map(x=>String(x.itemId)));
+  }
+  function d1Score(s){
+    let score=0;
+    ["photo","phone","password","studentPassword","code","gender","className","guardian","email"].forEach(k=>{ if(String(s?.[k]??"").trim()) score+=10; });
+    const id=s?.id;
+    if(id){
+      score += (state.submissions||[]).filter(x=>String(x.studentId)===String(id)).length*60;
+      score += (state.docSubmissions||[]).filter(x=>String(x.studentId)===String(id)).length*60;
+      score += (state.reportScores||[]).filter(x=>String(x.studentId)===String(id)).length*40;
+      score += (state.scores||[]).filter(x=>String(x.studentId)===String(id)).length*40;
+      score += (state.passwordShares||[]).filter(x=>String(x.studentId)===String(id)).length*20;
+    }
+    return score;
+  }
+  function d1MergeFields(keep, other){
+    Object.keys(other||{}).forEach(k=>{
+      if(k==="id") return;
+      const empty = keep[k]===undefined || keep[k]===null || String(keep[k]).trim()==="";
+      const has = other[k]!==undefined && other[k]!==null && String(other[k]).trim()!=="";
+      if(empty && has) keep[k]=other[k];
+    });
+  }
+  function d1ReplaceIdDeep(obj, fromId, toId){
+    if(!obj || typeof obj!=="object") return;
+    if(Array.isArray(obj)){ obj.forEach(x=>d1ReplaceIdDeep(x,fromId,toId)); return; }
+    Object.keys(obj).forEach(k=>{
+      if(k==="students") return;
+      const v=obj[k];
+      if(["studentId","senderId","receiverId","toStudentId","fromStudentId"].includes(k) && String(v)===String(fromId)){
+        obj[k]=toId;
+      }else if(v && typeof v==="object") d1ReplaceIdDeep(v,fromId,toId);
+    });
+  }
+  function d1Tombstone(bucket,id,reason){
+    return {id:String(id), name:"Deleted", title:"Deleted", status:"Deleted", deleted:true, isDeleted:true, _deletedHidden:true, _deleteBucket:bucket, reason:reason||"deleted", deletedAt:d1Now()};
+  }
+  function d1ApplyLocks(){
+    const locked=d1LockedIds("students");
+    if(locked.size){
+      state.students=(state.students||[]).filter(s=>!locked.has(String(s.id)));
+      state.submissions=(state.submissions||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.docSubmissions=(state.docSubmissions||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.reportScores=(state.reportScores||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.reportComments=(state.reportComments||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.scores=(state.scores||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.passwordShares=(state.passwordShares||[]).filter(x=>!locked.has(String(x.studentId)));
+    }
+  }
+
+  function d1ImportOfficialG3B(){
+    if(!Array.isArray(state.students)) state.students=[];
+    if(!Array.isArray(state.classes)) state.classes=[];
+    if(!state.classes.some(c=>d1IsG3BClass(c))) state.classes.push(D1_CLASS);
+    state.classes = [...new Set(state.classes.map(c=>d1IsG3BClass(c)?D1_CLASS:c))];
+
+    const nameLocks = d1LockedNames();
+    const all = state.students || [];
+    const canonical = [];
+    const canonicalIds = new Set();
+
+    D1_NAMES.forEach((officialName,idx)=>{
+      const officialClean=d1CleanName(officialName);
+      if(nameLocks.has(officialClean)) return; // admin deliberately deleted this official student
+      const canonicalId=d1SafeId(officialName,idx);
+
+      const candidates=all.filter(s=>{
+        const sName=d1CleanName(s.name);
+        return sName===officialClean || (String(s.id)===canonicalId);
+      }).sort((a,b)=>d1Score(b)-d1Score(a));
+
+      let keep={id:canonicalId,name:officialName,className:D1_CLASS,code:"1G3B-"+String(idx+1).padStart(3,"0"),status:"Active",phone:"",photo:"",password:""};
+      candidates.forEach(c=>{
+        d1MergeFields(keep,c);
+        if(String(c.id)!==canonicalId){
+          d1ReplaceIdDeep(state,c.id,canonicalId);
+          d1AddLock("students",c.id,"old_1g3b_id_replaced");
+        }
+      });
+      keep.id=canonicalId;
+      keep.name=officialName;
+      keep.className=D1_CLASS;
+      keep.code=keep.code || ("1G3B-"+String(idx+1).padStart(3,"0"));
+      keep.status=keep.status || "Active";
+      canonical.push(keep);
+      canonicalIds.add(canonicalId);
+    });
+
+    // Remove all previous 1 G3B/G3B records and any official-name duplicates not equal to canonical.
+    (state.students||[]).forEach(s=>{
+      if(canonicalIds.has(String(s.id))) return;
+      if(d1IsG3BClass(s.className) || d1NameIsOfficial(s.name)){
+        d1AddLock("students",s.id,"removed_old_or_extra_1g3b_record");
+      }
+    });
+
+    const locked=d1LockedIds("students");
+    const nonG3B=(state.students||[]).filter(s=>{
+      if(locked.has(String(s.id))) return false;
+      if(canonicalIds.has(String(s.id))) return false;
+      if(d1IsG3BClass(s.className)) return false;
+      if(d1NameIsOfficial(s.name)) return false;
+      return true;
+    });
+
+    state.students = nonG3B.concat(canonical);
+    try{
+      state.students=state.students.slice().sort((a,b)=>
+        String(a.className||"").localeCompare(String(b.className||""),undefined,{numeric:true,sensitivity:"base"}) ||
+        String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"})
+      );
+    }catch(e){}
+
+    state._direct1G3BImported = {className:D1_CLASS,count:canonical.length,officialCount:D1_NAMES.length,updatedAt:d1Now()};
+    state._studentCountExpected = D1_EXPECTED_TOTAL;
+    state._studentCountActual = (state.students||[]).length;
+  }
+
+  function d1DedupExactOtherClasses(){
+    const map=new Map();
+    (state.students||[]).forEach(s=>{
+      if(d1IsG3BClass(s.className)) return;
+      const key=d1CleanName(s.name)+"||"+d1ClassNorm(s.className);
+      if(!d1CleanName(s.name)) return;
+      if(!map.has(key)) map.set(key,[]);
+      map.get(key).push(s);
+    });
+    const remove=[];
+    [...map.values()].forEach(list=>{
+      if(list.length<=1) return;
+      list.sort((a,b)=>d1Score(b)-d1Score(a));
+      const keep=list[0];
+      list.slice(1).forEach(dup=>{
+        d1MergeFields(keep,dup);
+        d1ReplaceIdDeep(state,dup.id,keep.id);
+        remove.push(dup.id);
+      });
+    });
+    remove.forEach(id=>d1AddLock("students",id,"exact_duplicate_other_class"));
+    d1ApplyLocks();
+  }
+
+  function d1Run(){
+    if(d1Busy) return;
+    d1Busy=true;
+    try{
+      if(typeof normalize==="function") normalize();
+      d1ApplyLocks();
+      d1ImportOfficialG3B();
+      d1DedupExactOtherClasses();
+      // Clear old student portal announcements as requested in the previous fix.
+      ["announcements","assignmentNotifications","classMessages","teacherMessages","studentAnnouncements","studentPortalAnnouncements","notifications","notices","portalNotices","exerciseNotices","assignmentNotices"].forEach(k=>{ if(Array.isArray(state[k])) state[k]=[]; });
+    }catch(e){ console.warn("Direct 1 G3B import failed",e); }
+    finally{ d1Busy=false; }
+  }
+
+  async function d1LoadRemoteLocks(){
+    if(!sb) return;
+    const locks=d1LoadLocks();
+    try{
+      const {data,error}=await sb.from("stable_items").select("item_id,data").eq("bucket",D1_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const lock=row.data||{};
+        if(lock.bucket && lock.itemId) locks[d1Key(lock.bucket,lock.itemId)]=lock;
+      });
+      d1SaveLocks(locks);
+    }catch(e){ console.warn("Direct 1 G3B locks load failed",e); }
+  }
+
+  async function d1SaveRemoteLocksAndTombstones(){
+    if(!sb) return;
+    const rows=[];
+    Object.values(d1LoadLocks()).forEach(lock=>{
+      rows.push({bucket:D1_BUCKET,item_id:d1Key(lock.bucket,lock.itemId),data:lock,updated_at:new Date().toISOString()});
+      if(lock.bucket==="students"){
+        rows.push({bucket:"students",item_id:String(lock.itemId),data:d1Tombstone("students",lock.itemId,lock.reason),updated_at:new Date().toISOString()});
+      }
+    });
+    for(let i=0;i<rows.length;i+=80){
+      const batch=rows.slice(i,i+80);
+      if(!batch.length) continue;
+      try{
+        const {error}=await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+        if(error) throw error;
+      }catch(e){ console.warn("Direct 1 G3B locks save failed",e); }
+    }
+  }
+
+  async function d1DeleteRemoteDependents(){
+    if(!sb) return;
+    for(const id of [...d1LockedIds("students")]){
+      for(const bucket of ["submissions","docSubmissions","reportScores","reportComments","scores","passwordShares","messages","chatMessages","studentMessages"]){
+        try{ await sb.from("stable_items").delete().eq("bucket",bucket).filter("data->>studentId","eq",String(id)); }catch(e){}
+      }
+    }
+  }
+
+  async function d1WriteAppState(){
+    if(!sb) return;
+    try{
+      await sb.from("app_state").upsert({id:"main",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){ console.warn("Direct 1 G3B app_state write failed",e); }
+  }
+
+  async function d1Persist(){
+    if(d1Persisting){ d1Run(); return; }
+    d1Persisting=true;
+    try{
+      await d1LoadRemoteLocks();
+      d1Run();
+      try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+      await d1SaveRemoteLocksAndTombstones();
+      await d1DeleteRemoteDependents();
+      try{
+        if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+        else if(sb && typeof pushRemote==="function") await pushRemote();
+        else if(typeof save==="function") save();
+      }catch(e){ console.warn("Direct 1 G3B main save skipped",e); }
+      await d1SaveRemoteLocksAndTombstones();
+      await d1DeleteRemoteDependents();
+      await d1WriteAppState();
+      try{ if(typeof recalculateLiveDashboardStats==="function") recalculateLiveDashboardStats(); }catch(e){}
+    }finally{
+      d1Persisting=false;
+    }
+  }
+
+  // Admin delete controls, with no restore/seal button.
+  function d1ClassOptions(){
+    const classes=[...new Set((state.classes||[]).concat((state.students||[]).map(s=>s.className).filter(Boolean)))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:"base"}));
+    return classes.map(c=>`<option value="${d1Esc(c)}" ${d1IsG3BClass(c)?"selected":""}>${d1Esc(c)}</option>`).join("");
+  }
+
+  window.renderDirectClassDeleteList = function(){
+    const cls=document.getElementById("directClassDeleteClass")?.value || D1_CLASS;
+    const box=document.getElementById("directClassDeleteList");
+    if(!box) return;
+    const list=(state.students||[]).filter(s=>String(s.className||"")===String(cls)).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"}));
+    box.innerHTML=`<table class="directClassDeleteTable"><thead><tr><th><input type="checkbox" onchange="document.querySelectorAll('.directClassDeleteCheck').forEach(x=>x.checked=this.checked)"></th><th>No.</th><th>Name</th><th>Class</th><th>Phone</th><th>Code</th></tr></thead><tbody>${list.map((s,i)=>`<tr><td><input class="directClassDeleteCheck" type="checkbox" value="${d1Esc(s.id)}"></td><td>${i+1}</td><td>${d1Esc(s.name)}</td><td>${d1Esc(s.className)}</td><td>${d1Esc(s.phone||"")}</td><td>${d1Esc(s.code||"")}</td></tr>`).join("") || `<tr><td colspan="6">No student found in this class.</td></tr>`}</tbody></table>`;
+    const st=document.getElementById("directClassDeleteStatus");
+    if(st) st.textContent=`${cls}: ${list.length} student(s). Official 1 G3B is already imported in the background. Total students: ${(state.students||[]).length}.`;
+  };
+
+  window.deleteDirectSelectedStudents = async function(){
+    const selected=[...document.querySelectorAll(".directClassDeleteCheck:checked")].map(x=>x.value);
+    if(!selected.length) return alert("Select at least one student to delete.");
+    if(!confirm(`Delete ${selected.length} selected student(s) permanently?`)) return;
+    selected.forEach(id=>{
+      const s=(state.students||[]).find(x=>String(x.id)===String(id));
+      d1AddLock("students",id,"admin_selected_delete");
+      if(s && d1IsG3BClass(s.className)) d1AddLock("g3bNames",d1CleanName(s.name),"admin_deleted_official_1g3b_name");
+    });
+    await d1Persist();
+    alert("Selected student(s) deleted permanently.");
+    if(typeof students==="function") students();
+  };
+
+  window.deleteDirectEntireClass = async function(){
+    const cls=document.getElementById("directClassDeleteClass")?.value || "";
+    if(!cls) return alert("Select a class first.");
+    const pass=prompt("Enter admin password to delete the entire class list:");
+    if(pass !== (state.settings?.adminPass || "")) return alert("Wrong admin password. Action cancelled.");
+    const list=(state.students||[]).filter(s=>String(s.className||"")===String(cls));
+    if(!list.length) return alert("No student found in this class.");
+    if(!confirm(`Delete ALL ${list.length} student(s) in ${cls} permanently?`)) return;
+    list.forEach(s=>{
+      d1AddLock("students",s.id,"admin_delete_entire_class");
+      if(d1IsG3BClass(s.className)) d1AddLock("g3bNames",d1CleanName(s.name),"admin_deleted_entire_1g3b_class");
+    });
+    await d1Persist();
+    alert(`The class list for ${cls} has been deleted permanently.`);
+    if(typeof students==="function") students();
+  };
+
+  function directClassDeletePanelHTML(){
+    return `<div id="directClassDeletePanel" class="directClassDeletePanel">
+      <h2>Class Student Delete Control</h2>
+      <p>Official 1 G3B names are already inside the app automatically. Use this section only when you want to delete selected students or delete an entire class list.</p>
+      <div class="directClassDeleteGrid">
+        <div><label>Select Class</label><select id="directClassDeleteClass" onchange="renderDirectClassDeleteList()">${d1ClassOptions()}</select></div>
+        <div><label>Official 1 G3B</label><input value="${D1_NAMES.length} names imported" readonly></div>
+        <div><label>Current Total Students</label><input value="${(state.students||[]).length}" readonly></div>
+      </div>
+      <div class="directClassDeleteActions">
+        <button class="navy" onclick="renderDirectClassDeleteList()">Show Class List</button>
+        <button class="gold" onclick="deleteDirectSelectedStudents()">Delete Selected Student(s)</button>
+        <button class="red" onclick="deleteDirectEntireClass()">Delete Entire Class List</button>
+      </div>
+      <div id="directClassDeleteStatus" class="directClassDeleteStatus">Official 1 G3B is already imported automatically.</div>
+      <div id="directClassDeleteList" class="directClassDeleteList"></div>
+    </div>`;
+  }
+
+  window.injectDirectClassDeletePanel = function(){
+    if(role!=="admin" || route!=="students") return;
+    const view=document.getElementById("view");
+    if(!view || document.getElementById("directClassDeletePanel")) return;
+    // remove old restore/seal panel if another old script added it
+    document.querySelectorAll("#classControlPanel,.classControlPanel").forEach(el=>el.remove());
+    view.insertAdjacentHTML("afterbegin", directClassDeletePanelHTML());
+    setTimeout(renderDirectClassDeleteList,80);
+  };
+
+  // Neutralise old Restore/Seal panel from previous versions.
+  window.injectClassControlPanel = function(){};
+  window.sealAndRestore1G3BClass = async function(showAlert=false){ await d1Persist(); if(showAlert) alert("Official 1 G3B is already imported automatically."); };
+
+  // Wrap core functions so official 1 G3B is always present without clicking.
+  if(typeof window.stablePullRemote==="function"){
+    const old=window.stablePullRemote;
+    window.stablePullRemote=async function(){
+      await d1LoadRemoteLocks();
+      const result=await old.apply(this,arguments);
+      await d1Persist();
+      return result;
+    };
+  }
+  if(typeof window.pushRemote==="function"){
+    const old=window.pushRemote;
+    window.pushRemote=async function(){
+      d1Run();
+      const result=await old.apply(this,arguments);
+      await d1SaveRemoteLocksAndTombstones();
+      await d1DeleteRemoteDependents();
+      await d1WriteAppState();
+      return result;
+    };
+  }
+  if(typeof window.stableWriteRemoteItems==="function"){
+    const old=window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems=async function(){
+      d1Run();
+      const result=await old.apply(this,arguments);
+      await d1SaveRemoteLocksAndTombstones();
+      await d1DeleteRemoteDependents();
+      await d1WriteAppState();
+      return result;
+    };
+  }
+  const oldSave=window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSave==="function"){
+    window.save=function(){
+      d1Run();
+      return oldSave.apply(this,arguments);
+    };
+  }
+
+  ["dashboard","students","studentLogin","studentHome","studentQuizzes","review","renderReviewPrintPreview","printSubmittedWorkListPDF"].forEach(fn=>{
+    const old=window[fn];
+    if(typeof old==="function"){
+      window[fn]=function(){
+        d1Run();
+        const result=old.apply(this,arguments);
+        setTimeout(injectDirectClassDeletePanel,80);
+        return result;
+      };
+    }
+  });
+
+  const oldRenderShell=window.renderShell;
+  if(typeof oldRenderShell==="function"){
+    window.renderShell=function(){
+      d1Run();
+      const result=oldRenderShell.apply(this,arguments);
+      document.querySelectorAll("#classControlPanel,.classControlPanel").forEach(el=>el.remove());
+      setTimeout(injectDirectClassDeletePanel,100);
+      return result;
+    };
+  }
+
+  // Startup auto-import/persist.
+  setTimeout(()=>{ d1Persist().then(()=>{ if(["dashboard","students","studentLogin","studentHome"].includes(route) && typeof renderShell==="function") renderShell(); }); }, 800);
+  setTimeout(()=>{ d1Persist(); }, 3000);
+
+  try{
+    eval("renderDirectClassDeleteList=window.renderDirectClassDeleteList; deleteDirectSelectedStudents=window.deleteDirectSelectedStudents; deleteDirectEntireClass=window.deleteDirectEntireClass; injectDirectClassDeletePanel=window.injectDirectClassDeletePanel; injectClassControlPanel=window.injectClassControlPanel; sealAndRestore1G3BClass=window.sealAndRestore1G3BClass; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; dashboard=window.dashboard; students=window.students; studentLogin=window.studentLogin; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; review=window.review; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
