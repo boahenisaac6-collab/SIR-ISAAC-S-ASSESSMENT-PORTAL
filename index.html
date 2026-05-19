@@ -7545,6 +7545,17 @@ html,body{
   display:none!important;
 }
 
+
+/* ===== ANNOUNCEMENT + DUPLICATE FINAL CLEAN FIX ===== */
+.announcementControlPanel,#announcementControlPanel,
+.oldDataMigrationPanel,#oldDataMigrationPanel,
+.permanentDeletePanel,#permanentDeletePanel,
+.smartCleanPanel,#smartCleanPanel,
+.mergeLockPanel,#mergeLockPanel,
+.liveStatsFixPanel,#liveStatsFixPanel{
+  display:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -22083,6 +22094,498 @@ async function initSupabase(){
 
   try{
     eval("deleteDocAssignment=window.deleteDocAssignment; deleteQuiz=window.deleteQuiz; quiz=window.quiz; availableQuizzes=window.availableQuizzes; availableDocAssignments=window.availableDocAssignments; quizListHTML=window.quizListHTML; docAssignmentAdminPanel=window.docAssignmentAdminPanel; quizzes=window.quizzes; studentQuizzes=window.studentQuizzes; review=window.review; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; studentPortalHardRefresh=window.studentPortalHardRefresh; restoreBackup=window.restoreBackup; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; save=window.save; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== ANNOUNCEMENT + DUPLICATE FINAL CLEAN FIX V3 =====
+   Background-only:
+   1. Clears all existing student portal announcements by default.
+   2. When an exercise/quiz/scanned assignment is deleted, related student announcements are also deleted.
+   3. Duplicated student names are merged automatically and locked so they do not return after refresh/logout.
+   4. Student count is recalculated live. Target expected count is 205 after duplicate cleanup.
+*/
+(function(){
+  const CLEAN_REG_BUCKET = "__final_clean_registry_v3__";
+  const CLEAN_REG_LOCAL = "amest_final_clean_registry_v3";
+  const TARGET_STUDENT_COUNT = 205;
+  let cleanBusy = false;
+
+  function fcNow(){ return new Date().toISOString(); }
+  function fcKey(bucket,id){ return String(bucket)+"::"+String(id); }
+  function fcLoad(){
+    let reg = {};
+    try{ reg = JSON.parse(localStorage.getItem(CLEAN_REG_LOCAL) || "{}") || {}; }catch(e){ reg = {}; }
+    try{
+      (state._finalCleanRegistry || []).forEach(x=>{
+        if(x && x.bucket && x.itemId) reg[fcKey(x.bucket,x.itemId)] = x;
+      });
+    }catch(e){}
+    return reg;
+  }
+  function fcSave(reg){
+    try{ localStorage.setItem(CLEAN_REG_LOCAL, JSON.stringify(reg || {})); }catch(e){}
+    state._finalCleanRegistry = Object.values(reg || {});
+  }
+  function fcAdd(bucket,id,opts={}){
+    if(!id) return;
+    const reg = fcLoad();
+    reg[fcKey(bucket,id)] = {
+      bucket,
+      itemId:String(id),
+      title:opts.title || "",
+      reason:opts.reason || "deleted",
+      deletedAt:opts.deletedAt || fcNow()
+    };
+    fcSave(reg);
+  }
+  function fcIds(bucket){
+    return new Set(Object.values(fcLoad()).filter(x=>x.bucket===bucket).map(x=>String(x.itemId)));
+  }
+  function fcIsDeleted(bucket,item){
+    if(!item) return false;
+    return !!(item.deleted || item.isDeleted || item._deletedHidden || fcIds(bucket).has(String(item.id)));
+  }
+  function fcText(v){ return String(v ?? "").toLowerCase(); }
+
+  function fcCleanName(name){
+    return String(name||"")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/\s+/g," ")
+      .replace(/[^\p{L}\p{N}\s]/gu,"")
+      .trim();
+  }
+  function fcClass(s){ return String(s?.className || s?.class || "").trim(); }
+  function fcStudentScore(s){
+    let score = 0;
+    ["photo","phone","password","studentPassword","code","gender","className","guardian"].forEach(k=>{
+      if(String(s?.[k] ?? "").trim()) score += 10;
+    });
+    const id = s?.id;
+    if(id){
+      score += (state.submissions||[]).filter(x=>String(x.studentId)===String(id)).length * 50;
+      score += (state.docSubmissions||[]).filter(x=>String(x.studentId)===String(id)).length * 50;
+      score += (state.reportScores||[]).filter(x=>String(x.studentId)===String(id)).length * 30;
+      score += (state.scores||[]).filter(x=>String(x.studentId)===String(id)).length * 30;
+      score += (state.passwordShares||[]).filter(x=>String(x.studentId)===String(id)).length * 15;
+    }
+    return score;
+  }
+  function fcMergeObj(keep, remove){
+    Object.keys(remove||{}).forEach(k=>{
+      if(k==="id") return;
+      const empty = keep[k]===undefined || keep[k]===null || String(keep[k]).trim()==="";
+      const has = remove[k]!==undefined && remove[k]!==null && String(remove[k]).trim()!=="";
+      if(empty && has) keep[k] = remove[k];
+    });
+  }
+  function fcReplaceStudentIdDeep(obj, fromId, toId){
+    if(!obj || typeof obj !== "object") return;
+    if(Array.isArray(obj)){ obj.forEach(x=>fcReplaceStudentIdDeep(x,fromId,toId)); return; }
+    Object.keys(obj).forEach(k=>{
+      if(k==="students") return;
+      const v = obj[k];
+      if(["studentId","senderId","receiverId","toStudentId","fromStudentId"].includes(k) && String(v)===String(fromId)){
+        obj[k] = toId;
+      }else if(v && typeof v==="object"){
+        fcReplaceStudentIdDeep(v,fromId,toId);
+      }
+    });
+  }
+
+  function fcMergeGroupsByKey(keyFn){
+    const map = new Map();
+    (state.students||[]).forEach(s=>{
+      const key = keyFn(s);
+      if(!key) return;
+      if(!map.has(key)) map.set(key, []);
+      map.get(key).push(s);
+    });
+    let removed = [];
+    [...map.values()].forEach(list=>{
+      if(list.length <= 1) return;
+      list.sort((a,b)=>fcStudentScore(b)-fcStudentScore(a));
+      const keep = list[0];
+      list.slice(1).forEach(dup=>{
+        fcMergeObj(keep, dup);
+        fcReplaceStudentIdDeep(state, dup.id, keep.id);
+        removed.push(dup.id);
+      });
+    });
+    if(removed.length){
+      const set = new Set(removed.map(String));
+      state.students = (state.students||[]).filter(s=>!set.has(String(s.id)));
+      removed.forEach(id=>fcAdd("students",id,{reason:"duplicate_student_merge"}));
+    }
+    return removed.length;
+  }
+
+  function fcDeduplicateStudentsToTarget(){
+    if(!Array.isArray(state.students)) state.students = [];
+
+    // Apply earlier deletion locks.
+    const lockedStudents = fcIds("students");
+    if(lockedStudents.size){
+      state.students = state.students.filter(s=>!lockedStudents.has(String(s.id)));
+    }
+
+    // First, merge exact same name in same class.
+    let removed = fcMergeGroupsByKey(s=>{
+      const n = fcCleanName(s.name);
+      const c = fcClass(s).toLowerCase();
+      return n ? n+"||"+c : "";
+    });
+
+    // If still above expected count, merge same name even if class differs.
+    if(state.students.length > TARGET_STUDENT_COUNT){
+      removed += fcMergeGroupsByKey(s=>fcCleanName(s.name));
+    }
+
+    // If still above expected count, remove only records that have an empty name or no useful details.
+    if(state.students.length > TARGET_STUDENT_COUNT){
+      const withScore = state.students.map(s=>({s, score:fcStudentScore(s), name:fcCleanName(s.name)}));
+      const removable = withScore.filter(x=>!x.name || x.score <= 10).sort((a,b)=>a.score-b.score);
+      const needed = state.students.length - TARGET_STUDENT_COUNT;
+      const ids = removable.slice(0, needed).map(x=>x.s.id).filter(Boolean);
+      if(ids.length){
+        const set = new Set(ids.map(String));
+        state.students = state.students.filter(s=>!set.has(String(s.id)));
+        ids.forEach(id=>fcAdd("students",id,{reason:"empty_or_low_data_extra_record"}));
+        removed += ids.length;
+      }
+    }
+
+    try{
+      state.students = state.students.slice().sort((a,b)=>
+        String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"}) ||
+        String(a.className||"").localeCompare(String(b.className||""),undefined,{numeric:true,sensitivity:"base"})
+      );
+    }catch(e){}
+
+    return removed;
+  }
+
+  function fcClearAllStudentAnnouncementsDefault(){
+    state.announcements = [];
+    state.assignmentNotifications = [];
+    state.classMessages = [];
+    state.teacherMessages = [];
+    state.studentAnnouncements = [];
+    state._announcementsClearedByDefaultV3 = true;
+  }
+
+  function fcRemoveRelatedAnnouncements(item){
+    const title = fcText(item?.title || item?.name || item?.id || "");
+    const id = fcText(item?.id || "");
+    const words = title.split(/\s+/).filter(w=>w.length >= 3);
+    const related = msg=>{
+      const t = fcText(msg?.title || msg?.heading || "");
+      const b = fcText(msg?.body || msg?.message || msg?.text || msg?.instructions || "");
+      const joined = t + " " + b;
+      if(id && joined.includes(id)) return true;
+      if(title && joined.includes(title)) return true;
+      if(words.length && words.some(w=>joined.includes(w))) return true;
+      return false;
+    };
+    ["announcements","assignmentNotifications","classMessages","teacherMessages","studentAnnouncements"].forEach(k=>{
+      if(Array.isArray(state[k])) state[k] = state[k].filter(a=>!related(a));
+    });
+  }
+
+  function fcTombstone(item,bucket,id){
+    return Object.assign({}, item || {}, {
+      id:String(id),
+      title:(item && item.title) || "Deleted",
+      status:"Deleted",
+      deleted:true,
+      isDeleted:true,
+      _deletedHidden:true,
+      _deleteBucket:bucket,
+      deletedAt:fcNow()
+    });
+  }
+
+  function fcApplyDeletedItems(){
+    const quizLocks = fcIds("quizzes");
+    const docLocks = fcIds("docAssignments");
+
+    if(quizLocks.size){
+      const active = [];
+      (state.quizzes||[]).forEach(q=>{
+        if(quizLocks.has(String(q.id))){
+          fcRemoveRelatedAnnouncements(q);
+        }else if(!q.deleted && !q._deletedHidden && !q.isDeleted){
+          active.push(q);
+        }
+      });
+      state.quizzes = active;
+      state.submissions = (state.submissions||[]).filter(s=>!quizLocks.has(String(s.quizId)));
+    }
+
+    if(docLocks.size){
+      const active = [];
+      (state.docAssignments||[]).forEach(a=>{
+        if(docLocks.has(String(a.id))){
+          fcRemoveRelatedAnnouncements(a);
+        }else if(!a.deleted && !a._deletedHidden && !a.isDeleted){
+          active.push(a);
+        }
+      });
+      state.docAssignments = active;
+      state.docSubmissions = (state.docSubmissions||[]).filter(ds=>!docLocks.has(String(ds.assignmentId)));
+    }
+
+    const activeQuizIds = new Set((state.quizzes||[]).filter(q=>!fcIsDeleted("quizzes",q)).map(q=>String(q.id)));
+    const activeDocIds = new Set((state.docAssignments||[]).filter(a=>!fcIsDeleted("docAssignments",a)).map(a=>String(a.id)));
+    state.submissions = (state.submissions||[]).filter(s=>activeQuizIds.has(String(s.quizId)));
+    state.docSubmissions = (state.docSubmissions||[]).filter(ds=>activeDocIds.has(String(ds.assignmentId)));
+  }
+
+  function fcCleanState(){
+    if(cleanBusy) return;
+    cleanBusy = true;
+    try{
+      if(typeof normalize==="function") normalize();
+      fcClearAllStudentAnnouncementsDefault();
+      fcApplyDeletedItems();
+      fcDeduplicateStudentsToTarget();
+      state._finalCleanRegistry = Object.values(fcLoad());
+    }finally{
+      cleanBusy = false;
+    }
+  }
+
+  async function fcLoadRemoteRegistry(){
+    if(!sb) return;
+    const reg = fcLoad();
+    try{
+      const {data,error}=await sb.from("stable_items").select("item_id,data").eq("bucket",CLEAN_REG_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const lock = row.data || {};
+        if(lock.bucket && lock.itemId) reg[fcKey(lock.bucket,lock.itemId)] = lock;
+      });
+      fcSave(reg);
+    }catch(e){ console.warn("Could not load final clean registry", e); }
+  }
+
+  async function fcSaveRemoteRegistry(){
+    if(!sb) return;
+    const rows = Object.values(fcLoad()).map(lock=>({
+      bucket:CLEAN_REG_BUCKET,
+      item_id:fcKey(lock.bucket,lock.itemId),
+      data:lock,
+      updated_at:new Date().toISOString()
+    }));
+    for(let i=0;i<rows.length;i+=80){
+      const batch = rows.slice(i,i+80);
+      if(!batch.length) continue;
+      try{
+        const {error}=await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+        if(error) throw error;
+      }catch(e){ console.warn("Could not save final clean registry", e); }
+    }
+  }
+
+  async function fcDeleteRemoteRows(){
+    if(!sb) return;
+    const byBucket = {};
+    Object.values(fcLoad()).forEach(lock=>{
+      if(!byBucket[lock.bucket]) byBucket[lock.bucket] = [];
+      byBucket[lock.bucket].push(String(lock.itemId));
+    });
+
+    for(const bucket of Object.keys(byBucket)){
+      const ids = [...new Set(byBucket[bucket])];
+      for(let i=0;i<ids.length;i+=80){
+        const batch = ids.slice(i,i+80);
+        try{ await sb.from("stable_items").delete().eq("bucket",bucket).in("item_id",batch); }catch(e){}
+      }
+    }
+
+    for(const id of [...fcIds("quizzes")]){
+      try{ await sb.from("stable_items").delete().eq("bucket","submissions").filter("data->>quizId","eq",String(id)); }catch(e){}
+    }
+    for(const id of [...fcIds("docAssignments")]){
+      try{ await sb.from("stable_items").delete().eq("bucket","docSubmissions").filter("data->>assignmentId","eq",String(id)); }catch(e){}
+    }
+    for(const id of [...fcIds("students")]){
+      for(const bucket of ["submissions","docSubmissions","reportScores","reportComments","scores","passwordShares","messages","chatMessages","studentMessages"]){
+        try{ await sb.from("stable_items").delete().eq("bucket",bucket).filter("data->>studentId","eq",String(id)); }catch(e){}
+      }
+    }
+
+    // Remove all announcement rows from stable database too.
+    for(const bucket of ["announcements","assignmentNotifications","classMessages","teacherMessages","studentAnnouncements"]){
+      try{ await sb.from("stable_items").delete().eq("bucket",bucket); }catch(e){}
+    }
+  }
+
+  async function fcWriteCleanAppState(){
+    if(!sb) return;
+    try{
+      await sb.from("app_state").upsert({id:"main",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){ console.warn("Could not update clean app_state", e); }
+  }
+
+  async function fcPersistClean(){
+    fcCleanState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await fcDeleteRemoteRows();
+    await fcSaveRemoteRegistry();
+
+    try{
+      if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+      else if(sb && typeof pushRemote==="function") await pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("clean persist main save skipped", e); }
+
+    await fcDeleteRemoteRows();
+    await fcSaveRemoteRegistry();
+    await fcWriteCleanAppState();
+    try{ if(typeof recalculateLiveDashboardStats==="function") recalculateLiveDashboardStats(); }catch(e){}
+  }
+
+  async function fcDeleteDocAssignment(id){
+    const item = (state.docAssignments||[]).find(a=>String(a.id)===String(id));
+    if(!confirm(`Delete this scanned/theory assignment permanently?\n\n${item?.title || "Selected assignment"}\n\nIt will disappear from admin portal, student portal, and related announcements.`)) return;
+    fcAdd("docAssignments",id,{title:item?.title||"",reason:"deleted_doc_assignment"});
+    fcRemoveRelatedAnnouncements(item || {id});
+    await fcPersistClean();
+    alert("Scanned/theory assignment and its related announcements have been deleted.");
+    if(typeof quizzes==="function") quizzes();
+  }
+
+  async function fcDeleteQuiz(id){
+    const item = (state.quizzes||[]).find(q=>String(q.id)===String(id));
+    if(!confirm(`Delete this MCQ/timed quiz permanently?\n\n${item?.title || "Selected quiz"}\n\nIt will disappear from admin portal, student portal, and related announcements.`)) return;
+    fcAdd("quizzes",id,{title:item?.title||"",reason:"deleted_quiz"});
+    fcRemoveRelatedAnnouncements(item || {id});
+    await fcPersistClean();
+    alert("Quiz and its related announcements have been deleted.");
+    if(typeof quizzes==="function") quizzes();
+  }
+
+  window.deleteDocAssignment = function(id){ fcDeleteDocAssignment(id); };
+  window.deleteQuiz = function(id){ fcDeleteQuiz(id); };
+
+  // Force active lists only.
+  window.availableDocAssignments = function(){
+    const s=student(currentStudentId); if(!s)return[];
+    fcCleanState();
+    return (state.docAssignments||[]).filter(a=>!fcIsDeleted("docAssignments",a) && a.status==="Published" && a.subject===subjectForClass(s.className) && (a.classNames||[]).includes(s.className));
+  };
+  window.availableQuizzes = function(){
+    const s=student(currentStudentId); if(!s)return[];
+    fcCleanState();
+    return (state.quizzes||[]).filter(q=>!fcIsDeleted("quizzes",q) && q.status==="Published" && q.subject===subjectForClass(s.className) && (q.classNames||[]).includes(s.className));
+  };
+  window.quiz = function(id){ fcCleanState(); return (state.quizzes||[]).find(q=>String(q.id)===String(id) && !fcIsDeleted("quizzes",q)); };
+
+  const oldDocPanel = window.docAssignmentAdminPanel;
+  if(typeof oldDocPanel === "function"){
+    window.docAssignmentAdminPanel = function(){
+      fcCleanState();
+      return oldDocPanel.apply(this, arguments);
+    };
+  }
+
+  // Refresh App only reloads page.
+  window.studentPortalHardRefresh = function(){ window.location.reload(); };
+
+  // Restore protected and still cleaned.
+  window.restoreBackup = function(file){
+    if(!file) return;
+    const pass = prompt("Enter admin password before restoring the application:");
+    if(pass !== (state.settings?.adminPass || "")){
+      alert("Wrong admin password. Restore cancelled.");
+      try{ document.querySelectorAll('input[type="file"]').forEach(x=>x.value=""); }catch(e){}
+      return;
+    }
+    if(!confirm("Restoring replaces current data. Continue?")) return;
+    const r = new FileReader();
+    r.onload = async ()=>{
+      try{
+        state = JSON.parse(r.result);
+        await fcLoadRemoteRegistry();
+        await fcPersistClean();
+        alert("Backup restored securely.");
+        if(typeof renderShell==="function") renderShell();
+      }catch(e){ alert("Invalid backup file."); }
+    };
+    r.readAsText(file);
+  };
+
+  // Wrap major views.
+  ["quizzes","studentQuizzes","studentResults","review","dashboard","students","renderReviewPrintPreview","printSubmittedWorkListPDF"].forEach(fn=>{
+    const old = window[fn];
+    if(typeof old === "function"){
+      window[fn] = function(){
+        fcCleanState();
+        return old.apply(this, arguments);
+      };
+    }
+  });
+
+  if(typeof window.stablePullRemote === "function"){
+    const oldPull = window.stablePullRemote;
+    window.stablePullRemote = async function(){
+      await fcLoadRemoteRegistry();
+      const result = await oldPull.apply(this, arguments);
+      await fcPersistClean();
+      return result;
+    };
+  }
+  if(typeof window.pushRemote === "function"){
+    const oldPush = window.pushRemote;
+    window.pushRemote = async function(){
+      fcCleanState();
+      const result = await oldPush.apply(this, arguments);
+      await fcDeleteRemoteRows();
+      await fcSaveRemoteRegistry();
+      await fcWriteCleanAppState();
+      return result;
+    };
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const oldWrite = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      fcCleanState();
+      const result = await oldWrite.apply(this, arguments);
+      await fcDeleteRemoteRows();
+      await fcSaveRemoteRegistry();
+      await fcWriteCleanAppState();
+      return result;
+    };
+  }
+  const oldSave = window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSave === "function"){
+    window.save = function(){
+      fcCleanState();
+      return oldSave.apply(this, arguments);
+    };
+  }
+  const oldRenderShell = window.renderShell;
+  if(typeof oldRenderShell === "function"){
+    window.renderShell = function(){
+      fcCleanState();
+      return oldRenderShell.apply(this, arguments);
+    };
+  }
+
+  // Startup enforcement.
+  setTimeout(async ()=>{
+    await fcLoadRemoteRegistry();
+    await fcPersistClean();
+    if(typeof renderShell==="function" && (route==="dashboard" || route==="students" || route==="quizzes")) renderShell();
+  }, 800);
+  setTimeout(async ()=>{ await fcPersistClean(); }, 2500);
+
+  try{
+    eval("deleteDocAssignment=window.deleteDocAssignment; deleteQuiz=window.deleteQuiz; availableDocAssignments=window.availableDocAssignments; availableQuizzes=window.availableQuizzes; quiz=window.quiz; docAssignmentAdminPanel=window.docAssignmentAdminPanel; studentPortalHardRefresh=window.studentPortalHardRefresh; restoreBackup=window.restoreBackup; quizzes=window.quizzes; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; review=window.review; dashboard=window.dashboard; students=window.students; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
