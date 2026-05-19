@@ -8390,6 +8390,113 @@ html,body{
   }
 }
 
+
+/* ===== CLASS MEMBER NAME LINK FINAL FIX ===== */
+.studentNameLink{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:#071f3d;
+  font-weight:950;
+  font-size:14px;
+  padding:0;
+  margin:0;
+  text-align:left;
+  cursor:pointer;
+  text-decoration:underline;
+  text-decoration-thickness:2px;
+  text-underline-offset:3px;
+}
+.studentNameLink:hover{
+  color:#0f7b4f;
+}
+.studentMemberCard.clickableMember,
+.studentMemberCard.forceClickableMember{
+  cursor:pointer!important;
+  user-select:none;
+}
+.studentMemberCard.clickableMember:hover,
+.studentMemberCard.forceClickableMember:hover{
+  transform:translateY(-2px);
+  border-color:#f4c430!important;
+  background:#fffdf0!important;
+  box-shadow:0 12px 28px rgba(7,31,61,.12)!important;
+}
+.studentMemberCard .memberOpenText{
+  display:block;
+  margin-top:4px;
+  color:#0f7b4f;
+  font-weight:950;
+  font-size:12px;
+}
+.classTotalBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border-radius:999px;
+  background:#ecfdf3;
+  border:1px solid #bce8ce;
+  color:#0f6b47;
+  font-weight:950;
+  padding:7px 11px;
+  margin-top:10px;
+  font-size:13px;
+}
+.classMemberPasswordBox{
+  border:3px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fffdf0,#ffffff);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.classMemberPasswordBox h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.classMemberPasswordBox p{
+  margin:0 0 10px;
+  color:#475467;
+  font-weight:800;
+}
+.classMemberPasswordGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:8px;
+  align-items:end;
+}
+.classMemberPasswordGrid input{
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:850;
+}
+.classMemberPasswordGrid button{
+  min-height:42px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.classMemberPasswordGrid .green{
+  border:0;
+  background:#0f7b4f;
+  color:#fff;
+}
+.classMemberPasswordGrid .light{
+  border:1px solid #d9e7f3;
+  background:#eef5fc;
+  color:#071f3d;
+}
+@media(max-width:760px){
+  .classMemberPasswordGrid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -26478,6 +26585,214 @@ async function initSupabase(){
 
   try{
     eval("studentClassMembers=window.studentClassMembers; openClassMemberPortal=window.openClassMemberPortal; finishClassMemberPortalLogin=window.finishClassMemberPortalLogin;");
+  }catch(e){}
+})();
+
+
+
+/* ===== CLASS MEMBER NAME LINK FINAL FIX V2 =====
+   Strong fix:
+   - Rebuilds the class-members page with real clickable name buttons.
+   - Adds click handlers to both the name and the whole student card.
+   - Adds a backup event-delegation system so clicks still work even if an older class-list view is rendered.
+*/
+(function(){
+  function nEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function nStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students || []).find(s=>String(s.id)===String(id)) || null;
+  }
+  function nSubjectForClass(cls){
+    try{ return typeof subjectForClass === "function" ? subjectForClass(cls) : ""; }
+    catch(e){ return ""; }
+  }
+  function nClasses(){
+    const arr = []
+      .concat(Array.isArray(state.classes) ? state.classes : [])
+      .concat((state.students || []).map(s=>s.className).filter(Boolean));
+    return [...new Set(arr.filter(Boolean))]
+      .sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true, sensitivity:"base"}));
+  }
+  function nMembers(cls){
+    return (state.students || [])
+      .filter(s=>String(s.className || "") === String(cls) && !s.deleted && !s._deletedHidden && !s.isDeleted)
+      .sort((a,b)=>String(a.name || "").localeCompare(String(b.name || ""), undefined, {sensitivity:"base"}));
+  }
+  function nInitials(name){
+    return String(name || "ST").trim().split(/\s+/).map(x=>x[0] || "").join("").slice(0,2).toUpperCase() || "ST";
+  }
+  function nPhoto(s){
+    if(s && s.photo) return `<img class="studentMemberPhoto" src="${s.photo}" alt="">`;
+    return `<div class="studentMemberAvatar">${nEsc(nInitials(s?.name))}</div>`;
+  }
+  function nCanOpenWithoutPassword(studentId){
+    try{
+      if(!state.settings.requireStudentPassword) return true;
+      if(typeof pwActiveShare === "function" && pwActiveShare(studentId)) return true;
+    }catch(e){}
+    return false;
+  }
+
+  window.openClassMemberPortal = function(studentId){
+    const s = nStudent(studentId);
+    if(!s) return alert("Student record not found.");
+
+    try{ currentStudentId = studentId; }catch(e){ window.currentStudentId = studentId; }
+
+    if(nCanOpenWithoutPassword(studentId)){
+      role = "student";
+      route = "studentHome";
+      renderShell();
+      return;
+    }
+
+    let box = document.getElementById("classMemberPasswordBox");
+    if(!box){
+      const view = document.getElementById("view");
+      if(view){
+        view.insertAdjacentHTML("afterbegin", `<div id="classMemberPasswordBox"></div>`);
+        box = document.getElementById("classMemberPasswordBox");
+      }
+    }
+    if(!box) return alert("Enter your password from Student Login.");
+
+    box.innerHTML = `<div class="classMemberPasswordBox">
+      <h3>${nEsc(s.name)}</h3>
+      <p>Enter your password to open your portal.</p>
+      <div class="classMemberPasswordGrid">
+        <input id="classMemberPassInput" type="password" placeholder="Type password here" onkeydown="if(event.key==='Enter')finishClassMemberPortalLogin()">
+        <button class="green" onclick="finishClassMemberPortalLogin()">Open Portal</button>
+        <button class="light" onclick="toggleClassMemberPasswordView()">View</button>
+      </div>
+    </div>`;
+    setTimeout(()=>document.getElementById("classMemberPassInput")?.focus(), 80);
+    box.scrollIntoView({behavior:"smooth", block:"start"});
+  };
+
+  window.toggleClassMemberPasswordView = function(){
+    const input = document.getElementById("classMemberPassInput");
+    if(input) input.type = input.type === "password" ? "text" : "password";
+  };
+
+  window.finishClassMemberPortalLogin = function(){
+    let id = "";
+    try{ id = currentStudentId; }catch(e){ id = window.currentStudentId; }
+    const s = nStudent(id);
+    if(!s) return alert("Student record not found.");
+    const typed = document.getElementById("classMemberPassInput")?.value || "";
+    if(typed !== s.password) return alert("Wrong password.");
+    role = "student";
+    route = "studentHome";
+    renderShell();
+  };
+
+  window.studentClassMembers = function(){
+    const cls = window.publicClassSelected || nClasses()[0] || "";
+    window.publicClassSelected = cls;
+    const list = nMembers(cls);
+
+    $("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>${nEsc(cls)} Class Members</h2>
+      <p>Scroll through the list and click your name to open your student portal.</p>
+      <div class="classTotalBadge">Total Students: ${list.length}</div>
+    </div>
+    <div id="classMemberPasswordBox"></div>
+    <div class="studentViewToolbar">
+      <button class="navy" onclick="setRoute('studentLogin')">Student Login</button>
+      <button class="gold" onclick="openStudentSubmissionOptions()">View Submitted Work Lists</button>
+    </div>
+    <div class="studentClassGrid">
+      ${list.map((s,i)=>`<div class="studentMemberCard clickableMember forceClickableMember" data-student-id="${nEsc(s.id)}" onclick="openClassMemberPortal('${nEsc(s.id)}')" title="Click to open student portal">
+        ${nPhoto(s)}
+        <div>
+          <button type="button" class="studentNameLink" data-student-id="${nEsc(s.id)}" onclick="event.stopPropagation();openClassMemberPortal('${nEsc(s.id)}')">${i+1}. ${nEsc(s.name)}</button>
+          <small>${nEsc(s.code || "")} ${s.code ? "•" : ""} ${nEsc(s.className || "")} ${nSubjectForClass(s.className) ? "• " + nEsc(nSubjectForClass(s.className)) : ""}</small>
+          <span class="memberOpenText">Click name to open portal</span>
+        </div>
+      </div>`).join("") || `<div class="empty">No student found in this class.</div>`}
+    </div>`;
+    setTimeout(forceClickableClassMembers, 80);
+  };
+
+  window.forceClickableClassMembers = function(){
+    try{
+      document.querySelectorAll(".studentMemberCard").forEach(card=>{
+        const nameText = (card.textContent || "").trim();
+        if(!nameText) return;
+
+        // If already prepared, leave it.
+        if(card.dataset.studentId){
+          card.classList.add("forceClickableMember");
+          card.style.cursor = "pointer";
+          return;
+        }
+
+        // Backup matching by student name in current selected class.
+        const cls = window.publicClassSelected || "";
+        const found = nMembers(cls).find(s=>nameText.toLowerCase().includes(String(s.name||"").toLowerCase()));
+        if(found){
+          card.dataset.studentId = found.id;
+          card.classList.add("forceClickableMember");
+          card.style.cursor = "pointer";
+          card.onclick = function(){ openClassMemberPortal(found.id); };
+
+          const b = card.querySelector("b");
+          if(b && !b.querySelector(".studentNameLink")){
+            const label = b.textContent;
+            b.innerHTML = `<button type="button" class="studentNameLink" data-student-id="${nEsc(found.id)}">${nEsc(label)}</button>`;
+          }
+        }
+      });
+
+      document.querySelectorAll(".studentNameLink").forEach(btn=>{
+        if(btn.dataset.clickFixed) return;
+        btn.dataset.clickFixed = "1";
+        btn.addEventListener("click", function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          const id = this.dataset.studentId || this.closest(".studentMemberCard")?.dataset.studentId;
+          if(id) openClassMemberPortal(id);
+        });
+      });
+    }catch(e){}
+  };
+
+  document.addEventListener("click", function(ev){
+    const nameBtn = ev.target.closest(".studentNameLink");
+    if(nameBtn){
+      ev.preventDefault();
+      ev.stopPropagation();
+      const id = nameBtn.dataset.studentId || nameBtn.closest(".studentMemberCard")?.dataset.studentId;
+      if(id) openClassMemberPortal(id);
+      return;
+    }
+    const card = ev.target.closest(".studentMemberCard.forceClickableMember,.studentMemberCard.clickableMember");
+    if(card && card.dataset.studentId){
+      ev.preventDefault();
+      openClassMemberPortal(card.dataset.studentId);
+    }
+  }, true);
+
+  const oldRenderShellMemberNameLink = window.renderShell;
+  if(typeof oldRenderShellMemberNameLink === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellMemberNameLink.apply(this, arguments);
+      setTimeout(forceClickableClassMembers, 120);
+      return result;
+    };
+  }
+
+  setInterval(()=>{ 
+    try{
+      if(route === "studentClassMembers") forceClickableClassMembers();
+    }catch(e){}
+  }, 1200);
+
+  try{
+    eval("studentClassMembers=window.studentClassMembers; openClassMemberPortal=window.openClassMemberPortal; finishClassMemberPortalLogin=window.finishClassMemberPortalLogin; toggleClassMemberPasswordView=window.toggleClassMemberPasswordView; forceClickableClassMembers=window.forceClickableClassMembers; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
