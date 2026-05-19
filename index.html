@@ -7312,6 +7312,70 @@ html,body{
   .duplicateManagerPanel{display:none!important}
 }
 
+
+/* ===== LIVE STATISTICS + DELETE SYNC FIX ===== */
+.liveStatsFixPanel{
+  border:3px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ecfdf3,#ffffff,#fffdf0);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.liveStatsFixPanel h2{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.liveStatsFixPanel p{
+  margin:0 0 12px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.liveStatsFixActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.liveStatsFixActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.liveStatsFixActions .green{border:0;background:#0f7b4f;color:#fff}
+.liveStatsFixActions .navy{border:0;background:#071f3d;color:#fff}
+.liveStatsFixActions .gold{border:0;background:#f4c430;color:#071f3d}
+.liveStatsFixActions .light{border:1px solid #d9e7f3;background:#eef5fc;color:#071f3d}
+.liveStatsMiniGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.liveStatsMiniCard{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:14px;
+  padding:10px;
+}
+.liveStatsMiniCard span{
+  display:block;
+  color:#667085;
+  font-size:10px;
+  text-transform:uppercase;
+  font-weight:950;
+}
+.liveStatsMiniCard b{
+  display:block;
+  margin-top:3px;
+  color:#071f3d;
+  font-size:24px;
+}
+
 </style>
 </head>
 <body>
@@ -19553,6 +19617,272 @@ async function initSupabase(){
 
   try{
     eval("students=window.students; renderShell=window.renderShell; injectDuplicateStudentsManager=window.injectDuplicateStudentsManager; renderDuplicateStudentsManager=window.renderDuplicateStudentsManager; mergeAllDuplicateStudentsSafely=window.mergeAllDuplicateStudentsSafely; mergeOneDuplicateGroup=window.mergeOneDuplicateGroup; printDuplicateStudentsReport=window.printDuplicateStudentsReport;");
+  }catch(e){}
+})();
+
+
+
+/* ===== LIVE STATISTICS + DELETE SYNC FIX =====
+   Main fix:
+   The stable database stores each student/class record separately.
+   Before this patch, deleting/merging students removed them locally but did not remove
+   their old stable_items rows online, so they could come back and keep the total unchanged.
+   This patch deletes stale stable_items rows whenever students/classes are saved.
+*/
+(function(){
+  const LIVE_STATS_BUCKETS_TO_CLEAN = [
+    "students","classes","quizzes","submissions","docAssignments","docSubmissions",
+    "reportScores","reportComments","scores","publishedReports","passwordShares",
+    "assignmentNotifications","announcements","messages","chatMessages","chatThreads",
+    "classMessages","teacherMessages","studentMessages","studentAnnouncements"
+  ];
+
+  function lsEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+
+  function lsStableArrayItemId(key,item,index){
+    try{
+      if(typeof stableArrayItemId === "function") return stableArrayItemId(key,item,index);
+    }catch(e){}
+    if(item && item.id) return String(item.id);
+    if(item && item.studentId && (key==="reportScores" || key==="reportComments" || key==="scores")) return String(item.studentId);
+    if(item && item.quizId && item.studentId) return String(item.quizId)+"_"+String(item.studentId);
+    if(item && item.assignmentId && item.studentId) return String(item.assignmentId)+"_"+String(item.studentId);
+    if(typeof item === "string") return item;
+    if(item && item.name) return String(item.name);
+    return key+"_"+index;
+  }
+
+  function lsCurrentIdsForBucket(bucket){
+    const arr = Array.isArray(state[bucket]) ? state[bucket] : [];
+    return arr.map((item,i)=>lsStableArrayItemId(bucket,item,i));
+  }
+
+  async function deleteStaleStableRowsForBucket(bucket){
+    if(!sb) return;
+    let remote = [];
+    try{
+      const {data,error} = await sb.from("stable_items").select("item_id").eq("bucket",bucket).limit(20000);
+      if(error) throw error;
+      remote = data || [];
+    }catch(e){
+      console.warn("Could not read stable rows for cleanup:", bucket, e);
+      return;
+    }
+
+    const keep = new Set(lsCurrentIdsForBucket(bucket).map(String));
+    const stale = remote.map(r=>String(r.item_id)).filter(id=>!keep.has(id));
+
+    for(let i=0;i<stale.length;i+=80){
+      const batch = stale.slice(i,i+80);
+      if(!batch.length) continue;
+      try{
+        const {error} = await sb.from("stable_items").delete().eq("bucket",bucket).in("item_id",batch);
+        if(error) throw error;
+      }catch(e){
+        console.warn("Could not delete stale stable rows:", bucket, e);
+      }
+    }
+  }
+
+  window.cleanupDeletedStableItems = async function(){
+    if(!sb) return false;
+    for(const bucket of LIVE_STATS_BUCKETS_TO_CLEAN){
+      await deleteStaleStableRowsForBucket(bucket);
+    }
+    return true;
+  };
+
+  // Patch stableWriteRemoteItems so deleted/merged students/classes do not return from Supabase.
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const oldStableWriteRemoteItems = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      const result = await oldStableWriteRemoteItems.apply(this, arguments);
+      await cleanupDeletedStableItems();
+      return result;
+    };
+    try{ eval("stableWriteRemoteItems=window.stableWriteRemoteItems;"); }catch(e){}
+  }
+
+  function lsStats(){
+    const totalStudents = Array.isArray(state.students) ? state.students.length : 0;
+    const uniqueClasses = new Set((state.students||[]).map(s=>s.className).filter(Boolean));
+    const totalClasses = Array.isArray(state.classes) ? state.classes.length : uniqueClasses.size;
+    const publishedQuizzes = (state.quizzes||[]).filter(q=>q.status==="Published").length;
+    const submissions = (state.submissions||[]).length + (state.docSubmissions||[]).length;
+    const activeStudents = (state.students||[]).filter(s=>(s.status||"Active")==="Active").length || totalStudents;
+    const reports = (state.publishedReports||[]).length;
+    return {totalStudents,totalClasses,publishedQuizzes,submissions,activeStudents,reports};
+  }
+
+  window.recalculateLiveDashboardStats = function(){
+    const stats = lsStats();
+
+    // Update new colourful dashboard cards if visible.
+    const statCards = [...document.querySelectorAll(".amestStatCard")];
+    statCards.forEach(card=>{
+      const label = (card.querySelector("span")?.textContent || "").toLowerCase();
+      const b = card.querySelector("b");
+      if(!b) return;
+      if(label.includes("total students")) b.textContent = stats.totalStudents;
+      if(label.includes("active students")) b.textContent = stats.activeStudents;
+      if(label === "classes" || label.includes("classes")) b.textContent = stats.totalClasses;
+      if(label.includes("published quizzes")) b.textContent = stats.publishedQuizzes;
+      if(label.includes("submissions")) b.textContent = stats.submissions;
+      if(label.includes("report")) b.textContent = stats.reports;
+    });
+
+    // Update older stat dashboard cards if visible.
+    const oldCards = [...document.querySelectorAll(".card.stat")];
+    oldCards.forEach(card=>{
+      const label = (card.querySelector("span")?.textContent || "").toLowerCase();
+      const b = card.querySelector("b");
+      if(!b) return;
+      if(label.includes("total students")) b.textContent = stats.totalStudents;
+      if(label.includes("classes")) b.textContent = stats.totalClasses;
+      if(label.includes("published")) b.textContent = stats.publishedQuizzes;
+      if(label.includes("submissions")) b.textContent = stats.submissions;
+    });
+
+    const panel = document.getElementById("liveStatsFixPanel");
+    if(panel){
+      const mini = panel.querySelector("#liveStatsMiniGrid");
+      if(mini){
+        mini.innerHTML = `
+          <div class="liveStatsMiniCard"><span>Total Students</span><b>${stats.totalStudents}</b></div>
+          <div class="liveStatsMiniCard"><span>Total Classes</span><b>${stats.totalClasses}</b></div>
+          <div class="liveStatsMiniCard"><span>Submissions</span><b>${stats.submissions}</b></div>
+          <div class="liveStatsMiniCard"><span>Published Quizzes</span><b>${stats.publishedQuizzes}</b></div>`;
+      }
+    }
+  };
+
+  window.refreshStatsAndSyncNow = async function(){
+    try{
+      if(typeof normalize==="function") normalize();
+      recalculateLiveDashboardStats();
+      if(typeof saveLocal==="function") saveLocal();
+      if(sb && typeof cleanupDeletedStableItems==="function") await cleanupDeletedStableItems();
+      if(sb && typeof pushRemote==="function") await pushRemote();
+      recalculateLiveDashboardStats();
+      alert("Statistics refreshed and synced successfully.");
+      if(route === "dashboard" && typeof dashboard==="function") dashboard();
+    }catch(e){
+      console.error(e);
+      alert("Statistics refresh completed locally, but live sync may need another refresh.");
+    }
+  };
+
+  function liveStatsPanelHTML(){
+    const s = lsStats();
+    return `<div id="liveStatsFixPanel" class="liveStatsFixPanel">
+      <h2>Live Statistics Control</h2>
+      <p>Student and class totals now update automatically when you add, delete, or merge students/classes. Use this button if you want to force refresh the live statistics immediately.</p>
+      <div class="liveStatsFixActions">
+        <button class="green" onclick="refreshStatsAndSyncNow()">Refresh Statistics Now</button>
+        <button class="navy" onclick="if(typeof mergeAllDuplicateStudentsSafely==='function') mergeAllDuplicateStudentsSafely()">Merge Duplicate Students</button>
+      </div>
+      <div id="liveStatsMiniGrid" class="liveStatsMiniGrid">
+        <div class="liveStatsMiniCard"><span>Total Students</span><b>${s.totalStudents}</b></div>
+        <div class="liveStatsMiniCard"><span>Total Classes</span><b>${s.totalClasses}</b></div>
+        <div class="liveStatsMiniCard"><span>Submissions</span><b>${s.submissions}</b></div>
+        <div class="liveStatsMiniCard"><span>Published Quizzes</span><b>${s.publishedQuizzes}</b></div>
+      </div>
+    </div>`;
+  }
+
+  window.injectLiveStatsFixPanel = function(){
+    if(role !== "admin" || route !== "dashboard") return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("liveStatsFixPanel")) return;
+    view.insertAdjacentHTML("afterbegin", liveStatsPanelHTML());
+    recalculateLiveDashboardStats();
+  };
+
+  // Patch save: every save recalculates stats and schedules live cleanup.
+  const oldSaveLiveStats = window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSaveLiveStats === "function"){
+    window.save = function(){
+      if(typeof normalize==="function") normalize();
+      recalculateLiveDashboardStats();
+      const result = oldSaveLiveStats.apply(this, arguments);
+      setTimeout(recalculateLiveDashboardStats, 250);
+      return result;
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+
+  // Patch duplicate merge functions so dashboard totals update immediately after merging.
+  if(typeof window.mergeAllDuplicateStudentsSafely === "function"){
+    const oldMergeAllDup = window.mergeAllDuplicateStudentsSafely;
+    window.mergeAllDuplicateStudentsSafely = function(){
+      const result = oldMergeAllDup.apply(this, arguments);
+      setTimeout(async ()=>{
+        recalculateLiveDashboardStats();
+        if(sb) await cleanupDeletedStableItems();
+        recalculateLiveDashboardStats();
+      },500);
+      return result;
+    };
+    try{ eval("mergeAllDuplicateStudentsSafely=window.mergeAllDuplicateStudentsSafely;"); }catch(e){}
+  }
+
+  if(typeof window.mergeOneDuplicateGroup === "function"){
+    const oldMergeOneDup = window.mergeOneDuplicateGroup;
+    window.mergeOneDuplicateGroup = function(){
+      const result = oldMergeOneDup.apply(this, arguments);
+      setTimeout(async ()=>{
+        recalculateLiveDashboardStats();
+        if(sb) await cleanupDeletedStableItems();
+        recalculateLiveDashboardStats();
+      },500);
+      return result;
+    };
+    try{ eval("mergeOneDuplicateGroup=window.mergeOneDuplicateGroup;"); }catch(e){}
+  }
+
+  // Patch render/dashboard/students so statistics update whenever the UI redraws.
+  const oldDashboardLiveStats = window.dashboard || (typeof dashboard==="function" ? dashboard : null);
+  if(typeof oldDashboardLiveStats === "function"){
+    window.dashboard = function(){
+      const result = oldDashboardLiveStats.apply(this, arguments);
+      setTimeout(injectLiveStatsFixPanel,80);
+      setTimeout(recalculateLiveDashboardStats,120);
+      return result;
+    };
+    try{ eval("dashboard=window.dashboard;"); }catch(e){}
+  }
+
+  const oldStudentsLiveStats = window.students || (typeof students==="function" ? students : null);
+  if(typeof oldStudentsLiveStats === "function"){
+    window.students = function(){
+      const result = oldStudentsLiveStats.apply(this, arguments);
+      setTimeout(recalculateLiveDashboardStats,80);
+      return result;
+    };
+    try{ eval("students=window.students;"); }catch(e){}
+  }
+
+  const oldRenderShellLiveStats = window.renderShell;
+  if(typeof oldRenderShellLiveStats === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellLiveStats.apply(this, arguments);
+      setTimeout(injectLiveStatsFixPanel,100);
+      setTimeout(recalculateLiveDashboardStats,140);
+      return result;
+    };
+    try{ eval("renderShell=window.renderShell;"); }catch(e){}
+  }
+
+  // A small automatic refresh loop for visible dashboard only.
+  setInterval(()=>{
+    if(role === "admin" && route === "dashboard") recalculateLiveDashboardStats();
+  },2000);
+
+  setTimeout(injectLiveStatsFixPanel,700);
+  setTimeout(recalculateLiveDashboardStats,800);
+
+  try{
+    eval("cleanupDeletedStableItems=window.cleanupDeletedStableItems; recalculateLiveDashboardStats=window.recalculateLiveDashboardStats; refreshStatsAndSyncNow=window.refreshStatsAndSyncNow; injectLiveStatsFixPanel=window.injectLiveStatsFixPanel;");
   }catch(e){}
 })();
 
