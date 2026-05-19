@@ -7475,6 +7475,56 @@ html,body{
   line-height:1.45;
 }
 
+
+/* ===== PERMANENT DELETE LOCK FOR ALL ITEMS ===== */
+.permanentDeletePanel{
+  border:3px solid #f4c430;
+  border-left:10px solid #b42318;
+  background:linear-gradient(135deg,#fff8f7,#ffffff,#fffdf0);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.permanentDeletePanel h2{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.permanentDeletePanel p{
+  margin:0 0 12px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.permanentDeleteActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.permanentDeleteActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.permanentDeleteActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.permanentDeleteActions .green{border:0;background:#0f7b4f;color:#fff}
+.permanentDeleteActions .navy{border:0;background:#071f3d;color:#fff}
+.permanentDeleteActions .gold{border:0;background:#f4c430;color:#071f3d}
+.permanentDeleteStatus{
+  margin-top:10px;
+  border:1px solid #ffd4d0;
+  background:#fff1f0;
+  color:#b42318;
+  border-radius:14px;
+  padding:9px 11px;
+  font-size:13px;
+  font-weight:850;
+  line-height:1.45;
+}
+
 </style>
 </head>
 <body>
@@ -20753,6 +20803,401 @@ async function initSupabase(){
 
   try{
     eval("studentPortalHardRefresh=window.studentPortalHardRefresh; restoreBackup=window.restoreBackup; deleteDocAssignment=window.deleteDocAssignment; deleteQuiz=window.deleteQuiz; smartCleanApplicationNow=window.smartCleanApplicationNow; injectSmartCleanPanel=window.injectSmartCleanPanel; renderShell=window.renderShell; dashboard=window.dashboard; students=window.students; review=window.review; save=window.save; pushRemote=window.pushRemote; stablePullRemote=window.stablePullRemote; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; renderReviewPrintPreview=window.renderReviewPrintPreview;");
+  }catch(e){}
+})();
+
+
+
+/* ===== PERMANENT DELETE LOCK FOR ALL ITEMS =====
+   This is the final delete protection layer.
+   Once a quiz, theory/scanned assignment, student, or class is deleted,
+   the app creates a hard delete lock online and locally. On every refresh or
+   remote pull, locked items are purged again before the UI displays.
+*/
+(function(){
+  const HARD_DELETE_BUCKET = "__hard_deletes_v4__";
+  const HARD_DELETE_LOCAL = "amest_hard_deletes_v4";
+
+  function hdNow(){ return new Date().toISOString(); }
+  function hdLoad(){
+    try{ return JSON.parse(localStorage.getItem(HARD_DELETE_LOCAL) || "{}"); }
+    catch(e){ return {}; }
+  }
+  function hdSave(locks){
+    try{ localStorage.setItem(HARD_DELETE_LOCAL, JSON.stringify(locks || {})); }catch(e){}
+    state._hardDeletedItems = Object.values(locks || {});
+  }
+  function hdKey(bucket,id){ return String(bucket)+"::"+String(id); }
+  function hdAdd(bucket, ids, reason){
+    const locks = hdLoad();
+    (ids||[]).filter(Boolean).forEach(id=>{
+      locks[hdKey(bucket,id)] = {bucket, itemId:String(id), reason:reason||"deleted", deletedAt:hdNow()};
+    });
+    hdSave(locks);
+    return locks;
+  }
+  function hdIds(bucket){
+    return new Set(Object.values(hdLoad()).filter(x=>x.bucket===bucket).map(x=>String(x.itemId)));
+  }
+  function hdStatus(msg){
+    const el = document.getElementById("permanentDeleteStatus");
+    if(el) el.textContent = msg;
+    try{ if(typeof stableStatus==="function") stableStatus(msg,"live"); }catch(e){}
+  }
+
+  function hdPurgeState(){
+    const quizLocks = hdIds("quizzes");
+    const docLocks = hdIds("docAssignments");
+    const studentLocks = hdIds("students");
+    const classLocks = hdIds("classes");
+
+    if(quizLocks.size){
+      state.quizzes = (state.quizzes||[]).filter(q=>!quizLocks.has(String(q.id)));
+      state.submissions = (state.submissions||[]).filter(s=>!quizLocks.has(String(s.quizId)));
+    }
+
+    if(docLocks.size){
+      state.docAssignments = (state.docAssignments||[]).filter(a=>!docLocks.has(String(a.id)));
+      state.docSubmissions = (state.docSubmissions||[]).filter(ds=>!docLocks.has(String(ds.assignmentId)));
+    }
+
+    if(studentLocks.size){
+      state.students = (state.students||[]).filter(s=>!studentLocks.has(String(s.id)));
+      state.submissions = (state.submissions||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+      state.docSubmissions = (state.docSubmissions||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+      state.reportScores = (state.reportScores||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+      state.reportComments = (state.reportComments||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+      state.scores = (state.scores||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+      state.passwordShares = (state.passwordShares||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+    }
+
+    if(classLocks.size){
+      state.classes = (state.classes||[]).filter((c,i)=>!classLocks.has(String(c)) && !classLocks.has("classes_"+i));
+    }
+
+    // Always remove orphan submissions. This fixes old deleted assignment/quiz printouts.
+    const validQuizzes = new Set((state.quizzes||[]).map(q=>String(q.id)));
+    const validDocs = new Set((state.docAssignments||[]).map(a=>String(a.id)));
+    state.submissions = (state.submissions||[]).filter(s=>validQuizzes.has(String(s.quizId)));
+    state.docSubmissions = (state.docSubmissions||[]).filter(ds=>validDocs.has(String(ds.assignmentId)));
+
+    state._hardDeletedItems = Object.values(hdLoad());
+  }
+
+  async function hdLoadRemote(){
+    if(!sb) return;
+    const locks = hdLoad();
+    try{
+      const {data,error} = await sb.from("stable_items").select("item_id,data").eq("bucket",HARD_DELETE_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const lock = row.data || {};
+        if(lock.bucket && lock.itemId){
+          locks[hdKey(lock.bucket,lock.itemId)] = lock;
+        }
+      });
+      hdSave(locks);
+    }catch(e){
+      console.warn("Could not load hard-delete locks", e);
+    }
+  }
+
+  async function hdSaveRemote(){
+    if(!sb) return;
+    const rows = Object.values(hdLoad()).map(lock=>({
+      bucket:HARD_DELETE_BUCKET,
+      item_id:hdKey(lock.bucket,lock.itemId),
+      data:lock,
+      updated_at:new Date().toISOString()
+    }));
+    for(let i=0;i<rows.length;i+=80){
+      const batch = rows.slice(i,i+80);
+      if(!batch.length) continue;
+      try{
+        const {error} = await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+        if(error) throw error;
+      }catch(e){
+        console.warn("Could not save hard-delete locks", e);
+      }
+    }
+  }
+
+  async function hdDeleteRemoteRowsForLocks(){
+    if(!sb) return;
+    const locks = Object.values(hdLoad());
+    const byBucket = {};
+    locks.forEach(lock=>{
+      if(!byBucket[lock.bucket]) byBucket[lock.bucket] = [];
+      byBucket[lock.bucket].push(String(lock.itemId));
+    });
+
+    for(const bucket of Object.keys(byBucket)){
+      const ids = [...new Set(byBucket[bucket])];
+      for(let i=0;i<ids.length;i+=80){
+        const batch = ids.slice(i,i+80);
+        try{
+          await sb.from("stable_items").delete().eq("bucket",bucket).in("item_id",batch);
+        }catch(e){ console.warn("Could not delete locked remote rows", bucket, e); }
+      }
+    }
+
+    // Delete dependent stable_items rows by JSON data fields.
+    const quizIds = [...hdIds("quizzes")];
+    const docIds = [...hdIds("docAssignments")];
+    const studentIds = [...hdIds("students")];
+
+    for(const id of quizIds){
+      try{ await sb.from("stable_items").delete().eq("bucket","submissions").filter("data->>quizId","eq",String(id)); }catch(e){}
+    }
+    for(const id of docIds){
+      try{ await sb.from("stable_items").delete().eq("bucket","docSubmissions").filter("data->>assignmentId","eq",String(id)); }catch(e){}
+    }
+    for(const id of studentIds){
+      for(const bucket of ["submissions","docSubmissions","reportScores","reportComments","scores","passwordShares","messages","chatMessages","studentMessages"]){
+        try{ await sb.from("stable_items").delete().eq("bucket",bucket).filter("data->>studentId","eq",String(id)); }catch(e){}
+      }
+    }
+  }
+
+  async function hdWriteCleanAppStateBackup(){
+    if(!sb) return;
+    try{
+      // This prevents old app_state/main from reintroducing deleted quizzes/items.
+      await sb.from("app_state").upsert({id:"main",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){
+      console.warn("Could not update app_state cleanup backup", e);
+    }
+  }
+
+  async function hdEnforceRemoteAndLocal(){
+    await hdLoadRemote();
+    hdPurgeState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await hdDeleteRemoteRowsForLocks();
+    await hdSaveRemote();
+    await hdWriteCleanAppStateBackup();
+  }
+
+  async function hdHardDelete(bucket, id, reason){
+    hdAdd(bucket,[id],reason);
+    hdPurgeState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await hdDeleteRemoteRowsForLocks();
+    await hdSaveRemote();
+    await hdWriteCleanAppStateBackup();
+    try{
+      if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+      else if(sb && typeof pushRemote==="function") await pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("Hard delete remote write skipped", e); }
+    await hdDeleteRemoteRowsForLocks();
+    await hdSaveRemote();
+    await hdWriteCleanAppStateBackup();
+  }
+
+  // Final override: deleting a quiz deletes it everywhere and prevents return after refresh.
+  window.deleteQuiz = async function(id){
+    if(!confirm("Delete this quiz completely from admin portal, student portal, submissions, results and printouts?")) return;
+    await hdHardDelete("quizzes", id, "delete_quiz");
+    alert("Quiz deleted permanently. It will not return after refresh.");
+    if(typeof quizzes==="function") quizzes();
+  };
+
+  // Final override: deleting a theory/scanned assignment deletes it everywhere.
+  window.deleteDocAssignment = async function(id){
+    if(!confirm("Delete this theory/scanned assignment completely from admin portal, student portal, submissions, results and printouts?")) return;
+    await hdHardDelete("docAssignments", id, "delete_doc_assignment");
+    alert("Theory/scanned assignment deleted permanently. It will not return after refresh.");
+    if(typeof quizzes==="function") quizzes();
+  };
+
+  // Optional helper for deleted students/classes if other delete buttons exist.
+  window.hardDeleteStudentPermanently = async function(id){
+    if(!confirm("Delete this student permanently from everywhere?")) return;
+    await hdHardDelete("students", id, "delete_student");
+    alert("Student deleted permanently.");
+    if(typeof students==="function") students();
+  };
+
+  // Patch refresh: refresh button must only reload the web page, not restore or pull old data.
+  window.studentPortalHardRefresh = function(){
+    window.location.reload();
+  };
+
+  // Patch restore: must request admin password.
+  window.restoreBackup = function(file){
+    if(!file) return;
+    const pass = prompt("Enter admin password before restoring the application:");
+    if(pass !== (state.settings?.adminPass || "")){
+      alert("Wrong admin password. Restore cancelled.");
+      try{ document.querySelectorAll('input[type="file"]').forEach(x=>x.value=""); }catch(e){}
+      return;
+    }
+    if(!confirm("Restoring replaces current data. Continue?")) return;
+    const r = new FileReader();
+    r.onload = async ()=>{
+      try{
+        state = JSON.parse(r.result);
+        await hdLoadRemote();
+        hdPurgeState();
+        try{ if(typeof normalize==="function") normalize(); }catch(e){}
+        try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+        if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+        else if(typeof save==="function") save();
+        alert("Backup restored securely.");
+        if(typeof renderShell==="function") renderShell();
+      }catch(e){ alert("Invalid backup file."); }
+    };
+    r.readAsText(file);
+  };
+
+  // Patch remote pull so deleted quizzes/items are removed again before display.
+  if(typeof window.stablePullRemote === "function"){
+    const oldStablePullHard = window.stablePullRemote;
+    window.stablePullRemote = async function(){
+      await hdLoadRemote();
+      const result = await oldStablePullHard.apply(this, arguments);
+      await hdEnforceRemoteAndLocal();
+      return result;
+    };
+  }
+
+  // Patch old pullRemote if present.
+  if(typeof window.pullRemote === "function"){
+    const oldPullRemoteHard = window.pullRemote;
+    window.pullRemote = async function(){
+      await hdLoadRemote();
+      const result = await oldPullRemoteHard.apply(this, arguments);
+      await hdEnforceRemoteAndLocal();
+      return result;
+    };
+  }
+
+  // Patch save/push/stable write: never upload locked/deleted items.
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const oldStableWriteHard = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      hdPurgeState();
+      const result = await oldStableWriteHard.apply(this, arguments);
+      await hdDeleteRemoteRowsForLocks();
+      await hdSaveRemote();
+      await hdWriteCleanAppStateBackup();
+      return result;
+    };
+  }
+
+  if(typeof window.pushRemote === "function"){
+    const oldPushHard = window.pushRemote;
+    window.pushRemote = async function(){
+      hdPurgeState();
+      const result = await oldPushHard.apply(this, arguments);
+      await hdDeleteRemoteRowsForLocks();
+      await hdSaveRemote();
+      await hdWriteCleanAppStateBackup();
+      return result;
+    };
+  }
+
+  const oldSaveHard = window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSaveHard === "function"){
+    window.save = function(){
+      hdPurgeState();
+      return oldSaveHard.apply(this, arguments);
+    };
+  }
+
+  // Patch print/preview/review/student quiz display: deleted items never show.
+  if(typeof window.renderReviewPrintPreview === "function"){
+    const oldPreviewHard = window.renderReviewPrintPreview;
+    window.renderReviewPrintPreview = function(){
+      hdPurgeState();
+      return oldPreviewHard.apply(this, arguments);
+    };
+  }
+  if(typeof window.printSubmittedWorkListPDF === "function"){
+    const oldPrintHard = window.printSubmittedWorkListPDF;
+    window.printSubmittedWorkListPDF = function(){
+      hdPurgeState();
+      return oldPrintHard.apply(this, arguments);
+    };
+  }
+  if(typeof window.availableQuizzes === "function"){
+    const oldAvailableQuizzes = window.availableQuizzes;
+    window.availableQuizzes = function(){
+      hdPurgeState();
+      return oldAvailableQuizzes.apply(this, arguments).filter(q=>!hdIds("quizzes").has(String(q.id)));
+    };
+  }
+
+  const oldRenderShellHard = window.renderShell;
+  if(typeof oldRenderShellHard === "function"){
+    window.renderShell = function(){
+      hdPurgeState();
+      const result = oldRenderShellHard.apply(this, arguments);
+      setTimeout(injectPermanentDeletePanel,80);
+      return result;
+    };
+  }
+
+  const oldQuizzesHard = window.quizzes || (typeof quizzes==="function" ? quizzes : null);
+  if(typeof oldQuizzesHard === "function"){
+    window.quizzes = function(){
+      hdPurgeState();
+      const result = oldQuizzesHard.apply(this, arguments);
+      setTimeout(injectPermanentDeletePanel,80);
+      return result;
+    };
+  }
+
+  const oldDashboardHard = window.dashboard || (typeof dashboard==="function" ? dashboard : null);
+  if(typeof oldDashboardHard === "function"){
+    window.dashboard = function(){
+      hdPurgeState();
+      const result = oldDashboardHard.apply(this, arguments);
+      setTimeout(injectPermanentDeletePanel,80);
+      return result;
+    };
+  }
+
+  window.runPermanentDeleteCleanupNow = async function(){
+    await hdEnforceRemoteAndLocal();
+    hdPurgeState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{ if(typeof recalculateLiveDashboardStats==="function") recalculateLiveDashboardStats(); }catch(e){}
+    alert("Permanent delete cleanup completed. Deleted items will not return after refresh.");
+    if(typeof renderShell==="function") renderShell();
+  };
+
+  function permanentDeletePanelHTML(){
+    const locks = Object.values(hdLoad()).length;
+    return `<div id="permanentDeletePanel" class="permanentDeletePanel">
+      <h2>Permanent Delete Protection</h2>
+      <p>Once you delete a quiz, theory/scanned assignment, student, or class, it is locked and removed from admin portal, student portal, submissions, results and printouts. Refresh will not restore it.</p>
+      <div class="permanentDeleteActions">
+        <button class="red" onclick="runPermanentDeleteCleanupNow()">Run Permanent Delete Cleanup</button>
+        <button class="navy" onclick="window.location.reload()">Refresh Web Page Only</button>
+      </div>
+      <div id="permanentDeleteStatus" class="permanentDeleteStatus">${locks} permanent delete lock(s) saved.</div>
+    </div>`;
+  }
+
+  window.injectPermanentDeletePanel = function(){
+    if(role !== "admin" || !["dashboard","quizzes","review","students"].includes(route)) return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("permanentDeletePanel")) return;
+    view.insertAdjacentHTML("afterbegin", permanentDeletePanelHTML());
+  };
+
+  // Startup enforcement before the user sees restored old records.
+  setTimeout(async ()=>{
+    await hdEnforceRemoteAndLocal();
+    injectPermanentDeletePanel();
+    hdStatus("Permanent delete protection is active.");
+  }, 900);
+
+  try{
+    eval("deleteQuiz=window.deleteQuiz; deleteDocAssignment=window.deleteDocAssignment; hardDeleteStudentPermanently=window.hardDeleteStudentPermanently; studentPortalHardRefresh=window.studentPortalHardRefresh; restoreBackup=window.restoreBackup; stablePullRemote=window.stablePullRemote; pullRemote=window.pullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; pushRemote=window.pushRemote; save=window.save; renderShell=window.renderShell; quizzes=window.quizzes; dashboard=window.dashboard; availableQuizzes=window.availableQuizzes; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; runPermanentDeleteCleanupNow=window.runPermanentDeleteCleanupNow; injectPermanentDeletePanel=window.injectPermanentDeletePanel;");
   }catch(e){}
 })();
 
