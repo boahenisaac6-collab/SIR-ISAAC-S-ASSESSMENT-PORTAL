@@ -7790,6 +7790,33 @@ html,body{
   .directClassDeletePanel{display:none!important}
 }
 
+
+/* ===== REMOVE DELETED SCANNED ADMIN CARDS FIX ===== */
+.deletedScannedToolbar{
+  border:1px solid #ffd4d0;
+  background:#fff8f7;
+  border-radius:16px;
+  padding:10px;
+  margin:0 0 12px;
+  color:#b42318;
+  font-weight:850;
+  line-height:1.45;
+}
+.deletedScannedToolbar button{
+  margin-top:8px;
+  border:1px solid #ffd4d0;
+  background:#fff1f0;
+  color:#b42318;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.quizManageCard[data-deleted-scanned="true"],
+.docAssignmentCard[data-deleted-scanned="true"]{
+  display:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -24173,6 +24200,354 @@ async function initSupabase(){
 
   try{
     eval("renderDirectClassDeleteList=window.renderDirectClassDeleteList; deleteDirectSelectedStudents=window.deleteDirectSelectedStudents; deleteDirectEntireClass=window.deleteDirectEntireClass; injectDirectClassDeletePanel=window.injectDirectClassDeletePanel; injectClassControlPanel=window.injectClassControlPanel; sealAndRestore1G3BClass=window.sealAndRestore1G3BClass; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; dashboard=window.dashboard; students=window.students; studentLogin=window.studentLogin; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; review=window.review; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== REMOVE DELETED SCANNED ADMIN CARDS FIX V1 =====
+   This fixes the issue where scanned/theory assignments marked "Deleted"
+   still show inside Admin Mode → Manage Scanned / Theory Work.
+   Deleted cards are removed from admin view, student portal, active printouts,
+   and stable online rows. A small cleanup button is also provided inside the
+   scanned/theory management section.
+*/
+(function(){
+  const RD_BUCKET = "__removed_deleted_scanned_admin_v1__";
+  const RD_LOCAL = "amest_removed_deleted_scanned_admin_v1";
+  const ANN_KEYS = [
+    "announcements","assignmentNotifications","classMessages","teacherMessages",
+    "studentAnnouncements","studentPortalAnnouncements","notifications","notices",
+    "portalNotices","exerciseNotices","assignmentNotices"
+  ];
+  let rdBusy = false;
+  let rdSaving = false;
+
+  function rdNow(){ return new Date().toISOString(); }
+  function rdKey(id){ return "docAssignments::"+String(id); }
+  function rdEsc(v){
+    try{ if(typeof sqEsc==="function") return sqEsc(v); }catch(e){}
+    try{ if(typeof esc==="function") return esc(v); }catch(e){}
+    return String(v ?? "");
+  }
+  function rdComponentOptions(v){
+    try{ if(typeof sqComponentOptions==="function") return sqComponentOptions(v); }catch(e){}
+    return `<option value="${rdEsc(v||"ex1")}">${rdEsc(v||"Exercise 1")}</option>`;
+  }
+  function rdLoad(){
+    let reg = {};
+    try{ reg = JSON.parse(localStorage.getItem(RD_LOCAL) || "{}") || {}; }catch(e){}
+    try{
+      (state._removedDeletedScannedAdmin || []).forEach(x=>{
+        if(x && x.itemId) reg[rdKey(x.itemId)] = x;
+      });
+    }catch(e){}
+    return reg;
+  }
+  function rdSave(reg){
+    try{ localStorage.setItem(RD_LOCAL, JSON.stringify(reg || {})); }catch(e){}
+    state._removedDeletedScannedAdmin = Object.values(reg || {});
+  }
+  function rdAdd(item, reason="deleted_scanned_removed"){
+    if(!item || !item.id) return;
+    const reg = rdLoad();
+    reg[rdKey(item.id)] = {
+      bucket:"docAssignments",
+      itemId:String(item.id),
+      title:item.title || "",
+      reason,
+      removedAt:rdNow()
+    };
+    rdSave(reg);
+  }
+  function rdIds(){
+    return new Set(Object.values(rdLoad()).map(x=>String(x.itemId)));
+  }
+  function rdIsDeletedDoc(a){
+    if(!a) return false;
+    const status = String(a.status || "").toLowerCase().trim();
+    return status === "deleted" || status === "removed" || a.deleted || a.isDeleted || a._deletedHidden || rdIds().has(String(a.id));
+  }
+  function rdEnsureArchives(){
+    state.archivedDocAssignments = Array.isArray(state.archivedDocAssignments) ? state.archivedDocAssignments : [];
+    state.archivedDocSubmissions = Array.isArray(state.archivedDocSubmissions) ? state.archivedDocSubmissions : [];
+  }
+  function rdUniquePush(arr,item,keyFn){
+    if(!item) return;
+    const key = keyFn(item);
+    if(!arr.some(x=>keyFn(x)===key)) arr.push(item);
+  }
+  function rdRemoveRelatedAnnouncements(item){
+    const title = String(item?.title || item?.name || "").toLowerCase();
+    const id = String(item?.id || "").toLowerCase();
+    const words = title.split(/\s+/).filter(w=>w.length>=3);
+    ANN_KEYS.forEach(k=>{
+      if(!Array.isArray(state[k])) return;
+      state[k] = state[k].filter(a=>{
+        const joined = String((a.title||a.heading||"") + " " + (a.body||a.message||a.text||a.instructions||"")).toLowerCase();
+        if(id && joined.includes(id)) return false;
+        if(title && joined.includes(title)) return false;
+        if(words.some(w=>joined.includes(w))) return false;
+        if(joined.includes("new assignment") || joined.includes("exercise uploaded") || joined.includes("scanned") || joined.includes("theory work")) return false;
+        return true;
+      });
+    });
+  }
+  function rdPurgeState(){
+    if(rdBusy) return;
+    rdBusy = true;
+    try{
+      rdEnsureArchives();
+      const removedIds = rdIds();
+      const nextDocs = [];
+      (state.docAssignments || []).forEach(a=>{
+        if(rdIsDeletedDoc(a)){
+          rdAdd(a, "deleted_status_hidden_from_admin");
+          removedIds.add(String(a.id));
+          rdUniquePush(state.archivedDocAssignments, Object.assign({},a,{_removedFromAdmin:true,_archivedAt:rdNow()}), x=>String(x.id));
+          rdRemoveRelatedAnnouncements(a);
+        }else{
+          nextDocs.push(a);
+        }
+      });
+      state.docAssignments = nextDocs;
+
+      const nextSubs = [];
+      (state.docSubmissions || []).forEach(ds=>{
+        if(removedIds.has(String(ds.assignmentId))){
+          rdUniquePush(state.archivedDocSubmissions, Object.assign({},ds,{_removedAssignmentId:ds.assignmentId,_archivedAt:rdNow()}), x=>String(x.id || (x.assignmentId+"_"+x.studentId+"_"+(x.submittedAt||""))));
+        }else{
+          nextSubs.push(ds);
+        }
+      });
+      state.docSubmissions = nextSubs;
+
+      // Remove orphan active doc submissions from printouts.
+      const activeDocIds = new Set((state.docAssignments || []).map(a=>String(a.id)));
+      state.docSubmissions = (state.docSubmissions || []).filter(ds=>activeDocIds.has(String(ds.assignmentId)));
+
+      state._removedDeletedScannedAdmin = Object.values(rdLoad());
+    }finally{
+      rdBusy = false;
+    }
+  }
+  async function rdLoadRemote(){
+    if(!sb) return;
+    const reg = rdLoad();
+    try{
+      const {data,error}=await sb.from("stable_items").select("item_id,data").eq("bucket",RD_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const lock = row.data || {};
+        if(lock && lock.itemId) reg[rdKey(lock.itemId)] = lock;
+      });
+      rdSave(reg);
+    }catch(e){ console.warn("Could not load removed scanned registry", e); }
+  }
+  async function rdSaveRemote(){
+    if(!sb) return;
+    const rows = Object.values(rdLoad()).map(lock=>({
+      bucket:RD_BUCKET,
+      item_id:rdKey(lock.itemId),
+      data:lock,
+      updated_at:new Date().toISOString()
+    }));
+    for(let i=0;i<rows.length;i+=80){
+      const batch = rows.slice(i,i+80);
+      if(!batch.length) continue;
+      try{
+        const {error}=await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+        if(error) throw error;
+      }catch(e){ console.warn("Could not save removed scanned registry", e); }
+    }
+  }
+  async function rdDeleteRemoteRows(){
+    if(!sb) return;
+    for(const id of [...rdIds()]){
+      try{ await sb.from("stable_items").delete().eq("bucket","docAssignments").eq("item_id",String(id)); }catch(e){}
+      try{ await sb.from("stable_items").delete().eq("bucket","docSubmissions").filter("data->>assignmentId","eq",String(id)); }catch(e){}
+    }
+    // Related announcements are also removed.
+    for(const bucket of ANN_KEYS){
+      try{ await sb.from("stable_items").delete().eq("bucket",bucket); }catch(e){}
+    }
+  }
+  async function rdWriteCleanAppState(){
+    if(!sb) return;
+    try{
+      await sb.from("app_state").upsert({id:"main",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){ console.warn("Could not write clean app_state after removing scanned cards", e); }
+  }
+  async function rdPersist(){
+    if(rdSaving){ rdPurgeState(); return; }
+    rdSaving = true;
+    try{
+      await rdLoadRemote();
+      rdPurgeState();
+      try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+      await rdDeleteRemoteRows();
+      await rdSaveRemote();
+      try{
+        if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+        else if(sb && typeof pushRemote==="function") await pushRemote();
+        else if(typeof save==="function") save();
+      }catch(e){ console.warn("Main save skipped in remove-deleted-scanned fix", e); }
+      await rdDeleteRemoteRows();
+      await rdSaveRemote();
+      await rdWriteCleanAppState();
+    }finally{
+      rdSaving = false;
+    }
+  }
+
+  window.removeDeletedScannedAssignmentsNow = async function(){
+    await rdPersist();
+    alert("Deleted scanned/theory assignments have been removed from the admin view.");
+    if(typeof quizzes==="function") quizzes();
+  };
+
+  window.removeScannedAssignmentFromAdminView = async function(id){
+    const a = (state.docAssignments || []).find(x=>String(x.id)===String(id)) || {id,title:"Deleted assignment"};
+    if(!confirm("Remove this deleted scanned/theory assignment from the admin view?")) return;
+    rdAdd(a, "manual_remove_from_admin_view");
+    await rdPersist();
+    if(typeof quizzes==="function") quizzes();
+  };
+
+  // Strong delete override for scanned work.
+  window.deleteScannedAssignment = async function(id){
+    const a = (state.docAssignments || []).find(x=>String(x.id)===String(id));
+    if(!a) return;
+    if(!confirm("Delete this scanned/theory assignment?\n\n"+(a.title||"Selected assignment")+"\n\nIt will be removed from the student portal and admin scanned-work list.")) return;
+    rdAdd(a, "admin_delete_scanned_assignment");
+    rdRemoveRelatedAnnouncements(a);
+    await rdPersist();
+    alert("Scanned/theory assignment deleted and removed from the admin view.");
+    if(typeof quizzes==="function") quizzes();
+  };
+
+  // Also cover the older doc-assignment delete name.
+  window.deleteDocAssignment = window.deleteScannedAssignment;
+
+  // Override active scanned management so deleted items are not shown.
+  window.scannedManagementHTML = function(){
+    rdPurgeState();
+    const removedCount = rdIds().size;
+    const items = (state.docAssignments || []).filter(a=>!rdIsDeletedDoc(a));
+    return `<div>${removedCount?`<div class="deletedScannedToolbar">Deleted scanned/theory assignments have been removed from this view.<br><button onclick="removeDeletedScannedAssignmentsNow()">Clean Deleted Scanned/Theory Items Again</button></div>`:""}<div class="quizManageGrid">${items.map(a=>{
+      const subs=(state.docSubmissions||[]).filter(s=>String(s.assignmentId)===String(a.id));
+      const published=subs.filter(s=>s.published).length;
+      const comp=a.assessmentComponent||"ex1";
+      return `<div class="quizManageCard">
+        <h3>${rdEsc(a.title)}</h3>
+        <span class="quizStatusPill ${a.status==="Published"?'published':'draft'}">${rdEsc(a.status||"Draft")}</span>
+        <p><b>Type:</b> Scanned/Theory Work<br><b>Subject:</b> ${rdEsc(a.subject)}<br><b>Classes:</b> ${rdEsc((a.classNames||[]).join(", "))}<br><b>Max score:</b> ${a.maxScore}<br><b>Submissions:</b> ${subs.length}; <b>Published marks:</b> ${published}</p>
+        ${a.questionFile ? `<div class="scannedQuestionView"><b>Question file:</b> ${rdEsc(a.questionFile.name||"Uploaded question")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a href="${a.questionFile.data}" target="_blank">Open uploaded question file</a></p>`}</div>` : ""}
+        <label style="font-size:11px;text-transform:uppercase;color:#667085;font-weight:950">Send marks to cumulative record</label>
+        <select id="doc_component_${a.id}" class="assessmentSelectInline">${rdComponentOptions(comp)}</select>
+        <div class="simpleActionRow">
+          <button class="${a.status==="Published"?'light':'green'}" onclick="toggleScannedAssignmentPublish('${a.id}')">${a.status==="Published"?"Hide":"Publish"}</button>
+          <button class="gold" onclick="publishScannedResults('${a.id}')">Publish Marks</button>
+          <button class="navy" onclick="assignScannedScoresClicked('${a.id}')">Assign Scores</button>
+          <button class="red" onclick="deleteScannedAssignment('${a.id}')">Delete</button>
+        </div>
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory assignment yet.</div>`}</div></div>`;
+  };
+
+  // Wrap the quiz page so it always cleans before display.
+  const oldQuizzesRemoveDeletedScanned = window.quizzes;
+  if(typeof oldQuizzesRemoveDeletedScanned === "function"){
+    window.quizzes = function(){
+      rdPurgeState();
+      const result = oldQuizzesRemoveDeletedScanned.apply(this, arguments);
+      setTimeout(()=>{
+        rdPurgeState();
+        document.querySelectorAll(".quizManageCard").forEach(card=>{
+          const txt = (card.textContent||"").toLowerCase();
+          if(txt.includes("scanned/theory work") && txt.includes("deleted")){
+            card.remove();
+          }
+        });
+      },80);
+      return result;
+    };
+  }
+
+  // Student portal must not see removed scanned work.
+  if(typeof window.availableDocAssignments === "function"){
+    const oldAvailableDocs = window.availableDocAssignments;
+    window.availableDocAssignments = function(){
+      rdPurgeState();
+      return oldAvailableDocs.apply(this, arguments).filter(a=>!rdIsDeletedDoc(a));
+    };
+  }
+
+  // Review and printout must not include removed scanned work.
+  ["review","renderReviewPrintPreview","printSubmittedWorkListPDF","studentQuizzes","studentResults"].forEach(fn=>{
+    const old = window[fn];
+    if(typeof old === "function"){
+      window[fn] = function(){
+        rdPurgeState();
+        return old.apply(this, arguments);
+      };
+    }
+  });
+
+  // Remote sync wrappers.
+  if(typeof window.stablePullRemote === "function"){
+    const oldPull = window.stablePullRemote;
+    window.stablePullRemote = async function(){
+      await rdLoadRemote();
+      const result = await oldPull.apply(this, arguments);
+      await rdPersist();
+      return result;
+    };
+  }
+  if(typeof window.pushRemote === "function"){
+    const oldPush = window.pushRemote;
+    window.pushRemote = async function(){
+      rdPurgeState();
+      const result = await oldPush.apply(this, arguments);
+      await rdDeleteRemoteRows();
+      await rdSaveRemote();
+      await rdWriteCleanAppState();
+      return result;
+    };
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const oldWrite = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      rdPurgeState();
+      const result = await oldWrite.apply(this, arguments);
+      await rdDeleteRemoteRows();
+      await rdSaveRemote();
+      await rdWriteCleanAppState();
+      return result;
+    };
+  }
+  const oldSave = window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSave === "function"){
+    window.save = function(){
+      rdPurgeState();
+      return oldSave.apply(this, arguments);
+    };
+  }
+  const oldRenderShell = window.renderShell;
+  if(typeof oldRenderShell === "function"){
+    window.renderShell = function(){
+      rdPurgeState();
+      return oldRenderShell.apply(this, arguments);
+    };
+  }
+
+  // Startup cleanup: this removes the two deleted cards shown in the screenshot.
+  setTimeout(()=>{ rdPersist().then(()=>{ if(route==="quizzes" && typeof quizzes==="function") quizzes(); }); }, 800);
+  setTimeout(()=>{ rdPersist(); }, 2500);
+
+  try{
+    eval("scannedManagementHTML=window.scannedManagementHTML; deleteScannedAssignment=window.deleteScannedAssignment; deleteDocAssignment=window.deleteDocAssignment; removeDeletedScannedAssignmentsNow=window.removeDeletedScannedAssignmentsNow; removeScannedAssignmentFromAdminView=window.removeScannedAssignmentFromAdminView; quizzes=window.quizzes; availableDocAssignments=window.availableDocAssignments; review=window.review; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
