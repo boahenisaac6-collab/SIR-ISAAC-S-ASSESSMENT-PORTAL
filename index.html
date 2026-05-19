@@ -7525,6 +7525,17 @@ html,body{
   line-height:1.45;
 }
 
+
+/* ===== FINAL BACKGROUND DELETE ENGINE - HIDE OLD DELETE PANELS ===== */
+.permanentDeletePanel,
+#permanentDeletePanel,
+.smartCleanPanel,
+#smartCleanPanel,
+.mergeLockPanel,
+#mergeLockPanel{
+  display:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -21198,6 +21209,441 @@ async function initSupabase(){
 
   try{
     eval("deleteQuiz=window.deleteQuiz; deleteDocAssignment=window.deleteDocAssignment; hardDeleteStudentPermanently=window.hardDeleteStudentPermanently; studentPortalHardRefresh=window.studentPortalHardRefresh; restoreBackup=window.restoreBackup; stablePullRemote=window.stablePullRemote; pullRemote=window.pullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; pushRemote=window.pushRemote; save=window.save; renderShell=window.renderShell; quizzes=window.quizzes; dashboard=window.dashboard; availableQuizzes=window.availableQuizzes; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; runPermanentDeleteCleanupNow=window.runPermanentDeleteCleanupNow; injectPermanentDeletePanel=window.injectPermanentDeletePanel;");
+  }catch(e){}
+})();
+
+
+
+/* ===== FINAL BACKGROUND DELETE ENGINE V1 =====
+   Background-only fix:
+   - Deleted quizzes/doc assignments are archived/locked and removed from active views.
+   - Refresh App only reloads the page; it does not restore old records.
+   - Restore Backup requires admin password.
+   - Deleted assignments/quizzes do not appear in student portal, admin quiz builder, review printout, or active submissions.
+   - Submitted records are only permanently deleted if the admin chooses to delete the records during deletion.
+*/
+(function(){
+  const FINAL_REGISTRY_BUCKET = "__final_deleted_registry_v1__";
+  const FINAL_LOCAL_KEY = "amest_final_deleted_registry_v1";
+  let finalDeleting = false;
+
+  function fdNow(){ return new Date().toISOString(); }
+  function fdKey(bucket,id){ return String(bucket)+"::"+String(id); }
+  function fdLoad(){
+    let out = {};
+    try{ out = JSON.parse(localStorage.getItem(FINAL_LOCAL_KEY) || "{}") || {}; }catch(e){ out = {}; }
+    try{
+      (state._finalDeletedRegistry || []).forEach(lock=>{
+        if(lock && lock.bucket && lock.itemId) out[fdKey(lock.bucket, lock.itemId)] = lock;
+      });
+    }catch(e){}
+    return out;
+  }
+  function fdSave(reg){
+    try{ localStorage.setItem(FINAL_LOCAL_KEY, JSON.stringify(reg || {})); }catch(e){}
+    state._finalDeletedRegistry = Object.values(reg || {});
+  }
+  function fdAdd(bucket, id, opts={}){
+    const reg = fdLoad();
+    reg[fdKey(bucket,id)] = {
+      bucket,
+      itemId:String(id),
+      reason:opts.reason || "deleted",
+      keepRecords:!!opts.keepRecords,
+      deleteRecords:!!opts.deleteRecords,
+      deletedAt:fdNow()
+    };
+    fdSave(reg);
+    return reg[fdKey(bucket,id)];
+  }
+  function fdIds(bucket){
+    return new Set(Object.values(fdLoad()).filter(x=>x.bucket===bucket).map(x=>String(x.itemId)));
+  }
+  function fdLock(bucket,id){
+    return fdLoad()[fdKey(bucket,id)] || null;
+  }
+  function fdEnsureArchives(){
+    state.archivedSubmissions = Array.isArray(state.archivedSubmissions) ? state.archivedSubmissions : [];
+    state.archivedDocSubmissions = Array.isArray(state.archivedDocSubmissions) ? state.archivedDocSubmissions : [];
+    state.archivedQuizzes = Array.isArray(state.archivedQuizzes) ? state.archivedQuizzes : [];
+    state.archivedDocAssignments = Array.isArray(state.archivedDocAssignments) ? state.archivedDocAssignments : [];
+  }
+  function fdArchiveUnique(arr, item, keyFn){
+    if(!item) return;
+    const key = keyFn(item);
+    if(!arr.some(x=>keyFn(x)===key)) arr.push(item);
+  }
+  function fdPurgeState(){
+    if(finalDeleting) return;
+    finalDeleting = true;
+    try{
+      fdEnsureArchives();
+
+      const quizLocks = fdIds("quizzes");
+      const docLocks = fdIds("docAssignments");
+      const studentLocks = fdIds("students");
+      const classLocks = fdIds("classes");
+
+      if(quizLocks.size){
+        const remainingQuizzes = [];
+        (state.quizzes||[]).forEach(q=>{
+          if(quizLocks.has(String(q.id))){
+            fdArchiveUnique(state.archivedQuizzes, Object.assign({}, q, {_deletedHidden:true, _archivedAt:fdNow()}), x=>String(x.id));
+          }else{
+            remainingQuizzes.push(q);
+          }
+        });
+        state.quizzes = remainingQuizzes;
+
+        const remainingSubs = [];
+        (state.submissions||[]).forEach(s=>{
+          const lock = fdLock("quizzes", s.quizId);
+          if(lock){
+            if(lock.keepRecords){
+              fdArchiveUnique(state.archivedSubmissions, Object.assign({}, s, {_deletedQuizId:s.quizId, _archivedAt:fdNow()}), x=>String(x.id || (x.quizId+"_"+x.studentId+"_"+(x.submittedAt||""))));
+            }
+          }else remainingSubs.push(s);
+        });
+        state.submissions = remainingSubs;
+      }
+
+      if(docLocks.size){
+        const remainingDocs = [];
+        (state.docAssignments||[]).forEach(a=>{
+          if(docLocks.has(String(a.id))){
+            fdArchiveUnique(state.archivedDocAssignments, Object.assign({}, a, {_deletedHidden:true, _archivedAt:fdNow()}), x=>String(x.id));
+          }else{
+            remainingDocs.push(a);
+          }
+        });
+        state.docAssignments = remainingDocs;
+
+        const remainingDocSubs = [];
+        (state.docSubmissions||[]).forEach(ds=>{
+          const lock = fdLock("docAssignments", ds.assignmentId);
+          if(lock){
+            if(lock.keepRecords){
+              fdArchiveUnique(state.archivedDocSubmissions, Object.assign({}, ds, {_deletedAssignmentId:ds.assignmentId, _archivedAt:fdNow()}), x=>String(x.id || (x.assignmentId+"_"+x.studentId+"_"+(x.submittedAt||""))));
+            }
+          }else remainingDocSubs.push(ds);
+        });
+        state.docSubmissions = remainingDocSubs;
+      }
+
+      if(studentLocks.size){
+        state.students = (state.students||[]).filter(s=>!studentLocks.has(String(s.id)));
+        state.submissions = (state.submissions||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+        state.docSubmissions = (state.docSubmissions||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+        state.reportScores = (state.reportScores||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+        state.reportComments = (state.reportComments||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+        state.scores = (state.scores||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+        state.passwordShares = (state.passwordShares||[]).filter(s=>!studentLocks.has(String(s.studentId)));
+      }
+
+      if(classLocks.size){
+        state.classes = (state.classes||[]).filter((c,i)=>!classLocks.has(String(c)) && !classLocks.has("classes_"+i));
+      }
+
+      // Remove orphan active submissions from active printouts/lists.
+      const activeQuizIds = new Set((state.quizzes||[]).map(q=>String(q.id)));
+      const activeDocIds = new Set((state.docAssignments||[]).map(a=>String(a.id)));
+      state.submissions = (state.submissions||[]).filter(s=>activeQuizIds.has(String(s.quizId)));
+      state.docSubmissions = (state.docSubmissions||[]).filter(ds=>activeDocIds.has(String(ds.assignmentId)));
+
+      // Auto merge repeated students in same class quietly.
+      fdAutoMergeDuplicates();
+
+      state._finalDeletedRegistry = Object.values(fdLoad());
+    }finally{
+      finalDeleting = false;
+    }
+  }
+
+  function fdCleanName(name){
+    return String(name||"").toLowerCase().normalize("NFKD").replace(/\s+/g," ").replace(/[^\p{L}\p{N}\s]/gu,"").trim();
+  }
+  function fdStudentClass(s){ return String(s?.className || s?.class || "").trim(); }
+  function fdDataScore(s){
+    let score = 0;
+    ["photo","phone","password","studentPassword","code","gender","className","guardian"].forEach(k=>{ if(String(s?.[k] ?? "").trim()) score += 10; });
+    const id = s?.id;
+    if(id){
+      score += (state.submissions||[]).filter(x=>String(x.studentId)===String(id)).length * 40;
+      score += (state.docSubmissions||[]).filter(x=>String(x.studentId)===String(id)).length * 40;
+      score += (state.reportScores||[]).filter(x=>String(x.studentId)===String(id)).length * 25;
+      score += (state.scores||[]).filter(x=>String(x.studentId)===String(id)).length * 25;
+    }
+    return score;
+  }
+  function fdMergeObj(keep, remove){
+    Object.keys(remove||{}).forEach(k=>{
+      if(k==="id") return;
+      const empty = keep[k]===undefined || keep[k]===null || String(keep[k]).trim()==="";
+      const has = remove[k]!==undefined && remove[k]!==null && String(remove[k]).trim()!=="";
+      if(empty && has) keep[k] = remove[k];
+    });
+  }
+  function fdReplaceStudentIdDeep(obj, fromId, toId){
+    if(!obj || typeof obj !== "object") return;
+    if(Array.isArray(obj)){ obj.forEach(x=>fdReplaceStudentIdDeep(x,fromId,toId)); return; }
+    Object.keys(obj).forEach(k=>{
+      if(k==="students") return;
+      const v = obj[k];
+      if(["studentId","senderId","receiverId","toStudentId","fromStudentId"].includes(k) && String(v)===String(fromId)){
+        obj[k]=toId;
+      }else if(v && typeof v==="object"){
+        fdReplaceStudentIdDeep(v,fromId,toId);
+      }
+    });
+  }
+  function fdAutoMergeDuplicates(){
+    if(!Array.isArray(state.students)) state.students = [];
+    const map = new Map();
+    state.students.forEach(s=>{
+      const key = fdCleanName(s.name)+"||"+fdStudentClass(s).toLowerCase();
+      if(!key || key==="||") return;
+      if(!map.has(key)) map.set(key,[]);
+      map.get(key).push(s);
+    });
+    const losers = [];
+    [...map.values()].forEach(list=>{
+      if(list.length<=1) return;
+      list.sort((a,b)=>fdDataScore(b)-fdDataScore(a));
+      const keep = list[0];
+      list.slice(1).forEach(dup=>{
+        fdMergeObj(keep, dup);
+        fdReplaceStudentIdDeep(state, dup.id, keep.id);
+        losers.push(dup.id);
+      });
+    });
+    if(losers.length){
+      const reg = fdLoad();
+      losers.forEach(id=>reg[fdKey("students",id)] = {bucket:"students", itemId:String(id), reason:"auto_duplicate_merge", keepRecords:false, deletedAt:fdNow()});
+      fdSave(reg);
+      const set = new Set(losers.map(String));
+      state.students = state.students.filter(s=>!set.has(String(s.id)));
+    }
+  }
+
+  async function fdLoadRemoteRegistry(){
+    if(!sb) return;
+    const reg = fdLoad();
+    try{
+      const {data,error} = await sb.from("stable_items").select("item_id,data").eq("bucket",FINAL_REGISTRY_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const lock = row.data || {};
+        if(lock.bucket && lock.itemId) reg[fdKey(lock.bucket,lock.itemId)] = lock;
+      });
+      fdSave(reg);
+    }catch(e){ console.warn("Final delete registry load failed", e); }
+  }
+  async function fdSaveRemoteRegistry(){
+    if(!sb) return;
+    const rows = Object.values(fdLoad()).map(lock=>({
+      bucket:FINAL_REGISTRY_BUCKET,
+      item_id:fdKey(lock.bucket,lock.itemId),
+      data:lock,
+      updated_at:new Date().toISOString()
+    }));
+    for(let i=0;i<rows.length;i+=80){
+      const batch = rows.slice(i,i+80);
+      if(!batch.length) continue;
+      try{
+        const {error}=await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+        if(error) throw error;
+      }catch(e){ console.warn("Final delete registry save failed", e); }
+    }
+  }
+  async function fdDeleteRemoteRows(){
+    if(!sb) return;
+    const locks = Object.values(fdLoad());
+    const byBucket = {};
+    locks.forEach(lock=>{
+      if(!byBucket[lock.bucket]) byBucket[lock.bucket]=[];
+      byBucket[lock.bucket].push(String(lock.itemId));
+    });
+
+    for(const bucket of Object.keys(byBucket)){
+      const ids = [...new Set(byBucket[bucket])];
+      for(let i=0;i<ids.length;i+=80){
+        try{ await sb.from("stable_items").delete().eq("bucket",bucket).in("item_id",ids.slice(i,i+80)); }catch(e){}
+      }
+    }
+
+    for(const id of [...fdIds("quizzes")]){
+      try{ await sb.from("stable_items").delete().eq("bucket","submissions").filter("data->>quizId","eq",String(id)); }catch(e){}
+    }
+    for(const id of [...fdIds("docAssignments")]){
+      try{ await sb.from("stable_items").delete().eq("bucket","docSubmissions").filter("data->>assignmentId","eq",String(id)); }catch(e){}
+    }
+    for(const id of [...fdIds("students")]){
+      for(const bucket of ["submissions","docSubmissions","reportScores","reportComments","scores","passwordShares","messages","chatMessages","studentMessages"]){
+        try{ await sb.from("stable_items").delete().eq("bucket",bucket).filter("data->>studentId","eq",String(id)); }catch(e){}
+      }
+    }
+  }
+  async function fdWriteCleanBackups(){
+    if(!sb) return;
+    try{
+      await sb.from("app_state").upsert({id:"main",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){}
+  }
+  async function fdFullEnforce(){
+    await fdLoadRemoteRegistry();
+    fdPurgeState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await fdDeleteRemoteRows();
+    await fdSaveRemoteRegistry();
+    await fdWriteCleanBackups();
+  }
+  async function fdFullSave(){
+    fdPurgeState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await fdDeleteRemoteRows();
+    await fdSaveRemoteRegistry();
+    try{
+      if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+      else if(sb && typeof pushRemote==="function") await pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){}
+    await fdDeleteRemoteRows();
+    await fdSaveRemoteRegistry();
+    await fdWriteCleanBackups();
+  }
+
+  window.deleteQuiz = async function(id){
+    const q = (state.quizzes||[]).find(x=>String(x.id)===String(id));
+    if(!confirm(`Delete this quiz permanently?\n\n${q?.title || "Selected quiz"}\n\nIt will be removed from the admin portal and student portal and will not return after refresh.`)) return;
+    const deleteRecords = confirm("Do you also want to permanently delete the submitted records/results for this quiz?\n\nOK = delete records too.\nCancel = keep records archived, but hide them from active printouts and student portal.");
+    fdAdd("quizzes", id, {reason:"delete_quiz", deleteRecords, keepRecords:!deleteRecords});
+    fdPurgeState();
+    await fdFullSave();
+    alert("Quiz deleted permanently. It will not come back after refresh.");
+    if(typeof quizzes==="function") quizzes();
+  };
+
+  window.deleteDocAssignment = async function(id){
+    const a = (state.docAssignments||[]).find(x=>String(x.id)===String(id));
+    if(!confirm(`Delete this theory/scanned assignment permanently?\n\n${a?.title || "Selected assignment"}\n\nIt will be removed from the admin portal and student portal and will not return after refresh.`)) return;
+    const deleteRecords = confirm("Do you also want to permanently delete the students' submitted records/scripts for this assignment?\n\nOK = delete records too.\nCancel = keep records archived, but hide them from active printouts and student portal.");
+    fdAdd("docAssignments", id, {reason:"delete_doc_assignment", deleteRecords, keepRecords:!deleteRecords});
+    fdPurgeState();
+    await fdFullSave();
+    alert("Assignment deleted permanently. It will not come back after refresh.");
+    if(typeof quizzes==="function") quizzes();
+  };
+
+  // Refresh App must only refresh the page.
+  window.studentPortalHardRefresh = function(){ window.location.reload(); };
+
+  // Restore backup requires admin password and still respects delete registry.
+  window.restoreBackup = function(file){
+    if(!file) return;
+    const pass = prompt("Enter admin password before restoring the application:");
+    if(pass !== (state.settings?.adminPass || "")){
+      alert("Wrong admin password. Restore cancelled.");
+      try{ document.querySelectorAll('input[type="file"]').forEach(x=>x.value=""); }catch(e){}
+      return;
+    }
+    if(!confirm("Restoring replaces current data. Continue?")) return;
+    const r = new FileReader();
+    r.onload = async ()=>{
+      try{
+        state = JSON.parse(r.result);
+        await fdFullEnforce();
+        if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+        else if(typeof save==="function") save();
+        alert("Backup restored securely.");
+        if(typeof renderShell==="function") renderShell();
+      }catch(e){ alert("Invalid backup file."); }
+    };
+    r.readAsText(file);
+  };
+
+  // Hard filters before all important UI/display functions.
+  if(typeof window.availableQuizzes === "function"){
+    const oldAvailable = window.availableQuizzes;
+    window.availableQuizzes = function(){
+      fdPurgeState();
+      return oldAvailable.apply(this, arguments).filter(q=>!fdIds("quizzes").has(String(q.id)));
+    };
+  }
+
+  ["studentQuizzes","studentResults","quizzes","review","dashboard","students","renderReviewPrintPreview","printSubmittedWorkListPDF"].forEach(fnName=>{
+    const oldFn = window[fnName];
+    if(typeof oldFn === "function"){
+      window[fnName] = function(){
+        fdPurgeState();
+        return oldFn.apply(this, arguments);
+      };
+    }
+  });
+
+  // Remote sync wrappers.
+  if(typeof window.stablePullRemote === "function"){
+    const oldPull = window.stablePullRemote;
+    window.stablePullRemote = async function(){
+      await fdLoadRemoteRegistry();
+      const result = await oldPull.apply(this, arguments);
+      await fdFullEnforce();
+      return result;
+    };
+  }
+  if(typeof window.pullRemote === "function"){
+    const oldPull2 = window.pullRemote;
+    window.pullRemote = async function(){
+      await fdLoadRemoteRegistry();
+      const result = await oldPull2.apply(this, arguments);
+      await fdFullEnforce();
+      return result;
+    };
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const oldWrite = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      fdPurgeState();
+      const result = await oldWrite.apply(this, arguments);
+      await fdDeleteRemoteRows();
+      await fdSaveRemoteRegistry();
+      await fdWriteCleanBackups();
+      return result;
+    };
+  }
+  if(typeof window.pushRemote === "function"){
+    const oldPush = window.pushRemote;
+    window.pushRemote = async function(){
+      fdPurgeState();
+      const result = await oldPush.apply(this, arguments);
+      await fdDeleteRemoteRows();
+      await fdSaveRemoteRegistry();
+      await fdWriteCleanBackups();
+      return result;
+    };
+  }
+  const oldSave = window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSave === "function"){
+    window.save = function(){
+      fdPurgeState();
+      return oldSave.apply(this, arguments);
+    };
+  }
+
+  const oldRenderShell = window.renderShell;
+  if(typeof oldRenderShell === "function"){
+    window.renderShell = function(){
+      fdPurgeState();
+      return oldRenderShell.apply(this, arguments);
+    };
+  }
+
+  // One background run on startup. No visible panel.
+  setTimeout(()=>{ fdFullEnforce(); }, 600);
+  setTimeout(()=>{ fdFullEnforce(); }, 1800);
+
+  try{
+    eval("deleteQuiz=window.deleteQuiz; deleteDocAssignment=window.deleteDocAssignment; studentPortalHardRefresh=window.studentPortalHardRefresh; restoreBackup=window.restoreBackup; availableQuizzes=window.availableQuizzes; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; quizzes=window.quizzes; review=window.review; dashboard=window.dashboard; students=window.students; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; stablePullRemote=window.stablePullRemote; pullRemote=window.pullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; pushRemote=window.pushRemote; save=window.save; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
