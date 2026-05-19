@@ -6833,6 +6833,134 @@ html,body{
   }
 }
 
+
+/* ===== AMEST WELCOME CLASSROOM HERO UPDATE ===== */
+.amestWelcomeHero{
+  position:relative;
+  overflow:hidden;
+  border-radius:30px;
+  padding:18px;
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);
+  gap:18px;
+  align-items:center;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255,225,0,.24), transparent 24%),
+    radial-gradient(circle at 90% 12%, rgba(255,255,255,.10), transparent 28%),
+    linear-gradient(135deg,#071f3d 0%, #0a2f86 54%, #031032 100%);
+  border:1px solid rgba(255,225,0,.18);
+  box-shadow:0 24px 52px rgba(6,27,85,.20);
+  color:#fff;
+}
+.amestWelcomeHero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg, rgba(255,255,255,.05), transparent 34%, rgba(255,225,0,.08));
+  pointer-events:none;
+}
+.amestWelcomeHero::after{
+  content:"f(x)=2x²−3x+1   ·   ∫xⁿdx=xⁿ⁺¹/(n+1)+C   ·   y=sin x   ·   g(x)=(x²+1)/(x−2)";
+  position:absolute;
+  left:20px;
+  right:20px;
+  bottom:10px;
+  color:rgba(255,255,255,.18);
+  font-size:18px;
+  font-weight:950;
+  letter-spacing:.03em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  pointer-events:none;
+}
+.amestWelcomeText{position:relative;z-index:2;}
+.amestWelcomeText .tag{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.16);
+  color:#ffe100;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:.03em;
+}
+.amestWelcomeText h2{
+  margin:12px 0 4px;
+  color:#ffe100!important;
+  font-size:24px;
+  line-height:1.1;
+}
+.amestWelcomeText h1{
+  margin:0;
+  color:#fff!important;
+  font-size:40px;
+  line-height:1.05;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+.amestWelcomeText p{
+  margin:12px 0 0;
+  color:#dbeafe!important;
+  font-size:16px;
+  line-height:1.6;
+  max-width:640px;
+  font-weight:800;
+}
+.amestWelcomeMeta{
+  display:flex;flex-wrap:wrap;gap:10px; margin-top:16px;
+}
+.amestWelcomeMeta span{
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:16px;
+  padding:9px 12px;
+  font-size:13px;
+  color:#fff;
+  font-weight:900;
+}
+.amestWelcomeImageWrap{position:relative;z-index:2;display:flex;justify-content:center;}
+.amestWelcomeImageCard{
+  width:min(100%,380px);
+  border-radius:28px;
+  overflow:hidden;
+  background:#fff;
+  border:3px solid rgba(255,225,0,.88);
+  box-shadow:0 20px 44px rgba(0,0,0,.28);
+}
+.amestWelcomeImageCard img{display:block;width:100%;height:auto;object-fit:cover;}
+.amestWelcomeImageCaption{
+  padding:12px 14px;
+  background:linear-gradient(135deg,#fffef1,#ffffff);
+  color:#071f3d;
+  border-top:1px solid rgba(8,42,116,.10);
+}
+.amestWelcomeImageCaption b{display:block;font-size:16px;}
+.amestWelcomeImageCaption small{color:#475467;font-weight:800;}
+.studentWelcomeWrap{margin-bottom:14px;}
+.studentWelcomeWrap .amestWelcomeHero{padding:16px;grid-template-columns:minmax(0,1fr) 260px;}
+.studentWelcomeWrap .amestWelcomeText h2{font-size:20px;}
+.studentWelcomeWrap .amestWelcomeText h1{font-size:30px;}
+.studentWelcomeWrap .amestWelcomeText p{font-size:14px;}
+.studentWelcomeWrap .amestWelcomeImageCard{width:min(100%,280px);}
+@media(max-width:900px){
+  .amestWelcomeHero{grid-template-columns:1fr;}
+  .amestWelcomeText h1{font-size:30px;}
+  .amestWelcomeText h2{font-size:20px;}
+  .amestWelcomeImageCard{width:min(100%,300px);}
+  .amestWelcomeHero::after{font-size:13px;bottom:8px;}
+}
+@media(max-width:640px){
+  .amestWelcomeHero{padding:14px;border-radius:24px;}
+  .amestWelcomeText .tag{font-size:11px;padding:7px 10px;}
+  .amestWelcomeText h1{font-size:24px;}
+  .amestWelcomeText h2{font-size:18px;}
+  .amestWelcomeText p{font-size:13px;line-height:1.5;}
+  .amestWelcomeMeta span{font-size:12px;padding:8px 10px;}
+  .studentWelcomeWrap .amestWelcomeHero{grid-template-columns:1fr;}
+}
+
 </style>
 </head>
 <body>
