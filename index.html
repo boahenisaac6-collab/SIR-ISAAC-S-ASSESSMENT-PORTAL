@@ -7376,6 +7376,56 @@ html,body{
   font-size:24px;
 }
 
+
+/* ===== DELETION LOCK + MERGE PERSISTENCE FIX ===== */
+.mergeLockPanel{
+  border:3px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ecfdf3,#ffffff,#fffdf0);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.mergeLockPanel h2{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.mergeLockPanel p{
+  margin:0 0 12px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.mergeLockActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.mergeLockActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.mergeLockActions .green{border:0;background:#0f7b4f;color:#fff}
+.mergeLockActions .navy{border:0;background:#071f3d;color:#fff}
+.mergeLockActions .gold{border:0;background:#f4c430;color:#071f3d}
+.mergeLockActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.mergeLockStatus{
+  margin-top:10px;
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:9px 11px;
+  font-size:13px;
+  font-weight:850;
+  line-height:1.45;
+}
+
 </style>
 </head>
 <body>
@@ -19883,6 +19933,363 @@ async function initSupabase(){
 
   try{
     eval("cleanupDeletedStableItems=window.cleanupDeletedStableItems; recalculateLiveDashboardStats=window.recalculateLiveDashboardStats; refreshStatsAndSyncNow=window.refreshStatsAndSyncNow; injectLiveStatsFixPanel=window.injectLiveStatsFixPanel;");
+  }catch(e){}
+})();
+
+
+
+/* ===== DELETION LOCK + MERGE PERSISTENCE FIX =====
+   This fixes the problem where merged/deleted students return after "Refresh App".
+   It creates permanent deletion locks (tombstones) for removed duplicate records.
+   When the app refreshes and pulls online data, locked/deleted records are removed again
+   and then deleted from the stable online table.
+*/
+(function(){
+  const DL_BUCKET = "__deleted_locks__";
+  const DL_LOCAL_KEY = "amest_deleted_locks_v1";
+  const DL_ID_CACHE_KEY = "amest_last_known_ids_v1";
+
+  function dlNow(){ return new Date().toISOString(); }
+  function dlStatus(text){
+    const el = document.getElementById("mergeLockStatus");
+    if(el) el.textContent = text;
+    try{ if(typeof stableStatus==="function") stableStatus(text,"live"); }catch(e){}
+  }
+  function dlLoadLocks(){
+    try{
+      const raw = localStorage.getItem(DL_LOCAL_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function dlSaveLocks(locks){
+    try{ localStorage.setItem(DL_LOCAL_KEY, JSON.stringify(locks || {})); }catch(e){}
+  }
+  function dlKey(bucket,itemId){ return String(bucket)+"::"+String(itemId); }
+  function dlParseKey(k){
+    const parts = String(k).split("::");
+    return {bucket:parts[0], itemId:parts.slice(1).join("::")};
+  }
+  function dlStableId(bucket,item,index){
+    try{
+      if(typeof stableArrayItemId==="function") return stableArrayItemId(bucket,item,index);
+    }catch(e){}
+    if(item && item.id) return String(item.id);
+    if(typeof item === "string") return item;
+    if(item && item.name) return String(item.name);
+    if(item && item.studentId && (bucket==="reportScores" || bucket==="reportComments" || bucket==="scores")) return String(item.studentId);
+    if(item && item.quizId && item.studentId) return String(item.quizId)+"_"+String(item.studentId);
+    if(item && item.assignmentId && item.studentId) return String(item.assignmentId)+"_"+String(item.studentId);
+    return bucket+"_"+index;
+  }
+  function dlAddLocks(bucket, ids, reason="deleted"){
+    const locks = dlLoadLocks();
+    (ids||[]).filter(Boolean).forEach(id=>{
+      const k = dlKey(bucket,id);
+      locks[k] = {bucket, itemId:String(id), reason, deletedAt:dlNow()};
+    });
+    dlSaveLocks(locks);
+    state._deletedStableLocks = Object.values(locks);
+    return locks;
+  }
+  function dlCurrentIdCache(){
+    try{
+      const raw = localStorage.getItem(DL_ID_CACHE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function dlSaveIdCache(cache){
+    try{ localStorage.setItem(DL_ID_CACHE_KEY, JSON.stringify(cache||{})); }catch(e){}
+  }
+  function dlGetCurrentIds(){
+    const students = (state.students||[]).map(s=>String(s.id)).filter(Boolean);
+    const classes = (state.classes||[]).map((c,i)=>dlStableId("classes",c,i)).filter(Boolean);
+    return {students, classes};
+  }
+  function dlRememberCurrentIds(){
+    dlSaveIdCache(dlGetCurrentIds());
+  }
+  function dlDetectMissingAndLock(reason="manual_delete_or_merge"){
+    const cache = dlCurrentIdCache();
+    const current = dlGetCurrentIds();
+    if(Array.isArray(cache.students)){
+      const cur = new Set(current.students);
+      const missing = cache.students.filter(id=>!cur.has(String(id)));
+      if(missing.length) dlAddLocks("students", missing, reason);
+    }
+    if(Array.isArray(cache.classes)){
+      const curC = new Set(current.classes.map(String));
+      const missingC = cache.classes.filter(id=>!curC.has(String(id)));
+      if(missingC.length) dlAddLocks("classes", missingC, reason);
+    }
+    dlRememberCurrentIds();
+  }
+  function dlApplyLocksToState(){
+    const locks = dlLoadLocks();
+    const studentLocks = new Set(Object.values(locks).filter(x=>x.bucket==="students").map(x=>String(x.itemId)));
+    const classLocks = new Set(Object.values(locks).filter(x=>x.bucket==="classes").map(x=>String(x.itemId)));
+
+    if(studentLocks.size){
+      state.students = (state.students||[]).filter(s=>!studentLocks.has(String(s.id)));
+    }
+    if(classLocks.size){
+      state.classes = (state.classes||[]).filter((c,i)=>!classLocks.has(String(dlStableId("classes",c,i))) && !classLocks.has(String(c)));
+    }
+    state._deletedStableLocks = Object.values(locks);
+  }
+  async function dlSyncLocksToRemote(){
+    if(!sb) return;
+    const locks = Object.values(dlLoadLocks());
+    if(!locks.length) return;
+    const rows = locks.map(lock=>({
+      bucket: DL_BUCKET,
+      item_id: dlKey(lock.bucket, lock.itemId),
+      data: lock,
+      updated_at: new Date().toISOString()
+    }));
+    for(let i=0;i<rows.length;i+=80){
+      const batch = rows.slice(i,i+80);
+      try{
+        const {error} = await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+        if(error) throw error;
+      }catch(e){
+        console.warn("Could not sync deletion locks", e);
+      }
+    }
+  }
+  async function dlPullRemoteLocks(){
+    if(!sb) return dlLoadLocks();
+    const locks = dlLoadLocks();
+    try{
+      const {data,error} = await sb.from("stable_items").select("item_id,data").eq("bucket",DL_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const lock = row.data || {};
+        if(lock.bucket && lock.itemId){
+          locks[dlKey(lock.bucket,lock.itemId)] = lock;
+        }
+      });
+      dlSaveLocks(locks);
+      state._deletedStableLocks = Object.values(locks);
+    }catch(e){
+      console.warn("Could not pull remote deletion locks", e);
+    }
+    return locks;
+  }
+  async function dlDeleteStableRowsForLocks(){
+    if(!sb) return;
+    const locks = Object.values(dlLoadLocks());
+    const byBucket = {};
+    locks.forEach(lock=>{
+      if(!byBucket[lock.bucket]) byBucket[lock.bucket] = [];
+      byBucket[lock.bucket].push(String(lock.itemId));
+    });
+    for(const bucket of Object.keys(byBucket)){
+      const ids = [...new Set(byBucket[bucket])];
+      for(let i=0;i<ids.length;i+=80){
+        const batch = ids.slice(i,i+80);
+        try{
+          const {error} = await sb.from("stable_items").delete().eq("bucket",bucket).in("item_id",batch);
+          if(error) throw error;
+        }catch(e){
+          console.warn("Could not remove locked rows from stable_items", bucket, e);
+        }
+      }
+    }
+  }
+  async function dlEnforceLocks(){
+    await dlPullRemoteLocks();
+    dlApplyLocksToState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await dlDeleteStableRowsForLocks();
+    dlRememberCurrentIds();
+  }
+
+  // Duplicate finder used to lock records before old merge functions run.
+  function cleanName(name){
+    return String(name||"").toLowerCase().replace(/\s+/g," ").replace(/[^\p{L}\p{N}\s]/gu,"").trim();
+  }
+  function studentClass(s){ return String(s.className || s.class || "").trim(); }
+  function dataScore(s){
+    let score = 0;
+    ["photo","phone","password","studentPassword","code","gender","className"].forEach(k=>{ if(s && String(s[k] ?? "").trim()) score += 5; });
+    const id = s?.id;
+    if(id){
+      score += (state.submissions||[]).filter(x=>x.studentId===id).length * 10;
+      score += (state.docSubmissions||[]).filter(x=>x.studentId===id).length * 10;
+      score += (state.reportScores||[]).filter(x=>x.studentId===id).length * 7;
+      score += (state.scores||[]).filter(x=>x.studentId===id).length * 7;
+    }
+    return score;
+  }
+  function duplicateGroups(){
+    const map = new Map();
+    (state.students||[]).forEach(s=>{
+      const key = cleanName(s.name)+"||"+studentClass(s).toLowerCase();
+      if(!key || key==="||") return;
+      if(!map.has(key)) map.set(key,[]);
+      map.get(key).push(s);
+    });
+    return [...map.values()]
+      .map(list=>list.slice().sort((a,b)=>dataScore(b)-dataScore(a)))
+      .filter(list=>list.length>1);
+  }
+  function lockAllCurrentDuplicateLosers(){
+    const groups = duplicateGroups();
+    const removeIds = [];
+    groups.forEach(list=>list.slice(1).forEach(s=>s.id && removeIds.push(s.id)));
+    if(removeIds.length) dlAddLocks("students", removeIds, "duplicate_merge");
+    return removeIds;
+  }
+
+  window.lockAndCleanMergedRecordsNow = async function(){
+    lockAllCurrentDuplicateLosers();
+    dlDetectMissingAndLock("manual_cleanup");
+    await dlEnforceLocks();
+    if(typeof cleanupDeletedStableItems==="function") await cleanupDeletedStableItems();
+    try{
+      if(sb && typeof pushRemote==="function") await pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn(e); }
+    dlApplyLocksToState();
+    try{ if(typeof recalculateLiveDashboardStats==="function") recalculateLiveDashboardStats(); }catch(e){}
+    if(route==="students" && typeof students==="function") students();
+    if(route==="dashboard" && typeof dashboard==="function") dashboard();
+    dlStatus("Merged/deleted records are now locked. Refresh will not restore them.");
+    alert("Merged/deleted records have been locked. Refresh will not restore them again.");
+  };
+
+  // Patch stable pull: after refresh pulls old records, immediately remove locked records again.
+  if(typeof window.stablePullRemote === "function"){
+    const oldStablePull = window.stablePullRemote;
+    window.stablePullRemote = async function(){
+      await dlPullRemoteLocks();
+      const result = await oldStablePull.apply(this, arguments);
+      await dlEnforceLocks();
+      return result;
+    };
+    try{ eval("stablePullRemote=window.stablePullRemote;"); }catch(e){}
+  }
+
+  // Patch push: make sure locks are online before and after push.
+  if(typeof window.pushRemote === "function"){
+    const oldPushRemoteDL = window.pushRemote;
+    window.pushRemote = async function(){
+      dlDetectMissingAndLock("save_detected_missing");
+      dlApplyLocksToState();
+      await dlSyncLocksToRemote();
+      const result = await oldPushRemoteDL.apply(this, arguments);
+      dlApplyLocksToState();
+      await dlDeleteStableRowsForLocks();
+      await dlSyncLocksToRemote();
+      dlRememberCurrentIds();
+      return result;
+    };
+    try{ eval("pushRemote=window.pushRemote;"); }catch(e){}
+  }
+
+  // Patch save to detect deletions immediately.
+  const oldSaveDL = window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSaveDL === "function"){
+    window.save = function(){
+      dlDetectMissingAndLock("save_detected_missing");
+      dlApplyLocksToState();
+      const result = oldSaveDL.apply(this, arguments);
+      setTimeout(()=>{ dlEnforceLocks(); }, 400);
+      return result;
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+
+  // Patch duplicate merge buttons: lock duplicate IDs before merging.
+  if(typeof window.mergeAllDuplicateStudentsSafely === "function"){
+    const oldMergeAllDL = window.mergeAllDuplicateStudentsSafely;
+    window.mergeAllDuplicateStudentsSafely = function(){
+      lockAllCurrentDuplicateLosers();
+      const result = oldMergeAllDL.apply(this, arguments);
+      setTimeout(()=>{ lockAndCleanMergedRecordsNow(); }, 700);
+      return result;
+    };
+    try{ eval("mergeAllDuplicateStudentsSafely=window.mergeAllDuplicateStudentsSafely;"); }catch(e){}
+  }
+
+  if(typeof window.mergeOneDuplicateGroup === "function"){
+    const oldMergeOneDL = window.mergeOneDuplicateGroup;
+    window.mergeOneDuplicateGroup = function(groupIndex){
+      const groups = duplicateGroups();
+      const list = groups[groupIndex] || [];
+      const ids = list.slice(1).map(s=>s.id).filter(Boolean);
+      if(ids.length) dlAddLocks("students", ids, "duplicate_merge_one");
+      const result = oldMergeOneDL.apply(this, arguments);
+      setTimeout(()=>{ lockAndCleanMergedRecordsNow(); }, 700);
+      return result;
+    };
+    try{ eval("mergeOneDuplicateGroup=window.mergeOneDuplicateGroup;"); }catch(e){}
+  }
+
+  function mergeLockPanelHTML(){
+    const count = Object.keys(dlLoadLocks()).length;
+    return `<div id="mergeLockPanel" class="mergeLockPanel">
+      <h2>Merge Lock Protection</h2>
+      <p>After you merge or delete repeated students, this protection locks the cleanup so that Refresh App will not bring the old duplicate records back.</p>
+      <div class="mergeLockActions">
+        <button class="green" onclick="lockAndCleanMergedRecordsNow()">Lock Current Merge / Delete Changes</button>
+        <button class="navy" onclick="if(typeof mergeAllDuplicateStudentsSafely==='function') mergeAllDuplicateStudentsSafely()">Merge All Duplicates Safely</button>
+      </div>
+      <div id="mergeLockStatus" class="mergeLockStatus">${count} deletion lock(s) currently saved.</div>
+    </div>`;
+  }
+
+  window.injectMergeLockPanel = function(){
+    if(role !== "admin" || (route !== "students" && route !== "dashboard")) return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("mergeLockPanel")) return;
+    view.insertAdjacentHTML("afterbegin", mergeLockPanelHTML());
+  };
+
+  const oldStudentsDL = window.students || (typeof students==="function" ? students : null);
+  if(typeof oldStudentsDL === "function"){
+    window.students = function(){
+      dlApplyLocksToState();
+      const result = oldStudentsDL.apply(this, arguments);
+      setTimeout(injectMergeLockPanel,80);
+      return result;
+    };
+    try{ eval("students=window.students;"); }catch(e){}
+  }
+
+  const oldDashboardDL = window.dashboard || (typeof dashboard==="function" ? dashboard : null);
+  if(typeof oldDashboardDL === "function"){
+    window.dashboard = function(){
+      dlApplyLocksToState();
+      const result = oldDashboardDL.apply(this, arguments);
+      setTimeout(injectMergeLockPanel,80);
+      return result;
+    };
+    try{ eval("dashboard=window.dashboard;"); }catch(e){}
+  }
+
+  const oldRenderShellDL = window.renderShell;
+  if(typeof oldRenderShellDL === "function"){
+    window.renderShell = function(){
+      dlApplyLocksToState();
+      const result = oldRenderShellDL.apply(this, arguments);
+      setTimeout(injectMergeLockPanel,100);
+      return result;
+    };
+    try{ eval("renderShell=window.renderShell;"); }catch(e){}
+  }
+
+  // Initialize after app starts.
+  setTimeout(async ()=>{
+    await dlPullRemoteLocks();
+    dlApplyLocksToState();
+    dlRememberCurrentIds();
+    await dlDeleteStableRowsForLocks();
+    injectMergeLockPanel();
+  }, 1000);
+
+  try{
+    eval("lockAndCleanMergedRecordsNow=window.lockAndCleanMergedRecordsNow; injectMergeLockPanel=window.injectMergeLockPanel;");
   }catch(e){}
 })();
 
