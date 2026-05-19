@@ -5826,6 +5826,77 @@ body.caFullscreenLock{
   }
 }
 
+
+/* ===== QUICK NAV SECURITY PASSWORD FIX ===== */
+.quickNavSecurityModal{
+  position:fixed;
+  inset:0;
+  z-index:2147483900;
+  background:rgba(4,18,37,.82);
+  display:grid;
+  place-items:center;
+  padding:16px;
+}
+.quickNavSecurityBox{
+  width:min(430px,100%);
+  background:#fff;
+  border-radius:22px;
+  border:1px solid #d9e7f3;
+  box-shadow:0 28px 90px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.quickNavSecurityHead{
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  padding:15px 18px;
+}
+.quickNavSecurityHead h2{
+  margin:0;
+  font-size:19px;
+}
+.quickNavSecurityBody{
+  padding:15px;
+}
+.quickNavSecurityBody p{
+  margin:0 0 10px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.quickNavSecurityBody input{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:9px 11px;
+}
+.quickNavSecurityActions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  padding:0 15px 15px;
+}
+.quickNavSecurityActions button{
+  min-height:42px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.quickNavSecurityActions .login{
+  border:0;
+  background:#0f7b4f;
+  color:#fff;
+}
+.quickNavSecurityActions .cancel{
+  border:1px solid #d9e7f3;
+  background:#eef5fc;
+  color:#071f3d;
+}
+@media(max-width:760px){
+  .quickNavSecurityActions{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -16074,6 +16145,163 @@ async function initSupabase(){
 
   try{
     eval("normalize=window.normalize; setRoute=window.setRoute; quickGoBack=window.quickGoBack; quickSwitchMode=window.quickSwitchMode; quickGoHome=window.quickGoHome; renderQuickNavBar=window.renderQuickNavBar; buildStudentVisibleList=window.buildStudentVisibleList; students=window.students; studentLogin=window.studentLogin; renderShell=window.renderShell; render=window.render;");
+  }catch(e){}
+})();
+
+
+
+/* ===== QUICK NAV SECURITY PASSWORD FIX ===== */
+(function(){
+  let pendingAdminAction = null;
+
+  function qnsSetRoleRoute(nextRole,nextRoute,nextStudentId=null){
+    role = nextRole;
+    window.role = nextRole;
+    route = nextRoute;
+    window.route = nextRoute;
+    if(nextStudentId){
+      currentStudentId = nextStudentId;
+      window.currentStudentId = nextStudentId;
+    }
+    if(typeof renderShell==="function") renderShell();
+    else if(typeof render==="function") render();
+    setTimeout(()=>{try{renderQuickNavBar()}catch(e){}},80);
+  }
+
+  function qnsOpenAdminPassword(action){
+    pendingAdminAction = action;
+    document.getElementById("quickNavSecurityModal")?.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="quickNavSecurityModal" class="quickNavSecurityModal">
+      <div class="quickNavSecurityBox">
+        <div class="quickNavSecurityHead"><h2>Admin Password Required</h2></div>
+        <div class="quickNavSecurityBody">
+          <p>Enter the admin password before opening Admin Mode.</p>
+          <input id="quickNavAdminPass" type="password" placeholder="Admin password" autocomplete="new-password" onkeydown="if(event.key==='Enter')quickNavConfirmAdminPassword()">
+        </div>
+        <div class="quickNavSecurityActions">
+          <button class="cancel" onclick="quickNavCloseSecurity()">Cancel</button>
+          <button class="login" onclick="quickNavConfirmAdminPassword()">Open Admin Mode</button>
+        </div>
+      </div>
+    </div>`);
+    setTimeout(()=>document.getElementById("quickNavAdminPass")?.focus(),80);
+  }
+
+  window.quickNavCloseSecurity = function(){
+    document.getElementById("quickNavSecurityModal")?.remove();
+    pendingAdminAction = null;
+  };
+
+  window.quickNavConfirmAdminPassword = function(){
+    const pass = document.getElementById("quickNavAdminPass")?.value || "";
+    if(pass !== (state.settings?.adminPass || "")){
+      alert("Wrong admin password.");
+      const input = document.getElementById("quickNavAdminPass");
+      if(input){ input.value=""; input.focus(); }
+      return;
+    }
+    document.getElementById("quickNavSecurityModal")?.remove();
+    const action = pendingAdminAction;
+    pendingAdminAction = null;
+    if(typeof action === "function") action();
+  };
+
+  function qnsNeedStudentLogin(target){
+    if(!target || target.role !== "student") return false;
+    if(role === "student" && currentStudentId && String(currentStudentId) === String(target.studentId||currentStudentId)) return false;
+    return true;
+  }
+
+  function qnsSafeGoPoint(point){
+    if(!point) return false;
+
+    // Never allow Back/Switch to enter admin without password unless already in admin mode.
+    if(point.role === "admin" && role !== "admin"){
+      qnsOpenAdminPassword(()=>qnsSetRoleRoute("admin", point.route || "dashboard", null));
+      return true;
+    }
+
+    // Never allow Back to jump straight into a student account from another mode.
+    // It must go to student list/login so the student password rule is respected.
+    if(qnsNeedStudentLogin(point)){
+      qnsSetRoleRoute("guest", "studentLogin", null);
+      setTimeout(()=>{try{ if(typeof studentLogin==="function") studentLogin(); }catch(e){}},80);
+      return true;
+    }
+
+    qnsSetRoleRoute(point.role, point.route, point.studentId || null);
+    return true;
+  }
+
+  window.quickSwitchMode = function(){
+    try{ if(typeof pushNavPoint==="function") pushNavPoint({role,route,studentId:currentStudentId||null}); }catch(e){}
+
+    if(role === "admin"){
+      // Admin to student side: show the student list/login only.
+      // It does not enter any student's portal directly.
+      qnsSetRoleRoute("guest","studentLogin",null);
+      setTimeout(()=>{try{ if(typeof studentLogin==="function") studentLogin(); }catch(e){}},80);
+      return;
+    }
+
+    // Student/guest to admin must request admin password.
+    qnsOpenAdminPassword(()=>qnsSetRoleRoute("admin","dashboard",null));
+  };
+
+  window.quickGoBack = function(){
+    let target = null;
+    try{
+      target = (window.navHistoryStack || []).pop();
+      const now = {role,route,studentId:currentStudentId||null};
+      const same = (a,b)=>a && b && a.role===b.role && a.route===b.route && String(a.studentId||"")===String(b.studentId||"");
+      while(target && same(target, now)){
+        target = (window.navHistoryStack || []).pop();
+      }
+    }catch(e){}
+
+    if(target){
+      qnsSafeGoPoint(target);
+      return;
+    }
+
+    // Safe fallback
+    if(role==="admin"){
+      qnsSetRoleRoute("admin","dashboard",null);
+    }else if(role==="student" && currentStudentId){
+      qnsSetRoleRoute("student","studentHome",currentStudentId);
+    }else{
+      qnsSetRoleRoute("guest","studentLogin",null);
+      setTimeout(()=>{try{ if(typeof studentLogin==="function") studentLogin(); }catch(e){}},80);
+    }
+  };
+
+  window.quickGoHome = function(){
+    try{ if(typeof pushNavPoint==="function") pushNavPoint({role,route,studentId:currentStudentId||null}); }catch(e){}
+    if(role==="admin"){
+      qnsSetRoleRoute("admin","dashboard",null);
+    }else if(role==="student" && currentStudentId){
+      qnsSetRoleRoute("student","studentHome",currentStudentId);
+    }else{
+      qnsSetRoleRoute("guest","studentLogin",null);
+      setTimeout(()=>{try{ if(typeof studentLogin==="function") studentLogin(); }catch(e){}},80);
+    }
+  };
+
+  // Strengthen render of quick nav labels.
+  const oldRenderQuickNavBarSecurity = window.renderQuickNavBar;
+  if(typeof oldRenderQuickNavBarSecurity === "function"){
+    window.renderQuickNavBar = function(){
+      oldRenderQuickNavBarSecurity.apply(this, arguments);
+      const switchBtn = document.querySelector(".quickNavSwitchBtn");
+      if(switchBtn){
+        switchBtn.textContent = role==="admin" ? "⇄ Student View" : "⇄ Admin Mode";
+        switchBtn.title = role==="admin" ? "Open student list. Students must still use their password." : "Admin password required.";
+      }
+    };
+  }
+
+  try{
+    eval("quickSwitchMode=window.quickSwitchMode; quickGoBack=window.quickGoBack; quickGoHome=window.quickGoHome; quickNavConfirmAdminPassword=window.quickNavConfirmAdminPassword; quickNavCloseSecurity=window.quickNavCloseSecurity; renderQuickNavBar=window.renderQuickNavBar;");
   }catch(e){}
 })();
 
