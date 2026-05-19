@@ -8119,6 +8119,190 @@ html,body{
   .professionalStudentTableWrap{border:0}
 }
 
+
+/* ===== STUDENT CLASS LINKS + SUBMISSION LISTS ===== */
+.studentSideSection{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.18);
+}
+.studentSideSection h3{
+  margin:0 0 8px;
+  font-size:12px;
+  color:#f4c430;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.studentSideMiniText{
+  color:#cbd9e8;
+  font-size:11px;
+  line-height:1.35;
+  margin:0 0 8px;
+  font-weight:700;
+}
+.studentClassButton,
+.studentSubmitButton{
+  width:100%;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  border-radius:14px;
+  min-height:40px;
+  padding:8px 10px;
+  text-align:left;
+  font-weight:900;
+  margin-bottom:7px;
+  cursor:pointer;
+}
+.studentClassButton:hover,
+.studentSubmitButton:hover{
+  background:#f4c430;
+  color:#071f3d;
+}
+.studentPublicHeader{
+  border:1px solid #d9e7f3;
+  background:linear-gradient(135deg,#ffffff,#f8fbff);
+  border-radius:22px;
+  padding:16px;
+  margin-bottom:14px;
+  color:#071f3d;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.studentPublicHeader h2{
+  margin:0 0 6px;
+  color:#071f3d;
+}
+.studentPublicHeader p{
+  margin:0;
+  color:#475467;
+  font-weight:800;
+  line-height:1.45;
+}
+.studentClassGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.studentMemberCard{
+  background:#fff;
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  box-shadow:0 6px 18px rgba(7,31,61,.06);
+}
+.studentMemberPhoto{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #f4c430;
+  background:#eef5fc;
+  flex:0 0 auto;
+}
+.studentMemberAvatar{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  border:2px solid #f4c430;
+  background:#eef5fc;
+  color:#071f3d;
+  font-weight:950;
+  flex:0 0 auto;
+}
+.studentMemberCard b{
+  color:#071f3d;
+  display:block;
+  font-size:14px;
+}
+.studentMemberCard small{
+  color:#667085;
+  font-weight:800;
+}
+.submissionWorkGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px;
+}
+.submissionWorkCard{
+  background:#fff;
+  border:1px solid #d9e7f3;
+  border-radius:20px;
+  padding:14px;
+  box-shadow:0 8px 22px rgba(7,31,61,.07);
+}
+.submissionWorkCard h3{
+  margin:0 0 6px;
+  color:#071f3d;
+}
+.submissionWorkCard p{
+  margin:0 0 10px;
+  color:#475467;
+  font-weight:800;
+  line-height:1.45;
+}
+.submissionBadge{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:5px 9px;
+  background:#ecfdf3;
+  border:1px solid #bce8ce;
+  color:#0f6b47;
+  font-weight:950;
+  font-size:12px;
+  margin-bottom:10px;
+}
+.studentSubmissionTableWrap{
+  background:#fff;
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  overflow:auto;
+  box-shadow:0 8px 22px rgba(7,31,61,.06);
+}
+.studentSubmissionTable{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.studentSubmissionTable th{
+  background:#071f3d;
+  color:#fff;
+  border:1px solid #071f3d;
+  padding:8px;
+  text-align:left;
+}
+.studentSubmissionTable td{
+  border:1px solid #d9e7f3;
+  padding:8px;
+  vertical-align:middle;
+}
+.studentSubmissionTable tbody tr:nth-child(even){
+  background:#f8fbff;
+}
+.studentViewToolbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:12px 0;
+}
+.studentViewToolbar button{
+  min-height:38px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.studentViewToolbar .navy{border:0;background:#071f3d;color:#fff}
+.studentViewToolbar .gold{border:0;background:#f4c430;color:#071f3d}
+@media(max-width:760px){
+  .studentClassGrid,.submissionWorkGrid{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -25859,6 +26043,238 @@ async function initSupabase(){
 
   try{
     eval("students=window.students; navItems=window.navItems; backup=window.backup; settings=window.settings; importOldAppStateToStable=window.importOldAppStateToStable; injectClassControlPanel=window.injectClassControlPanel; injectDirectClassDeletePanel=window.injectDirectClassDeletePanel; injectDuplicateStudentsManager=window.injectDuplicateStudentsManager; injectLiveStatsFixPanel=window.injectLiveStatsFixPanel; injectMergeLockPanel=window.injectMergeLockPanel; injectSmartCleanPanel=window.injectSmartCleanPanel; injectPermanentDeletePanel=window.injectPermanentDeletePanel; renderShell=window.renderShell; dashboard=window.dashboard; quizzes=window.quizzes; review=window.review; components=window.components; reports=window.reports; studentHome=window.studentHome; studentLogin=window.studentLogin; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; professionalDeleteSelectedStudents=window.professionalDeleteSelectedStudents; professionalDeleteEntireClass=window.professionalDeleteEntireClass; professionalPrintStudents=window.professionalPrintStudents;");
+  }catch(e){}
+})();
+
+
+
+/* ===== STUDENT CLASS LINKS + SUBMISSION LISTS V1 =====
+   Adds class-member viewing and submitted-work lists to the student side panel.
+*/
+(function(){
+  let publicClassSelected = window.publicClassSelected || "";
+  let publicWorkSelected = window.publicWorkSelected || "";
+
+  function sEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function sText(v){ return String(v ?? ""); }
+  function sLower(v){ return String(v ?? "").toLowerCase(); }
+  function sStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students || []).find(s=>String(s.id)===String(id)) || null;
+  }
+  function sSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls) || ""; }
+    catch(e){}
+    return "";
+  }
+  function isDeletedItem(x){
+    if(!x) return true;
+    const st = sLower(x.status).trim();
+    return st === "deleted" || st === "removed" || x.deleted || x.isDeleted || x._deletedHidden;
+  }
+  function publicClasses(){
+    const arr = []
+      .concat(Array.isArray(state.classes) ? state.classes : [])
+      .concat((state.students || []).map(s=>s.className).filter(Boolean));
+    return [...new Set(arr.filter(Boolean))]
+      .sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true, sensitivity:"base"}));
+  }
+  function classMembers(cls){
+    return (state.students || [])
+      .filter(s=>String(s.className || "") === String(cls) && !s.deleted && !s._deletedHidden)
+      .sort((a,b)=>String(a.name || "").localeCompare(String(b.name || ""), undefined, {sensitivity:"base"}));
+  }
+  function initials(name){
+    return String(name || "ST").trim().split(/\s+/).map(x=>x[0] || "").join("").slice(0,2).toUpperCase() || "ST";
+  }
+  function photoMini(s){
+    if(s && s.photo) return `<img class="studentMemberPhoto" src="${s.photo}" alt="">`;
+    return `<div class="studentMemberAvatar">${sEsc(initials(s?.name))}</div>`;
+  }
+  function activeWorks(){
+    const quizzes = (state.quizzes || [])
+      .filter(q=>!isDeletedItem(q) && q.status === "Published")
+      .map(q=>({
+        id:q.id,
+        type:"quiz",
+        label:"Timed Quiz / MCQ",
+        title:q.title || "Untitled Quiz",
+        subject:q.subject || "",
+        classes:Array.isArray(q.classNames) ? q.classNames : [],
+        count:(state.submissions || []).filter(s=>String(s.quizId)===String(q.id)).length
+      }));
+    const docs = (state.docAssignments || [])
+      .filter(a=>!isDeletedItem(a) && a.status === "Published")
+      .map(a=>({
+        id:a.id,
+        type:"doc",
+        label:"Scanned / Theory Work",
+        title:a.title || "Untitled Assignment",
+        subject:a.subject || "",
+        classes:Array.isArray(a.classNames) ? a.classNames : [],
+        count:(state.docSubmissions || []).filter(s=>String(s.assignmentId)===String(a.id)).length
+      }));
+    return quizzes.concat(docs).sort((a,b)=>String(a.title).localeCompare(String(b.title), undefined, {sensitivity:"base"}));
+  }
+  function workKey(w){ return `${w.type}:${w.id}`; }
+  function getWorkByKey(key){
+    return activeWorks().find(w=>workKey(w)===String(key)) || null;
+  }
+  function submittedRowsForWork(key){
+    const w = getWorkByKey(key);
+    if(!w) return [];
+    const rows = [];
+    if(w.type === "quiz"){
+      (state.submissions || []).filter(s=>String(s.quizId)===String(w.id)).forEach(s=>{
+        const st = sStudent(s.studentId);
+        if(st) rows.push({student:st, submittedAt:s.submittedAt || "", score:s.teacherScore ?? s.autoScore ?? "", status:s.published ? "Published" : "Submitted"});
+      });
+    }else{
+      (state.docSubmissions || []).filter(s=>String(s.assignmentId)===String(w.id)).forEach(s=>{
+        const st = sStudent(s.studentId);
+        if(st) rows.push({student:st, submittedAt:s.submittedAt || "", score:s.score ?? "", status:s.published ? "Published" : "Submitted"});
+      });
+    }
+    return rows.sort((a,b)=>
+      String(a.student.className||"").localeCompare(String(b.student.className||""), undefined, {numeric:true, sensitivity:"base"}) ||
+      String(a.student.name||"").localeCompare(String(b.student.name||""), undefined, {sensitivity:"base"})
+    );
+  }
+
+  window.openStudentClassMembers = function(cls){
+    publicClassSelected = cls;
+    window.publicClassSelected = cls;
+    route = "studentClassMembers";
+    renderShell();
+  };
+  window.openStudentSubmissionOptions = function(){
+    route = "studentSubmissionOptions";
+    renderShell();
+  };
+  window.openStudentSubmittedList = function(key){
+    publicWorkSelected = key;
+    window.publicWorkSelected = key;
+    route = "studentSubmittedList";
+    renderShell();
+  };
+
+  window.studentClassMembers = function(){
+    const cls = publicClassSelected || publicClasses()[0] || "";
+    publicClassSelected = cls;
+    window.publicClassSelected = cls;
+    const list = classMembers(cls);
+    $("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>${sEsc(cls)} Class Members</h2>
+      <p>Class list for students to view members in their class.</p>
+    </div>
+    <div class="studentViewToolbar">
+      <button class="navy" onclick="setRoute('studentLogin')">Student Login</button>
+      <button class="gold" onclick="openStudentSubmissionOptions()">View Submitted Work Lists</button>
+    </div>
+    <div class="studentClassGrid">
+      ${list.map((s,i)=>`<div class="studentMemberCard">
+        ${photoMini(s)}
+        <div><b>${i+1}. ${sEsc(s.name)}</b><small>${sEsc(s.code || "")} ${s.code ? "•" : ""} ${sEsc(s.className || "")}</small></div>
+      </div>`).join("") || `<div class="empty">No student found in this class.</div>`}
+    </div>`;
+  };
+
+  window.studentSubmissionOptions = function(){
+    const works = activeWorks();
+    $("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>Submitted Work Lists</h2>
+      <p>Select an assignment, exercise, quiz, or scanned work to view the students whose submissions have been captured.</p>
+    </div>
+    <div class="submissionWorkGrid">
+      ${works.map(w=>`<div class="submissionWorkCard">
+        <span class="submissionBadge">${w.count} submitted</span>
+        <h3>${sEsc(w.title)}</h3>
+        <p>${sEsc(w.label)}<br>${sEsc(w.subject)}<br>Classes: ${sEsc((w.classes||[]).join(", ") || "All assigned classes")}</p>
+        <button class="btn green full" onclick="openStudentSubmittedList('${sEsc(workKey(w))}')">View Submitted Students</button>
+      </div>`).join("") || `<div class="empty">No published assignment or quiz is available now.</div>`}
+    </div>`;
+  };
+
+  window.studentSubmittedList = function(){
+    const w = getWorkByKey(publicWorkSelected) || activeWorks()[0];
+    if(!w){
+      $("view").innerHTML = `<div class="studentPublicHeader"><h2>Submitted Work List</h2><p>No published assignment or quiz is available now.</p></div>`;
+      return;
+    }
+    publicWorkSelected = workKey(w);
+    window.publicWorkSelected = publicWorkSelected;
+    const rows = submittedRowsForWork(publicWorkSelected);
+    $("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>${sEsc(w.title)}</h2>
+      <p>${sEsc(w.label)} • ${rows.length} submitted record(s)</p>
+    </div>
+    <div class="studentViewToolbar">
+      <button class="navy" onclick="openStudentSubmissionOptions()">Back to Assignment Options</button>
+      <button class="gold" onclick="window.print()">Print List</button>
+    </div>
+    <div class="studentSubmissionTableWrap">
+      <table class="studentSubmissionTable">
+        <thead><tr><th>No.</th><th>Name</th><th>Class</th><th>Submission Status</th><th>Submitted At</th></tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${sEsc(r.student.name)}</b></td><td>${sEsc(r.student.className)}</td><td>${sEsc(r.status)}</td><td>${sEsc(r.submittedAt)}</td></tr>`).join("") || `<tr><td colspan="5">No submission has been captured for this work yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  function studentClassSidePanelHTML(){
+    const classes = publicClasses();
+    if(!classes.length) return "";
+    return `<div class="studentSideSection">
+      <h3>Class Lists</h3>
+      <p class="studentSideMiniText">Tap a class to view its members.</p>
+      ${classes.map(c=>`<button class="studentClassButton" onclick="openStudentClassMembers('${sEsc(c)}')">${sEsc(c)}</button>`).join("")}
+      <button class="studentSubmitButton" onclick="openStudentSubmissionOptions()">Submitted Work Lists</button>
+    </div>`;
+  }
+
+  const oldRenderShellClassLinks = window.renderShell;
+  window.renderShell = function(){
+    const items = typeof navItems === "function" ? navItems() : [];
+    const pageTitle = ({
+      dashboard:"Dashboard",students:"Students",quizzes:"Quiz Builder",review:"Review / Marking",components:"Continuous Assessment",reports:"Reports",settings:"Settings",backup:"Backup",
+      studentLogin:"Student Login",studentHome:"Student Home",studentQuizzes:"My Quizzes",studentResults:"My Results",
+      studentClassMembers:"Class Members",studentSubmissionOptions:"Submitted Work Lists",studentSubmittedList:"Submitted Students"
+    })[route] || "Portal";
+
+    const showStudentClassPanel = role !== "admin";
+    const saveButton = role === "admin" ? `<button class="btn gold" onclick="save()">Save</button>` : "";
+
+    $("app").innerHTML = `<div class="appShell">
+      <aside class="side">
+        <div class="brand"><div class="logoCircle">AM</div><div><h2>Akuse Methodist SHTS Mathematics Assessment Portal</h2><small>Mathematics / Additional Mathematics</small></div></div>
+        <nav class="nav">
+          ${items.map(([r,t])=>`<button class="${route===r?'active':''}" onclick="setRoute('${r}')">${sEsc(t)}</button>`).join("")}
+          ${showStudentClassPanel ? studentClassSidePanelHTML() : ""}
+          <button onclick="logout()">Logout</button>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="topbar"><div><h1>${sEsc(pageTitle)}</h1><p>${sEsc(state.settings.teacherName)} • ${sEsc(state.settings.school)}</p></div><div>${saveButton}</div></div>
+        <div id="view"></div>
+      </main>
+    </div>`;
+
+    const fnMap = {
+      dashboard,students,quizzes,review,components,reports,settings,backup,
+      studentLogin,studentHome,studentQuizzes,studentResults,
+      studentClassMembers,studentSubmissionOptions,studentSubmittedList
+    };
+    const fn = fnMap[route] || (role === "admin" ? dashboard : studentLogin);
+    fn();
+    try{ if(typeof typeset === "function") typeset(); }catch(e){}
+  };
+
+  try{
+    eval("renderShell=window.renderShell; openStudentClassMembers=window.openStudentClassMembers; openStudentSubmissionOptions=window.openStudentSubmissionOptions; openStudentSubmittedList=window.openStudentSubmittedList; studentClassMembers=window.studentClassMembers; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList;");
   }catch(e){}
 })();
 
