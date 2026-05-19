@@ -7536,6 +7536,15 @@ html,body{
   display:none!important;
 }
 
+
+/* ===== TRUE PERMANENT DELETE ENGINE - BACKGROUND ONLY ===== */
+.permanentDeletePanel,#permanentDeletePanel,
+.smartCleanPanel,#smartCleanPanel,
+.mergeLockPanel,#mergeLockPanel,
+.liveStatsFixPanel,#liveStatsFixPanel{
+  display:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -21644,6 +21653,436 @@ async function initSupabase(){
 
   try{
     eval("deleteQuiz=window.deleteQuiz; deleteDocAssignment=window.deleteDocAssignment; studentPortalHardRefresh=window.studentPortalHardRefresh; restoreBackup=window.restoreBackup; availableQuizzes=window.availableQuizzes; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; quizzes=window.quizzes; review=window.review; dashboard=window.dashboard; students=window.students; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; stablePullRemote=window.stablePullRemote; pullRemote=window.pullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; pushRemote=window.pushRemote; save=window.save; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== TRUE PERMANENT DELETE ENGINE V2 - BACKGROUND ONLY =====
+   Actual fix:
+   - Uses tombstone records in the SAME stable bucket, so a deleted item overwrites the old active row.
+   - Keeps a registry in state, localStorage, stable_items, and app_state.
+   - Filters all admin/student/review/print views to active items only.
+   - Scanned assignments already existing before this update are cleared/archived once, as requested.
+*/
+(function(){
+  const DEL_BUCKET = "__deleted_registry_true_v2__";
+  const DEL_LOCAL = "amest_deleted_registry_true_v2";
+  const SCAN_CLEARED_FLAG = "_scannedAssignmentsClearedByTrueDeleteEngineV2";
+  let savingDeleteEngine = false;
+
+  function tdNow(){ return new Date().toISOString(); }
+  function tdKey(bucket,id){ return String(bucket)+"::"+String(id); }
+  function tdEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function tdLoad(){
+    let reg = {};
+    try{ reg = JSON.parse(localStorage.getItem(DEL_LOCAL) || "{}") || {}; }catch(e){ reg = {}; }
+    try{
+      (state._trueDeletedRegistry || []).forEach(x=>{
+        if(x && x.bucket && x.itemId) reg[tdKey(x.bucket,x.itemId)] = x;
+      });
+    }catch(e){}
+    return reg;
+  }
+  function tdSave(reg){
+    try{ localStorage.setItem(DEL_LOCAL, JSON.stringify(reg || {})); }catch(e){}
+    state._trueDeletedRegistry = Object.values(reg || {});
+  }
+  function tdAdd(bucket,id,opts={}){
+    const reg = tdLoad();
+    const lock = {
+      bucket,
+      itemId:String(id),
+      title: opts.title || "",
+      keepRecords: !!opts.keepRecords,
+      deleteRecords: !!opts.deleteRecords,
+      reason: opts.reason || "deleted",
+      deletedAt: opts.deletedAt || tdNow()
+    };
+    reg[tdKey(bucket,id)] = lock;
+    tdSave(reg);
+    return lock;
+  }
+  function tdGet(bucket,id){ return tdLoad()[tdKey(bucket,id)] || null; }
+  function tdIds(bucket){ return new Set(Object.values(tdLoad()).filter(x=>x.bucket===bucket).map(x=>String(x.itemId))); }
+  function tdIsDeleted(bucket,item){
+    if(!item) return false;
+    return !!(item.deleted || item._deletedHidden || item.isDeleted || tdGet(bucket, item.id));
+  }
+  function tdActiveQuizzes(){ return (state.quizzes||[]).filter(q=>!tdIsDeleted("quizzes",q)); }
+  function tdActiveDocs(){ return (state.docAssignments||[]).filter(a=>!tdIsDeleted("docAssignments",a)); }
+  function tdActiveQuizIds(){ return new Set(tdActiveQuizzes().map(q=>String(q.id))); }
+  function tdActiveDocIds(){ return new Set(tdActiveDocs().map(a=>String(a.id))); }
+
+  function tdEnsureArchives(){
+    state.archivedSubmissions = Array.isArray(state.archivedSubmissions) ? state.archivedSubmissions : [];
+    state.archivedDocSubmissions = Array.isArray(state.archivedDocSubmissions) ? state.archivedDocSubmissions : [];
+    state.archivedQuizzes = Array.isArray(state.archivedQuizzes) ? state.archivedQuizzes : [];
+    state.archivedDocAssignments = Array.isArray(state.archivedDocAssignments) ? state.archivedDocAssignments : [];
+  }
+  function tdUniquePush(arr,item,keyFn){
+    if(!item) return;
+    const key = keyFn(item);
+    if(!arr.some(x=>keyFn(x)===key)) arr.push(item);
+  }
+  function tdTombstone(original,bucket,id,lock){
+    return Object.assign({}, original || {}, {
+      id:String(id),
+      title:(original&&original.title) || lock?.title || "Deleted",
+      status:"Deleted",
+      deleted:true,
+      isDeleted:true,
+      _deletedHidden:true,
+      _deleteBucket:bucket,
+      deletedAt:lock?.deletedAt || tdNow()
+    });
+  }
+
+  function tdApplyRegistryToState(){
+    if(savingDeleteEngine) return;
+    savingDeleteEngine = true;
+    try{
+      tdEnsureArchives();
+      const reg = tdLoad();
+      const quizLocks = Object.values(reg).filter(x=>x.bucket==="quizzes");
+      const docLocks = Object.values(reg).filter(x=>x.bucket==="docAssignments");
+
+      quizLocks.forEach(lock=>{
+        const idx = (state.quizzes||[]).findIndex(q=>String(q.id)===String(lock.itemId));
+        const existing = idx>=0 ? state.quizzes[idx] : null;
+        const tomb = tdTombstone(existing,"quizzes",lock.itemId,lock);
+        if(idx>=0) state.quizzes[idx] = tomb;
+        else state.quizzes = (state.quizzes||[]).concat([tomb]);
+
+        const active = [];
+        (state.submissions||[]).forEach(s=>{
+          if(String(s.quizId)===String(lock.itemId)){
+            if(lock.keepRecords){
+              tdUniquePush(state.archivedSubmissions, Object.assign({},s,{_archivedForDeletedQuiz:true,_archivedAt:tdNow()}), x=>String(x.id || (x.quizId+"_"+x.studentId+"_"+(x.submittedAt||""))));
+            }
+          }else active.push(s);
+        });
+        state.submissions = active;
+      });
+
+      docLocks.forEach(lock=>{
+        const idx = (state.docAssignments||[]).findIndex(a=>String(a.id)===String(lock.itemId));
+        const existing = idx>=0 ? state.docAssignments[idx] : null;
+        const tomb = tdTombstone(existing,"docAssignments",lock.itemId,lock);
+        if(idx>=0) state.docAssignments[idx] = tomb;
+        else state.docAssignments = (state.docAssignments||[]).concat([tomb]);
+
+        const active = [];
+        (state.docSubmissions||[]).forEach(ds=>{
+          if(String(ds.assignmentId)===String(lock.itemId)){
+            if(lock.keepRecords){
+              tdUniquePush(state.archivedDocSubmissions, Object.assign({},ds,{_archivedForDeletedDocAssignment:true,_archivedAt:tdNow()}), x=>String(x.id || (x.assignmentId+"_"+x.studentId+"_"+(x.submittedAt||""))));
+            }
+          }else active.push(ds);
+        });
+        state.docSubmissions = active;
+      });
+
+      // Remove any orphan active submissions from printouts and review.
+      const aq = tdActiveQuizIds();
+      const ad = tdActiveDocIds();
+      state.submissions = (state.submissions||[]).filter(s=>aq.has(String(s.quizId)));
+      state.docSubmissions = (state.docSubmissions||[]).filter(ds=>ad.has(String(ds.assignmentId)));
+
+      state._trueDeletedRegistry = Object.values(tdLoad());
+    }finally{
+      savingDeleteEngine = false;
+    }
+  }
+
+  async function tdLoadRemoteRegistry(){
+    if(!sb) return;
+    const reg = tdLoad();
+    try{
+      const {data,error} = await sb.from("stable_items").select("item_id,data").eq("bucket",DEL_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const lock = row.data || {};
+        if(lock.bucket && lock.itemId) reg[tdKey(lock.bucket,lock.itemId)] = lock;
+      });
+      tdSave(reg);
+    }catch(e){ console.warn("Could not load true delete registry", e); }
+  }
+
+  async function tdWriteRemoteRegistryAndTombstones(){
+    if(!sb) return;
+    const reg = Object.values(tdLoad());
+
+    // Registry rows.
+    const regRows = reg.map(lock=>({
+      bucket: DEL_BUCKET,
+      item_id: tdKey(lock.bucket,lock.itemId),
+      data: lock,
+      updated_at: new Date().toISOString()
+    }));
+
+    // Same-bucket tombstone rows. This is the important part.
+    const tombRows = reg
+      .filter(lock=>["quizzes","docAssignments"].includes(lock.bucket))
+      .map(lock=>{
+        const arr = lock.bucket==="quizzes" ? (state.quizzes||[]) : (state.docAssignments||[]);
+        const found = arr.find(x=>String(x.id)===String(lock.itemId));
+        return {
+          bucket: lock.bucket,
+          item_id: String(lock.itemId),
+          data: tdTombstone(found,lock.bucket,lock.itemId,lock),
+          updated_at: new Date().toISOString()
+        };
+      });
+
+    const rows = regRows.concat(tombRows);
+    for(let i=0;i<rows.length;i+=80){
+      const batch = rows.slice(i,i+80);
+      if(!batch.length) continue;
+      try{
+        const {error}=await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+        if(error) throw error;
+      }catch(e){ console.warn("Could not write true delete registry/tombstones", e); }
+    }
+  }
+
+  async function tdDeleteRemoteActiveRows(){
+    if(!sb) return;
+    // Delete active submissions for deleted assignments/quizzes. Tombstones remain.
+    for(const id of [...tdIds("quizzes")]){
+      try{ await sb.from("stable_items").delete().eq("bucket","submissions").filter("data->>quizId","eq",String(id)); }catch(e){}
+    }
+    for(const id of [...tdIds("docAssignments")]){
+      try{ await sb.from("stable_items").delete().eq("bucket","docSubmissions").filter("data->>assignmentId","eq",String(id)); }catch(e){}
+    }
+  }
+
+  async function tdUpdateAppState(){
+    if(!sb) return;
+    try{
+      await sb.from("app_state").upsert({id:"main",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){ console.warn("Could not write cleaned app_state", e); }
+  }
+
+  async function tdPersistAll(){
+    tdApplyRegistryToState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await tdWriteRemoteRegistryAndTombstones();
+    await tdDeleteRemoteActiveRows();
+    try{
+      if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+      else if(sb && typeof pushRemote==="function") await pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("Main save skipped during true delete persist", e); }
+    await tdWriteRemoteRegistryAndTombstones();
+    await tdDeleteRemoteActiveRows();
+    await tdUpdateAppState();
+  }
+
+  async function tdDeleteDocAssignment(id){
+    const existing = (state.docAssignments||[]).find(a=>String(a.id)===String(id));
+    if(!confirm(`Delete this scanned/theory assignment permanently?\n\n${existing?.title || "Selected assignment"}\n\nIt will disappear from the admin portal and student portal and will not return after logout or refresh.`)) return;
+    const deleteRecords = confirm("Do you also want to delete the students' submitted records/scripts for this assignment?\n\nOK = delete records too.\nCancel = keep records archived, but hide them from active printouts and student portal.");
+    tdAdd("docAssignments", id, {title:existing?.title||"", reason:"delete_doc_assignment", deleteRecords, keepRecords:!deleteRecords});
+    tdApplyRegistryToState();
+    await tdPersistAll();
+    alert("Scanned/theory assignment deleted permanently.");
+    if(typeof quizzes==="function") quizzes();
+  }
+
+  async function tdDeleteQuiz(id){
+    const existing = (state.quizzes||[]).find(q=>String(q.id)===String(id));
+    if(!confirm(`Delete this MCQ/timed quiz permanently?\n\n${existing?.title || "Selected quiz"}\n\nIt will disappear from the admin portal and student portal and will not return after logout or refresh.`)) return;
+    const deleteRecords = confirm("Do you also want to delete submitted scores/records for this quiz?\n\nOK = delete records too.\nCancel = keep records archived, but hide them from active printouts and student portal.");
+    tdAdd("quizzes", id, {title:existing?.title||"", reason:"delete_quiz", deleteRecords, keepRecords:!deleteRecords});
+    tdApplyRegistryToState();
+    await tdPersistAll();
+    alert("Quiz deleted permanently.");
+    if(typeof quizzes==="function") quizzes();
+  }
+
+  // Clear currently existing scanned assignments once, as requested, but archive their records.
+  async function tdClearExistingScannedAssignmentsOnce(){
+    if(state[SCAN_CLEARED_FLAG]) return;
+    const activeDocs = tdActiveDocs();
+    if(activeDocs.length){
+      activeDocs.forEach(a=>{
+        tdAdd("docAssignments", a.id, {title:a.title||"", reason:"initial_clear_scanned_assignment", keepRecords:true, deleteRecords:false});
+      });
+      state[SCAN_CLEARED_FLAG] = true;
+      tdApplyRegistryToState();
+      await tdPersistAll();
+    }else{
+      state[SCAN_CLEARED_FLAG] = true;
+      try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    }
+  }
+
+  // Override core helpers and UI views to hide deleted/tombstone items.
+  window.deleteDocAssignment = function(id){ tdDeleteDocAssignment(id); };
+  window.deleteQuiz = function(id){ tdDeleteQuiz(id); };
+
+  window.quiz = function(id){ return tdActiveQuizzes().find(q=>String(q.id)===String(id)); };
+
+  window.availableQuizzes = function(){
+    const s=student(currentStudentId); if(!s)return[];
+    return tdActiveQuizzes().filter(q=>q.status==="Published" && q.subject===subjectForClass(s.className) && (q.classNames||[]).includes(s.className));
+  };
+
+  window.availableDocAssignments = function(){
+    const s=student(currentStudentId); if(!s)return[];
+    return tdActiveDocs().filter(a=>a.status==="Published" && a.subject===subjectForClass(s.className) && (a.classNames||[]).includes(s.className));
+  };
+
+  window.quizListHTML = function(){
+    const list = tdActiveQuizzes();
+    return list.map(q=>`<div class="quizCard"><h3>${tdEsc(q.title)}</h3><p>${tdEsc(q.subject)} • ${tdEsc((q.classNames||[]).join(", "))} • ${tdEsc(q.status)}</p><div class="toolbar"><button class="btn ${q.status==="Published"?"light":"green"}" onclick="qToggle('${q.id}')">${q.status==="Published"?"Hide":"Publish"}</button><button class="btn red" onclick="deleteQuiz('${q.id}')">Delete</button></div></div>`).join("")||`<div class="empty">No quiz saved.</div>`;
+  };
+
+  window.docAssignmentAdminPanel = function(){
+    if(typeof exEnsure==="function") exEnsure();
+    const subj = state.subjects[0]?.name || "Mathematics";
+    const docs = tdActiveDocs();
+    return `<div class="exercisePresetPanel">
+      <h2>Document Sharing / Scanned Work Submission</h2>
+      <p>Create a document-upload assignment. Students can scan pages and upload them. Deleted assignments will not return after refresh.</p>
+      <div class="grid three">
+        <input id="docTitle" class="input" placeholder="Assignment title, e.g. Exercise 2 Written Work">
+        <select id="docSubject" class="select" onchange="refreshDocClasses()">${subjectOptions(subj)}</select>
+        <select id="docStatus" class="select"><option>Draft</option><option>Published</option></select>
+      </div>
+      <div class="grid two">
+        <input id="docMax" class="input" type="number" value="10" placeholder="Maximum score">
+        <input id="docInstructions" class="input" placeholder="Instructions to students">
+      </div>
+      <div><label class="label">Assign Classes</label><div id="docClasses" class="grid two"></div></div>
+      <button class="btn green" onclick="saveDocAssignment()">Save Document Assignment</button>
+      <div style="margin-top:12px">${docs.map(a=>`<div class="docAssignmentCard"><h3>${tdEsc(a.title)}</h3><p>${tdEsc(a.subject)} • ${tdEsc((a.classNames||[]).join(", "))} • ${tdEsc(a.status)} • Max: ${a.maxScore}</p><div class="toolbar"><button class="btn ${a.status==="Published"?"light":"green"}" onclick="toggleDocAssignment('${a.id}')">${a.status==="Published"?"Hide":"Publish"}</button><button class="btn gold" onclick="publishDocResults('${a.id}')">Publish Marks</button><button class="btn red" onclick="deleteDocAssignment('${a.id}')">Delete</button></div></div>`).join("") || `<div class="empty">No document assignment yet.</div>`}</div>
+    </div>`;
+  };
+
+  const oldQuizzesTD = window.quizzes || (typeof quizzes==="function" ? quizzes : null);
+  if(typeof oldQuizzesTD === "function"){
+    window.quizzes = function(){
+      tdApplyRegistryToState();
+      const result = oldQuizzesTD.apply(this, arguments);
+      return result;
+    };
+  }
+
+  const oldStudentQuizzesTD = window.studentQuizzes;
+  if(typeof oldStudentQuizzesTD === "function"){
+    window.studentQuizzes = function(){
+      tdApplyRegistryToState();
+      const qs=availableQuizzes();
+      const docs=availableDocAssignments();
+      $("view").innerHTML=`<div class="card"><h2>Available Exercises and Document Upload Work</h2><p>Timed exercises and scanned-work submissions assigned to your class will appear here.</p></div>
+        <div>${qs.map(q=>`<div class="quizCard"><h3>${tdEsc(q.title)}</h3><p>${tdEsc(q.questions.length)} question(s) • ${q.durationMinutes||30} minutes</p><button class="btn green" onclick="takeQuiz('${q.id}')">Start Exercise</button></div>`).join("")||`<div class="empty">No timed exercise available now.</div>`}</div>
+        <div class="card"><h2>Scan and Upload Written Work</h2>${docs.map(a=>`<div class="docAssignmentCard"><h3>${tdEsc(a.title)}</h3><p>${tdEsc(a.instructions||"Scan your work and upload the pages here.")}</p><p>Maximum score: ${a.maxScore}</p><button class="btn green" onclick="openDocSubmit('${a.id}')">Upload Scanned Pages</button></div>`).join("")||`<div class="empty">No document-upload assignment available now.</div>`}</div>`;
+    };
+  }
+
+  const oldReviewTD = window.review || (typeof review==="function" ? review : null);
+  if(typeof oldReviewTD === "function"){
+    window.review = function(){
+      tdApplyRegistryToState();
+      return oldReviewTD.apply(this, arguments);
+    };
+  }
+
+  if(typeof window.renderReviewPrintPreview === "function"){
+    const oldPrev = window.renderReviewPrintPreview;
+    window.renderReviewPrintPreview = function(){ tdApplyRegistryToState(); return oldPrev.apply(this, arguments); };
+  }
+  if(typeof window.printSubmittedWorkListPDF === "function"){
+    const oldPrint = window.printSubmittedWorkListPDF;
+    window.printSubmittedWorkListPDF = function(){ tdApplyRegistryToState(); return oldPrint.apply(this, arguments); };
+  }
+
+  // Refresh only reloads the page.
+  window.studentPortalHardRefresh = function(){ window.location.reload(); };
+
+  // Restore remains protected.
+  window.restoreBackup = function(file){
+    if(!file) return;
+    const pass = prompt("Enter admin password before restoring the application:");
+    if(pass !== (state.settings?.adminPass || "")){
+      alert("Wrong admin password. Restore cancelled.");
+      try{ document.querySelectorAll('input[type="file"]').forEach(x=>x.value=""); }catch(e){}
+      return;
+    }
+    if(!confirm("Restoring replaces current data. Continue?")) return;
+    const r = new FileReader();
+    r.onload = async ()=>{
+      try{
+        state = JSON.parse(r.result);
+        await tdLoadRemoteRegistry();
+        tdApplyRegistryToState();
+        await tdPersistAll();
+        alert("Backup restored securely.");
+        if(typeof renderShell==="function") renderShell();
+      }catch(e){ alert("Invalid backup file."); }
+    };
+    r.readAsText(file);
+  };
+
+  // Sync wrappers.
+  if(typeof window.stablePullRemote === "function"){
+    const oldPull = window.stablePullRemote;
+    window.stablePullRemote = async function(){
+      await tdLoadRemoteRegistry();
+      const result = await oldPull.apply(this, arguments);
+      tdApplyRegistryToState();
+      try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+      await tdWriteRemoteRegistryAndTombstones();
+      await tdDeleteRemoteActiveRows();
+      await tdUpdateAppState();
+      return result;
+    };
+  }
+
+  if(typeof window.pushRemote === "function"){
+    const oldPush = window.pushRemote;
+    window.pushRemote = async function(){
+      tdApplyRegistryToState();
+      const result = await oldPush.apply(this, arguments);
+      await tdWriteRemoteRegistryAndTombstones();
+      await tdDeleteRemoteActiveRows();
+      await tdUpdateAppState();
+      return result;
+    };
+  }
+
+  const oldSave = window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSave === "function"){
+    window.save = function(){
+      tdApplyRegistryToState();
+      return oldSave.apply(this, arguments);
+    };
+  }
+
+  if(typeof window.renderShell === "function"){
+    const oldShell = window.renderShell;
+    window.renderShell = function(){
+      tdApplyRegistryToState();
+      return oldShell.apply(this, arguments);
+    };
+  }
+
+  // Startup: clear current scanned assignments once and enforce tombstones.
+  setTimeout(async ()=>{
+    await tdLoadRemoteRegistry();
+    await tdClearExistingScannedAssignmentsOnce();
+    tdApplyRegistryToState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await tdWriteRemoteRegistryAndTombstones();
+    await tdDeleteRemoteActiveRows();
+    await tdUpdateAppState();
+  }, 900);
+
+  try{
+    eval("deleteDocAssignment=window.deleteDocAssignment; deleteQuiz=window.deleteQuiz; quiz=window.quiz; availableQuizzes=window.availableQuizzes; availableDocAssignments=window.availableDocAssignments; quizListHTML=window.quizListHTML; docAssignmentAdminPanel=window.docAssignmentAdminPanel; quizzes=window.quizzes; studentQuizzes=window.studentQuizzes; review=window.review; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; studentPortalHardRefresh=window.studentPortalHardRefresh; restoreBackup=window.restoreBackup; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; save=window.save; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
