@@ -5897,6 +5897,80 @@ body.caFullscreenLock{
   .quickNavSecurityActions{grid-template-columns:1fr}
 }
 
+
+/* ===== SMALL QUICK NAV + AUTO-HIDE DURING TIMED QUIZ ===== */
+.quickNavBar{
+  left:5px!important;
+  right:auto!important;
+  bottom:8px!important;
+  gap:5px!important;
+  transform:scale(.82)!important;
+  transform-origin:bottom left!important;
+  opacity:.92!important;
+}
+.quickNavBar:hover{
+  transform:scale(1)!important;
+  opacity:1!important;
+}
+.quickNavBar button{
+  min-height:32px!important;
+  padding:6px 9px!important;
+  font-size:11px!important;
+  border-radius:999px!important;
+  box-shadow:0 6px 15px rgba(7,31,61,.16)!important;
+}
+.quickNavSmallHint{
+  font-size:8px!important;
+  padding:3px 6px!important;
+}
+body.quizInProgress .quickNavBar{
+  display:none!important;
+}
+body.quizInProgress .side,
+body.quizInProgress .nav,
+body.quizInProgress .quickNavBar{
+  pointer-events:none!important;
+}
+body.quizInProgress .appShell{
+  grid-template-columns:1fr!important;
+}
+body.quizInProgress aside.side{
+  display:none!important;
+}
+.quizLockNotice{
+  position:fixed;
+  left:50%;
+  top:8px;
+  transform:translateX(-50%);
+  z-index:2147483500;
+  background:#fff1f0;
+  color:#b42318;
+  border:1px solid #ffd4d0;
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:950;
+  box-shadow:0 8px 22px rgba(7,31,61,.16);
+}
+@media(max-width:760px){
+  .quickNavBar{
+    left:3px!important;
+    bottom:5px!important;
+    transform:scale(.72)!important;
+  }
+  .quickNavBar:hover{
+    transform:scale(.86)!important;
+  }
+  .quickNavBar button{
+    min-height:29px!important;
+    padding:5px 7px!important;
+    font-size:10px!important;
+  }
+}
+@media print{
+  .quickNavBar,.quizLockNotice{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -16302,6 +16376,157 @@ async function initSupabase(){
 
   try{
     eval("quickSwitchMode=window.quickSwitchMode; quickGoBack=window.quickGoBack; quickGoHome=window.quickGoHome; quickNavConfirmAdminPassword=window.quickNavConfirmAdminPassword; quickNavCloseSecurity=window.quickNavCloseSecurity; renderQuickNavBar=window.renderQuickNavBar;");
+  }catch(e){}
+})();
+
+
+
+/* ===== SMALL QUICK NAV + AUTO-HIDE DURING TIMED QUIZ ===== */
+(function(){
+  window.quizTakingActive = window.quizTakingActive || false;
+
+  function quizNavHide(){
+    window.quizTakingActive = true;
+    document.body.classList.add("quizInProgress");
+    document.getElementById("quickNavBar")?.remove();
+    if(!document.getElementById("quizLockNotice")){
+      document.body.insertAdjacentHTML("beforeend", `<div id="quizLockNotice" class="quizLockNotice">Quiz in progress — navigation is locked until you submit.</div>`);
+    }
+  }
+
+  function quizNavShow(){
+    window.quizTakingActive = false;
+    document.body.classList.remove("quizInProgress");
+    document.getElementById("quizLockNotice")?.remove();
+    setTimeout(()=>{ try{ renderQuickNavBar(); }catch(e){} }, 120);
+  }
+
+  window.hideQuickNavForQuiz = quizNavHide;
+  window.showQuickNavAfterQuiz = quizNavShow;
+
+  const oldRenderQuickNavBarQuiz = window.renderQuickNavBar;
+  if(typeof oldRenderQuickNavBarQuiz === "function"){
+    window.renderQuickNavBar = function(){
+      if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+        document.getElementById("quickNavBar")?.remove();
+        return;
+      }
+      const result = oldRenderQuickNavBarQuiz.apply(this, arguments);
+      const box = document.getElementById("quickNavBar");
+      if(box){
+        box.style.left = "5px";
+        box.style.right = "auto";
+      }
+      return result;
+    };
+  }
+
+  // Any function that starts a quiz must hide the navigation immediately.
+  const oldTakeQuizHideNav = window.takeQuiz;
+  if(typeof oldTakeQuizHideNav === "function"){
+    window.takeQuiz = function(){
+      quizNavHide();
+      return oldTakeQuizHideNav.apply(this, arguments);
+    };
+  }
+
+  const oldConfirmStartExerciseNowHideNav = window.confirmStartExerciseNow;
+  if(typeof oldConfirmStartExerciseNowHideNav === "function"){
+    window.confirmStartExerciseNow = function(){
+      quizNavHide();
+      return oldConfirmStartExerciseNowHideNav.apply(this, arguments);
+    };
+  }
+
+  // If the user cancels at the start prompt before the real quiz opens, show navigation again.
+  const oldCloseStartQuizPromptHideNav = window.closeStartQuizPrompt;
+  if(typeof oldCloseStartQuizPromptHideNav === "function"){
+    window.closeStartQuizPrompt = function(){
+      const result = oldCloseStartQuizPromptHideNav.apply(this, arguments);
+      quizNavShow();
+      return result;
+    };
+  }
+
+  // After submit or auto-submit, restore navigation.
+  const oldSubmitQuizShowNav = window.submitQuiz;
+  if(typeof oldSubmitQuizShowNav === "function"){
+    window.submitQuiz = function(){
+      const result = oldSubmitQuizShowNav.apply(this, arguments);
+      setTimeout(quizNavShow, 250);
+      return result;
+    };
+  }
+
+  // Guard quick navigation while quiz is active.
+  const oldQuickGoBackQuiz = window.quickGoBack;
+  if(typeof oldQuickGoBackQuiz === "function"){
+    window.quickGoBack = function(){
+      if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+        alert("You cannot go back while the quiz is in progress. Submit the quiz first.");
+        return;
+      }
+      return oldQuickGoBackQuiz.apply(this, arguments);
+    };
+  }
+
+  const oldQuickSwitchModeQuiz = window.quickSwitchMode;
+  if(typeof oldQuickSwitchModeQuiz === "function"){
+    window.quickSwitchMode = function(){
+      if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+        alert("You cannot switch mode while the quiz is in progress. Submit the quiz first.");
+        return;
+      }
+      return oldQuickSwitchModeQuiz.apply(this, arguments);
+    };
+  }
+
+  const oldQuickGoHomeQuiz = window.quickGoHome;
+  if(typeof oldQuickGoHomeQuiz === "function"){
+    window.quickGoHome = function(){
+      if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+        alert("You cannot leave while the quiz is in progress. Submit the quiz first.");
+        return;
+      }
+      return oldQuickGoHomeQuiz.apply(this, arguments);
+    };
+  }
+
+  // Guard internal route changes while quiz is active. Allows the submit process to continue.
+  const oldSetRouteQuizGuard = window.setRoute;
+  if(typeof oldSetRouteQuizGuard === "function"){
+    window.setRoute = function(r){
+      if((window.quizTakingActive || document.body.classList.contains("quizInProgress")) && r !== "studentQuizzes" && r !== "studentResults"){
+        alert("Quiz is in progress. Submit before leaving this page.");
+        return;
+      }
+      return oldSetRouteQuizGuard.apply(this, arguments);
+    };
+  }
+
+  // Browser back button protection while the quiz is active.
+  window.addEventListener("popstate", function(e){
+    if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+      history.pushState(null, "", location.href);
+      alert("You cannot go back while the quiz is in progress. Submit the quiz first.");
+    }
+  });
+  try{ history.pushState(null, "", location.href); }catch(e){}
+
+  // If a render happens while the quiz is active, keep nav hidden.
+  const oldRenderShellQuizHide = window.renderShell;
+  if(typeof oldRenderShellQuizHide === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellQuizHide.apply(this, arguments);
+      if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+        quizNavHide();
+      }
+      return result;
+    };
+  }
+
+  try{
+    eval("hideQuickNavForQuiz=window.hideQuickNavForQuiz; showQuickNavAfterQuiz=window.showQuickNavAfterQuiz; renderQuickNavBar=window.renderQuickNavBar; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; quickGoBack=window.quickGoBack; quickSwitchMode=window.quickSwitchMode; quickGoHome=window.quickGoHome; setRoute=window.setRoute; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
