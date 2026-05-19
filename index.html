@@ -5806,6 +5806,26 @@ body.caFullscreenLock{
   .quickNavBar{display:none!important}
 }
 
+
+/* ===== MOVE QUICK NAVIGATION TO EXTREME LEFT ===== */
+.quickNavBar{
+  left:8px!important;
+  right:auto!important;
+  bottom:14px!important;
+  align-items:flex-start!important;
+}
+.quickNavBar button{
+  box-shadow:0 10px 24px rgba(7,31,61,.18)!important;
+}
+@media(max-width:760px){
+  .quickNavBar{
+    left:6px!important;
+    right:auto!important;
+    bottom:8px!important;
+    align-items:flex-start!important;
+  }
+}
+
 </style>
 </head>
 <body>
