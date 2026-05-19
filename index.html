@@ -7211,6 +7211,107 @@ html,body{
   .reviewPrintPanel{display:none!important}
 }
 
+
+/* ===== DUPLICATE STUDENTS MANAGER ===== */
+.duplicateManagerPanel{
+  border:3px solid #f4c430;
+  border-left:10px solid #b42318;
+  background:linear-gradient(135deg,#fff8f7,#fffdf0,#ffffff);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.duplicateManagerPanel h2{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.duplicateManagerPanel p{
+  margin:0 0 12px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.duplicateManagerActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:10px 0;
+}
+.duplicateManagerActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.duplicateManagerActions .green{border:0;background:#0f7b4f;color:#fff}
+.duplicateManagerActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.duplicateManagerActions .navy{border:0;background:#071f3d;color:#fff}
+.duplicateManagerActions .gold{border:0;background:#f4c430;color:#071f3d}
+.duplicateManagerActions .light{border:1px solid #d9e7f3;background:#eef5fc;color:#071f3d}
+.duplicateManagerResults{
+  margin-top:10px;
+  display:grid;
+  gap:10px;
+}
+.duplicateGroupCard{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:18px;
+  padding:12px;
+}
+.duplicateGroupCard h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.duplicateGroupTable{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+  background:#fff;
+}
+.duplicateGroupTable th{
+  background:#071f3d;
+  color:#fff;
+  border:1px solid #071f3d;
+  padding:7px;
+  text-align:left;
+}
+.duplicateGroupTable td{
+  border:1px solid #d9e7f3;
+  padding:7px;
+  vertical-align:top;
+}
+.duplicateKeepBadge{
+  display:inline-flex;
+  border-radius:999px;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border:1px solid #bce8ce;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:950;
+}
+.duplicateDeleteBadge{
+  display:inline-flex;
+  border-radius:999px;
+  background:#fff1f0;
+  color:#b42318;
+  border:1px solid #ffd4d0;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:950;
+}
+@media(max-width:760px){
+  .duplicateManagerActions button{width:100%}
+  .duplicateGroupTable{font-size:12px}
+}
+@media print{
+  .duplicateManagerPanel{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -19214,6 +19315,244 @@ async function initSupabase(){
 
   try{
     eval("review=window.review; injectReviewPrintPanel=window.injectReviewPrintPanel; renderReviewPrintPreview=window.renderReviewPrintPreview; refreshReviewPrintWorkOptions=window.refreshReviewPrintWorkOptions; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; downloadSubmittedWorkListCSV=window.downloadSubmittedWorkListCSV; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== DUPLICATE STUDENTS MANAGER ===== */
+(function(){
+  function dmEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function dmSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("duplicate manager save skipped", e); }
+  }
+  function cleanName(name){
+    return String(name||"")
+      .toLowerCase()
+      .replace(/\s+/g," ")
+      .replace(/[^\p{L}\p{N}\s]/gu,"")
+      .trim();
+  }
+  function studentClass(s){ return String(s.className || s.class || "").trim(); }
+  function duplicateKey(s){
+    return cleanName(s.name) + "||" + studentClass(s).toLowerCase();
+  }
+  function dataScore(s){
+    let score = 0;
+    ["photo","phone","password","studentPassword","code","gender","className"].forEach(k=>{
+      if(s && String(s[k] ?? "").trim()) score += 5;
+    });
+    const id = s?.id;
+    if(id){
+      score += (state.submissions||[]).filter(x=>x.studentId===id).length * 10;
+      score += (state.docSubmissions||[]).filter(x=>x.studentId===id).length * 10;
+      score += (state.reportScores||[]).filter(x=>x.studentId===id).length * 7;
+      score += (state.scores||[]).filter(x=>x.studentId===id).length * 7;
+      score += (state.passwordShares||[]).filter(x=>x.studentId===id).length * 3;
+    }
+    return score;
+  }
+  function findDuplicateGroups(){
+    const map = new Map();
+    (state.students||[]).forEach(s=>{
+      const key = duplicateKey(s);
+      if(!key || key === "||") return;
+      if(!map.has(key)) map.set(key, []);
+      map.get(key).push(s);
+    });
+    return [...map.entries()]
+      .map(([key,list])=>({key,list:list.slice().sort((a,b)=>dataScore(b)-dataScore(a))}))
+      .filter(g=>g.list.length > 1)
+      .sort((a,b)=>String(a.list[0].name).localeCompare(String(b.list[0].name),undefined,{sensitivity:"base"}));
+  }
+  function mergeStudentData(keep, remove){
+    if(!keep || !remove) return keep;
+    Object.keys(remove).forEach(k=>{
+      if(k === "id") return;
+      const kv = keep[k];
+      const rv = remove[k];
+      const keepEmpty = kv === undefined || kv === null || String(kv).trim() === "";
+      const removeHas = rv !== undefined && rv !== null && String(rv).trim() !== "";
+      if(keepEmpty && removeHas) keep[k] = rv;
+    });
+    return keep;
+  }
+  function replaceStudentIdReferences(obj, fromId, toId){
+    if(!obj || typeof obj !== "object") return;
+    if(Array.isArray(obj)){
+      obj.forEach(item=>replaceStudentIdReferences(item, fromId, toId));
+      return;
+    }
+    Object.keys(obj).forEach(k=>{
+      if(k === "students") return; // do not change student record IDs here
+      const v = obj[k];
+      if((k === "studentId" || k === "senderId" || k === "receiverId" || k === "toStudentId" || k === "fromStudentId") && String(v) === String(fromId)){
+        obj[k] = toId;
+      }else if(v && typeof v === "object"){
+        replaceStudentIdReferences(v, fromId, toId);
+      }
+    });
+  }
+  function removeDuplicatesById(idsToRemove){
+    const set = new Set(idsToRemove.map(String));
+    state.students = (state.students||[]).filter(s=>!set.has(String(s.id)));
+  }
+
+  window.renderDuplicateStudentsManager = function(){
+    const box = document.getElementById("duplicateManagerResults");
+    if(!box) return;
+    const groups = findDuplicateGroups();
+    if(!groups.length){
+      box.innerHTML = `<div class="empty">No duplicate student names were found in the same class.</div>`;
+      return;
+    }
+    box.innerHTML = groups.map((g,gi)=>{
+      const keep = g.list[0];
+      return `<div class="duplicateGroupCard">
+        <h3>${dmEsc(keep.name)} — ${dmEsc(studentClass(keep))}</h3>
+        <table class="duplicateGroupTable">
+          <thead><tr><th>Action</th><th>Name</th><th>Class</th><th>Code</th><th>Phone</th><th>Has Photo</th><th>Submissions</th><th>Data Score</th></tr></thead>
+          <tbody>
+            ${g.list.map((s,i)=>`<tr>
+              <td>${i===0?`<span class="duplicateKeepBadge">Keep this</span>`:`<span class="duplicateDeleteBadge">Merge/Delete</span>`}</td>
+              <td>${dmEsc(s.name)}</td>
+              <td>${dmEsc(studentClass(s))}</td>
+              <td>${dmEsc(s.code||"")}</td>
+              <td>${dmEsc(s.phone||"")}</td>
+              <td>${s.photo?"Yes":"No"}</td>
+              <td>${(state.submissions||[]).filter(x=>x.studentId===s.id).length + (state.docSubmissions||[]).filter(x=>x.studentId===s.id).length}</td>
+              <td>${dataScore(s)}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+        <div class="duplicateManagerActions">
+          <button class="green" onclick="mergeOneDuplicateGroup(${gi})">Merge this duplicate group safely</button>
+        </div>
+      </div>`;
+    }).join("");
+  };
+
+  window.mergeOneDuplicateGroup = function(groupIndex){
+    const groups = findDuplicateGroups();
+    const g = groups[groupIndex];
+    if(!g) return alert("Duplicate group not found.");
+    const keep = g.list[0];
+    const duplicates = g.list.slice(1);
+    if(!confirm(`Merge ${duplicates.length} duplicate record(s) into "${keep.name}"?\n\nThis will keep the best record, move submissions/scores to it, and remove the repeated names.`)) return;
+    duplicates.forEach(dup=>{
+      mergeStudentData(keep, dup);
+      replaceStudentIdReferences(state, dup.id, keep.id);
+    });
+    removeDuplicatesById(duplicates.map(s=>s.id));
+    dmSave();
+    alert("Duplicate group merged safely.");
+    if(route === "students" && typeof students === "function") students();
+    setTimeout(renderDuplicateStudentsManager, 150);
+  };
+
+  window.mergeAllDuplicateStudentsSafely = function(){
+    let groups = findDuplicateGroups();
+    if(!groups.length) return alert("No duplicate student names were found in the same class.");
+    const totalRemove = groups.reduce((sum,g)=>sum+g.list.length-1,0);
+    if(!confirm(`This will merge all duplicate student records found in the same class.\n\nDuplicate groups: ${groups.length}\nRepeated records to remove: ${totalRemove}\n\nSubmissions, scores, passwords, photos and phone details will be moved to the best record where possible.\n\nContinue?`)) return;
+
+    groups.forEach(g=>{
+      const keep = g.list[0];
+      const duplicates = g.list.slice(1);
+      duplicates.forEach(dup=>{
+        mergeStudentData(keep, dup);
+        replaceStudentIdReferences(state, dup.id, keep.id);
+      });
+      removeDuplicatesById(duplicates.map(s=>s.id));
+    });
+
+    // Sort after merging
+    try{
+      state.students = (state.students||[]).slice().sort((a,b)=>
+        String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"}) ||
+        String(a.className||"").localeCompare(String(b.className||""),undefined,{numeric:true,sensitivity:"base"})
+      );
+    }catch(e){}
+
+    dmSave();
+    alert("All duplicates have been merged safely.");
+    if(route === "students" && typeof students === "function") students();
+    setTimeout(renderDuplicateStudentsManager, 150);
+  };
+
+  window.printDuplicateStudentsReport = function(){
+    const groups = findDuplicateGroups();
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Duplicate Students Report</title>
+      <style>
+        body{font-family:Arial,Helvetica,sans-serif;color:#071f3d;margin:20px}
+        h1{text-align:center;margin:0 0 4px}
+        p{text-align:center;margin:0 0 14px;color:#475467}
+        table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px}
+        th{background:#071f3d;color:#fff;border:1px solid #071f3d;padding:6px;text-align:left}
+        td{border:1px solid #aab7c7;padding:6px}
+        h2{font-size:15px;margin:14px 0 6px}
+      </style></head><body>
+      <h1>Duplicate Students Report</h1>
+      <p>Akuse Methodist SHTS Assessment Portal • Generated before cleanup</p>
+      ${groups.map(g=>`<h2>${dmEsc(g.list[0].name)} — ${dmEsc(studentClass(g.list[0]))}</h2><table><thead><tr><th>Action</th><th>Name</th><th>Class</th><th>Code</th><th>Phone</th><th>Has Photo</th><th>Submissions</th><th>Data Score</th></tr></thead><tbody>${g.list.map((s,i)=>`<tr><td>${i===0?"Keep":"Merge/Delete"}</td><td>${dmEsc(s.name)}</td><td>${dmEsc(studentClass(s))}</td><td>${dmEsc(s.code||"")}</td><td>${dmEsc(s.phone||"")}</td><td>${s.photo?"Yes":"No"}</td><td>${(state.submissions||[]).filter(x=>x.studentId===s.id).length + (state.docSubmissions||[]).filter(x=>x.studentId===s.id).length}</td><td>${dataScore(s)}</td></tr>`).join("")}</tbody></table>`).join("") || "<p>No duplicates found.</p>"}
+      </body></html>`;
+    const frame = document.createElement("iframe");
+    frame.style.position="fixed"; frame.style.right="0"; frame.style.bottom="0"; frame.style.width="0"; frame.style.height="0"; frame.style.border="0";
+    document.body.appendChild(frame);
+    frame.contentWindow.document.open();
+    frame.contentWindow.document.write(html);
+    frame.contentWindow.document.close();
+    setTimeout(()=>{frame.contentWindow.focus(); frame.contentWindow.print(); setTimeout(()=>frame.remove(),2000)},400);
+  };
+
+  function duplicatePanelHTML(){
+    const count = findDuplicateGroups().length;
+    return `<div id="duplicateManagerPanel" class="duplicateManagerPanel">
+      <h2>Duplicate Student Names Manager</h2>
+      <p>If a class list was uploaded twice, use this tool. It keeps the best record, moves submissions/scores to it, and removes the repeated names safely.</p>
+      <div class="duplicateManagerActions">
+        <button class="navy" onclick="renderDuplicateStudentsManager()">Check Duplicate Names</button>
+        <button class="green" onclick="mergeAllDuplicateStudentsSafely()">Merge All Duplicates Safely</button>
+        <button class="gold" onclick="printDuplicateStudentsReport()">Print Duplicate Report</button>
+      </div>
+      <div id="duplicateManagerResults" class="duplicateManagerResults">${count?`<div class="empty">${count} duplicate group(s) detected. Click “Check Duplicate Names” to review.</div>`:`<div class="empty">No duplicate group detected at the moment.</div>`}</div>
+    </div>`;
+  }
+
+  window.injectDuplicateStudentsManager = function(){
+    if(role !== "admin" || route !== "students") return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("duplicateManagerPanel")) return;
+    view.insertAdjacentHTML("afterbegin", duplicatePanelHTML());
+  };
+
+  const oldStudentsDuplicateManager = window.students || (typeof students==="function" ? students : null);
+  if(typeof oldStudentsDuplicateManager === "function"){
+    window.students = function(){
+      const result = oldStudentsDuplicateManager.apply(this, arguments);
+      setTimeout(injectDuplicateStudentsManager, 80);
+      return result;
+    };
+  }
+
+  const oldRenderShellDuplicateManager = window.renderShell;
+  if(typeof oldRenderShellDuplicateManager === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellDuplicateManager.apply(this, arguments);
+      setTimeout(injectDuplicateStudentsManager, 100);
+      return result;
+    };
+  }
+
+  setTimeout(injectDuplicateStudentsManager, 600);
+
+  try{
+    eval("students=window.students; renderShell=window.renderShell; injectDuplicateStudentsManager=window.injectDuplicateStudentsManager; renderDuplicateStudentsManager=window.renderDuplicateStudentsManager; mergeAllDuplicateStudentsSafely=window.mergeAllDuplicateStudentsSafely; mergeOneDuplicateGroup=window.mergeOneDuplicateGroup; printDuplicateStudentsReport=window.printDuplicateStudentsReport;");
   }catch(e){}
 })();
 
