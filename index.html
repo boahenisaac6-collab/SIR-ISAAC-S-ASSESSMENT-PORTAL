@@ -5701,6 +5701,48 @@ body.caFullscreenLock{
 .oldDataMigrationButtons .navy{border:0;background:#071f3d;color:#fff}
 .oldDataMigrationButtons .gold{border:0;background:#f4c430;color:#071f3d}
 
+
+/* ===== REAL OLD DATA IMPORT BUTTON FIX ===== */
+.realOldDataImportPanel{
+  border:3px solid #f4c430;
+  border-left:10px solid #d92d20;
+  background:#fffdf0;
+  border-radius:22px;
+  padding:14px;
+  margin:14px 0;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.realOldDataImportPanel h2{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.realOldDataImportPanel p{
+  margin:0 0 10px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.realOldDataImportPanel button{
+  min-height:42px;
+  border:0;
+  border-radius:13px;
+  background:#0f7b4f;
+  color:#fff;
+  font-weight:950;
+  padding:9px 13px;
+  cursor:pointer;
+}
+.realOldDataImportPanel .goldBtn{
+  background:#f4c430;
+  color:#071f3d;
+}
+.realOldDataImportActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
 </style>
 </head>
 <body>
@@ -15573,6 +15615,118 @@ async function initSupabase(){
       return result;
     };
   }
+})();
+
+
+
+/* ===== REAL OLD DATA IMPORT BUTTON FIX ===== */
+(function(){
+  function riStatus(text, cls="warn"){
+    try{ stableStatus(text, cls); }catch(e){ try{ status(text, cls); }catch(x){} }
+  }
+
+  async function riReadOldAppState(){
+    if(!sb) return null;
+    try{
+      const {data,error} = await sb.from("app_state").select("data").eq("id","main").maybeSingle();
+      if(!error && data && data.data && Object.keys(data.data).length) return data.data;
+    }catch(e){
+      console.warn("Could not read old app_state/main", e);
+    }
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return null;
+  }
+
+  function riMergeStates(remoteState, localState){
+    if(typeof stableMergeStates === "function") return stableMergeStates(remoteState, localState);
+    return deepMerge(remoteState || defaultState(), localState || {});
+  }
+
+  window.importOldAppStateToStable = async function(force=false){
+    if(!sb) return alert("Supabase is not connected yet. Refresh the app and try again.");
+    if(!force && !confirm("Import old student pictures and old submissions into the new stable database?\n\nClick OK if old pictures or submissions are not showing.")) return;
+
+    riStatus("Importing old pictures and submissions...", "warn");
+
+    const oldData = await riReadOldAppState();
+    if(!oldData){
+      riStatus("No old data found", "bad");
+      alert("No old data was found in Supabase app_state/main or this browser.\n\nTry opening the app on the same device/browser where the pictures used to show, then click this button again.");
+      return false;
+    }
+
+    try{
+      state = riMergeStates(oldData, state || defaultState());
+      normalize();
+      saveLocal();
+
+      if(typeof stableMigrateMedia === "function") await stableMigrateMedia();
+      normalize();
+      saveLocal();
+
+      if(typeof stableWriteRemoteItems === "function") await stableWriteRemoteItems();
+      else if(typeof pushRemote === "function") await pushRemote();
+
+      riStatus("Old pictures and submissions imported", "live");
+      alert("Old pictures and submissions imported successfully.\n\nNow press Ctrl + Shift + R and check the students again.");
+      if(typeof render === "function") render();
+      return true;
+    }catch(e){
+      console.error(e);
+      riStatus("Import failed", "bad");
+      alert("The import failed. Please confirm that the stable SQL setup ran successfully.");
+      return false;
+    }
+  };
+
+  function insertImportPanel(){
+    if(role !== "admin") return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("realOldDataImportPanel")) return;
+    view.insertAdjacentHTML("afterbegin", `<div id="realOldDataImportPanel" class="realOldDataImportPanel">
+      <h2>Old Data Import</h2>
+      <p>If old student pictures or old submitted work are not showing after the stable update, click this button once.</p>
+      <div class="realOldDataImportActions">
+        <button onclick="importOldAppStateToStable(false)">Import Old Pictures and Submissions</button>
+        <button class="goldBtn" onclick="location.reload()">Refresh App</button>
+      </div>
+    </div>`);
+  }
+
+  const previousRenderShell = window.renderShell;
+  if(typeof previousRenderShell === "function"){
+    window.renderShell = function(){
+      const result = previousRenderShell.apply(this, arguments);
+      setTimeout(insertImportPanel, 60);
+      return result;
+    };
+  }
+
+  const previousDashboard = window.dashboard;
+  if(typeof previousDashboard === "function"){
+    window.dashboard = function(){
+      const result = previousDashboard.apply(this, arguments);
+      setTimeout(insertImportPanel, 60);
+      return result;
+    };
+  }
+
+  // Also show it after any render, to make it easy to find even if the dashboard function was replaced.
+  const previousRender = window.render;
+  if(typeof previousRender === "function"){
+    window.render = function(){
+      const result = previousRender.apply(this, arguments);
+      setTimeout(insertImportPanel, 100);
+      return result;
+    };
+  }
+
+  try{
+    eval("importOldAppStateToStable=window.importOldAppStateToStable; renderShell=window.renderShell; dashboard=window.dashboard; render=window.render;");
+  }catch(e){}
 })();
 
 
