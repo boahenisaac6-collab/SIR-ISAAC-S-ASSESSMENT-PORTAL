@@ -7112,6 +7112,105 @@ html,body{
   .realWelcomeClassroomBox{display:none!important}
 }
 
+
+/* ===== REVIEW/MARKING PRINT PDF OPTIONS ===== */
+.reviewPrintPanel{
+  border:3px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fffdf0,#ffffff);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.reviewPrintPanel h2{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.reviewPrintPanel p{
+  margin:0 0 12px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.reviewPrintControls{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  align-items:end;
+}
+.reviewPrintControls label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.reviewPrintControls select,
+.reviewPrintControls input{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  background:#fff;
+  color:#071f3d;
+  font-family:inherit;
+  font-weight:800;
+}
+.reviewPrintActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.reviewPrintActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.reviewPrintActions .green{border:0;background:#0f7b4f;color:#fff}
+.reviewPrintActions .navy{border:0;background:#071f3d;color:#fff}
+.reviewPrintActions .gold{border:0;background:#f4c430;color:#071f3d}
+.reviewPrintActions .light{border:1px solid #d9e7f3;background:#eef5fc;color:#071f3d}
+.reviewPrintPreview{
+  margin-top:12px;
+  border:1px solid #d9e7f3;
+  border-radius:16px;
+  background:#fff;
+  padding:10px;
+  max-height:340px;
+  overflow:auto;
+}
+.reviewPrintPreview table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.reviewPrintPreview th{
+  background:#071f3d;
+  color:#fff;
+  padding:7px;
+  text-align:left;
+  border:1px solid #071f3d;
+}
+.reviewPrintPreview td{
+  border:1px solid #d9e7f3;
+  padding:7px;
+  vertical-align:top;
+}
+@media(max-width:760px){
+  .reviewPrintControls{grid-template-columns:1fr}
+  .reviewPrintActions button{width:100%}
+}
+@media print{
+  .reviewPrintPanel{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -18802,6 +18901,319 @@ async function initSupabase(){
 
   try{
     eval("dashboard=window.dashboard; studentLogin=window.studentLogin; studentHome=window.studentHome; renderShell=window.renderShell; render=window.render;");
+  }catch(e){}
+})();
+
+
+
+/* ===== REVIEW/MARKING PRINT PDF OPTIONS ===== */
+(function(){
+  function rpEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function rpText(v){ return String(v ?? "").replace(/[<>&"]/g, c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c])); }
+  function rpNow(){
+    try{
+      return new Date().toLocaleString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    }catch(e){ return new Date().toLocaleString(); }
+  }
+  function rpStudent(id){
+    try{ if(typeof student==="function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>s.id===id) || {};
+  }
+  function rpQuiz(id){
+    try{ if(typeof quiz==="function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>q.id===id) || {};
+  }
+  function rpAssignment(id){
+    return (state.docAssignments||[]).find(a=>a.id===id) || {};
+  }
+  function rpSubjectForClass(className){
+    try{ return subjectForClass(className) || ""; }catch(e){ return ""; }
+  }
+  function rpSubmittedRows(){
+    const rows = [];
+
+    (state.docSubmissions||[]).forEach(ds=>{
+      const st = rpStudent(ds.studentId);
+      const a = rpAssignment(ds.assignmentId);
+      const score = ds.score;
+      const maxScore = a.maxScore ?? "";
+      rows.push({
+        type:"Scanned / Written Work",
+        typeKey:"scanned",
+        studentId:ds.studentId,
+        studentName:st.name || "Student",
+        className:st.className || "",
+        subject:a.subject || rpSubjectForClass(st.className) || "",
+        workId:ds.assignmentId || "",
+        workTitle:a.title || "Scanned/Theory Assignment",
+        submittedAt:ds.submittedAt || "",
+        score:score === null || score === undefined || score === "" ? "" : score,
+        maxScore:maxScore,
+        published:!!ds.published,
+        status:ds.published ? "Marked / Published" : "Submitted / Not Published",
+        feedback:ds.feedback || ""
+      });
+    });
+
+    (state.submissions||[]).forEach(s=>{
+      const st = rpStudent(s.studentId);
+      const q = rpQuiz(s.quizId);
+      const score = s.teacherScore ?? s.autoScore;
+      rows.push({
+        type:"Timed MCQ Exercise",
+        typeKey:"timed",
+        studentId:s.studentId,
+        studentName:st.name || "Student",
+        className:st.className || "",
+        subject:q.subject || rpSubjectForClass(st.className) || "",
+        workId:s.quizId || "",
+        workTitle:q.title || "Quiz / Exercise",
+        submittedAt:s.submittedAt || "",
+        score:score === null || score === undefined || score === "" ? "" : score,
+        maxScore:s.maxScore ?? "",
+        published:!!s.published,
+        status:s.published ? "Result Published" : "Submitted / Result Not Published",
+        feedback:s.feedback || ""
+      });
+    });
+
+    return rows.sort((a,b)=>
+      String(a.className).localeCompare(String(b.className),undefined,{numeric:true,sensitivity:"base"}) ||
+      String(a.studentName).localeCompare(String(b.studentName),undefined,{sensitivity:"base"}) ||
+      String(a.workTitle).localeCompare(String(b.workTitle),undefined,{sensitivity:"base"})
+    );
+  }
+  function rpUnique(arr){
+    return [...new Set(arr.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:"base"}));
+  }
+  function rpGetFilters(){
+    return {
+      className: document.getElementById("rpClass")?.value || "ALL",
+      type: document.getElementById("rpType")?.value || "ALL",
+      workId: document.getElementById("rpWork")?.value || "ALL",
+      format: document.getElementById("rpFormat")?.value || "names"
+    };
+  }
+  function rpFilteredRows(){
+    const f = rpGetFilters();
+    return rpSubmittedRows().filter(r=>{
+      if(f.className !== "ALL" && r.className !== f.className) return false;
+      if(f.type !== "ALL" && r.typeKey !== f.type) return false;
+      if(f.workId !== "ALL" && r.workId !== f.workId) return false;
+      return true;
+    });
+  }
+  function rpWorkOptionsHTML(){
+    const fType = document.getElementById("rpType")?.value || "ALL";
+    const rows = rpSubmittedRows().filter(r=>fType==="ALL" || r.typeKey===fType);
+    const works = [];
+    const seen = new Set();
+    rows.forEach(r=>{
+      const key = r.workId || r.workTitle;
+      if(seen.has(key)) return;
+      seen.add(key);
+      works.push({id:r.workId || r.workTitle, title:r.workTitle, type:r.type});
+    });
+    works.sort((a,b)=>String(a.title).localeCompare(String(b.title),undefined,{sensitivity:"base"}));
+    return `<option value="ALL">All assignments/quizzes</option>` + works.map(w=>`<option value="${rpEsc(w.id)}">${rpEsc(w.title)} — ${rpEsc(w.type)}</option>`).join("");
+  }
+  window.refreshReviewPrintWorkOptions = function(){
+    const sel = document.getElementById("rpWork");
+    if(sel) sel.innerHTML = rpWorkOptionsHTML();
+    renderReviewPrintPreview();
+  };
+
+  function tableForRows(rows, format, forPrint=false){
+    if(!rows.length){
+      return `<div class="empty">No submitted work matches the selected options.</div>`;
+    }
+    const title = forPrint ? "" : `<p style="margin:0 0 8px;color:#667085;font-weight:800">${rows.length} submission(s) found.</p>`;
+    if(format === "names"){
+      return `${title}<table><thead><tr><th>No.</th><th>Student Name</th><th>Class</th><th>Submitted Work</th><th>Submitted At</th></tr></thead><tbody>
+        ${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${rpText(r.studentName)}</td><td>${rpText(r.className)}</td><td>${rpText(r.workTitle)}</td><td>${rpText(r.submittedAt)}</td></tr>`).join("")}
+      </tbody></table>`;
+    }
+    if(format === "marks"){
+      return `${title}<table><thead><tr><th>No.</th><th>Student Name</th><th>Class</th><th>Submitted Work</th><th>Score</th><th>Status</th></tr></thead><tbody>
+        ${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${rpText(r.studentName)}</td><td>${rpText(r.className)}</td><td>${rpText(r.workTitle)}</td><td>${rpText(r.score)}${r.maxScore!==""?` / ${rpText(r.maxScore)}`:""}</td><td>${rpText(r.status)}</td></tr>`).join("")}
+      </tbody></table>`;
+    }
+    return `${title}<table><thead><tr><th>No.</th><th>Student Name</th><th>Class</th><th>Subject</th><th>Type</th><th>Submitted Work</th><th>Submitted At</th><th>Score</th><th>Status</th></tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${rpText(r.studentName)}</td><td>${rpText(r.className)}</td><td>${rpText(r.subject)}</td><td>${rpText(r.type)}</td><td>${rpText(r.workTitle)}</td><td>${rpText(r.submittedAt)}</td><td>${rpText(r.score)}${r.maxScore!==""?` / ${rpText(r.maxScore)}`:""}</td><td>${rpText(r.status)}</td></tr>`).join("")}
+    </tbody></table>`;
+  }
+
+  window.renderReviewPrintPreview = function(){
+    const box = document.getElementById("reviewPrintPreview");
+    if(!box) return;
+    const f = rpGetFilters();
+    const rows = rpFilteredRows();
+    box.innerHTML = tableForRows(rows, f.format, false);
+  };
+
+  function printTitle(format){
+    if(format === "names") return "Submitted Work List: Names and Classes Only";
+    if(format === "marks") return "Submitted Work List: With Marks";
+    return "Submitted Work List: Detailed Format";
+  }
+
+  window.printSubmittedWorkListPDF = function(){
+    const f = rpGetFilters();
+    const rows = rpFilteredRows();
+    if(!rows.length) return alert("No submitted work matches the selected options.");
+
+    const classText = f.className === "ALL" ? "All Classes" : f.className;
+    const typeText = f.type === "ALL" ? "All Work Types" : (f.type === "scanned" ? "Scanned / Written Work" : "Timed MCQ Exercise");
+    const workText = f.workId === "ALL" ? "All Assignments / Quizzes" : (rows[0]?.workTitle || "Selected Work");
+    const printedAt = rpNow();
+    const table = tableForRows(rows, f.format, true);
+
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${rpText(printTitle(f.format))}</title>
+      <style>
+        @page{size:A4;margin:14mm}
+        *{box-sizing:border-box}
+        body{font-family:Arial,Helvetica,sans-serif;color:#071f3d;margin:0;background:#fff}
+        .header{border:2px solid #071f3d;border-bottom:6px solid #f4c430;border-radius:10px;padding:12px 14px;margin-bottom:12px}
+        .school{font-size:16px;font-weight:900;text-transform:uppercase;text-align:center;letter-spacing:.03em}
+        .title{font-size:20px;font-weight:950;text-align:center;margin-top:5px;color:#071f3d}
+        .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px;font-size:12px}
+        .meta div{border:1px solid #d9e7f3;padding:6px;border-radius:6px}
+        .meta b{display:block;color:#667085;font-size:10px;text-transform:uppercase;margin-bottom:2px}
+        table{width:100%;border-collapse:collapse;font-size:11px;page-break-inside:auto}
+        thead{display:table-header-group}
+        tr{page-break-inside:avoid;page-break-after:auto}
+        th{background:#071f3d;color:#fff;border:1px solid #071f3d;padding:6px;text-align:left}
+        td{border:1px solid #aab7c7;padding:5px;vertical-align:top}
+        tbody tr:nth-child(even){background:#f8fbff}
+        .footer{margin-top:12px;display:flex;justify-content:space-between;font-size:11px;color:#475467;border-top:1px solid #d9e7f3;padding-top:8px}
+        .count{font-weight:900;margin:8px 0;color:#071f3d}
+        @media print{button{display:none}}
+      </style></head><body>
+        <div class="header">
+          <div class="school">Akuse Methodist Senior High Technical School (AMEST)</div>
+          <div class="title">${rpText(printTitle(f.format))}</div>
+          <div class="meta">
+            <div><b>Class Filter</b>${rpText(classText)}</div>
+            <div><b>Work Type</b>${rpText(typeText)}</div>
+            <div><b>Assignment / Quiz</b>${rpText(workText)}</div>
+            <div><b>Date of Printout</b>${rpText(printedAt)}</div>
+          </div>
+        </div>
+        <div class="count">Total submitted record(s): ${rows.length}</div>
+        ${table}
+        <div class="footer"><div>Prepared by Sir Isaac Boahen • 0248481762</div><div>Printed: ${rpText(printedAt)}</div></div>
+      </body></html>`;
+
+    const frame = document.createElement("iframe");
+    frame.style.position = "fixed";
+    frame.style.right = "0";
+    frame.style.bottom = "0";
+    frame.style.width = "0";
+    frame.style.height = "0";
+    frame.style.border = "0";
+    document.body.appendChild(frame);
+    const doc = frame.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+    setTimeout(()=>{
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+      setTimeout(()=>frame.remove(), 2000);
+    }, 450);
+  };
+
+  window.downloadSubmittedWorkListCSV = function(){
+    const f = rpGetFilters();
+    const rows = rpFilteredRows();
+    if(!rows.length) return alert("No submitted work matches the selected options.");
+    const headers = ["No","Student Name","Class","Subject","Type","Submitted Work","Submitted At","Score","Max Score","Status"];
+    const csvRows = [headers].concat(rows.map((r,i)=>[i+1,r.studentName,r.className,r.subject,r.type,r.workTitle,r.submittedAt,r.score,r.maxScore,r.status]));
+    const csv = csvRows.map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "submitted_work_list.csv";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    a.remove();
+  };
+
+  function printPanelHTML(){
+    const rows = rpSubmittedRows();
+    const classes = rpUnique(rows.map(r=>r.className));
+    return `<div id="reviewPrintPanel" class="reviewPrintPanel">
+      <h2>Print / Save Submitted Work List as PDF</h2>
+      <p>Select the class, assignment type and print format. You can print only names and classes, or print with marks. Choose “Save as PDF” in the print window.</p>
+      <div class="reviewPrintControls">
+        <div>
+          <label>Class</label>
+          <select id="rpClass" onchange="renderReviewPrintPreview()">
+            <option value="ALL">All classes</option>
+            ${classes.map(c=>`<option value="${rpEsc(c)}">${rpEsc(c)}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label>Work Type</label>
+          <select id="rpType" onchange="refreshReviewPrintWorkOptions()">
+            <option value="ALL">All submitted work</option>
+            <option value="scanned">Scanned / Written work</option>
+            <option value="timed">Timed MCQ exercise</option>
+          </select>
+        </div>
+        <div>
+          <label>Assignment / Quiz</label>
+          <select id="rpWork" onchange="renderReviewPrintPreview()">${rpWorkOptionsHTML()}</select>
+        </div>
+        <div>
+          <label>Print Format</label>
+          <select id="rpFormat" onchange="renderReviewPrintPreview()">
+            <option value="names">Names and classes only, no marks</option>
+            <option value="marks">Names, classes and marks</option>
+            <option value="details">Detailed list</option>
+          </select>
+        </div>
+      </div>
+      <div class="reviewPrintActions">
+        <button class="green" onclick="printSubmittedWorkListPDF()">Print / Save as PDF</button>
+        <button class="navy" onclick="renderReviewPrintPreview()">Preview Selected List</button>
+        <button class="gold" onclick="downloadSubmittedWorkListCSV()">Download CSV</button>
+      </div>
+      <div id="reviewPrintPreview" class="reviewPrintPreview"></div>
+    </div>`;
+  }
+
+  window.injectReviewPrintPanel = function(){
+    if(role !== "admin" || route !== "review") return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("reviewPrintPanel")) return;
+    view.insertAdjacentHTML("afterbegin", printPanelHTML());
+    setTimeout(renderReviewPrintPreview, 80);
+  };
+
+  const oldReviewPrintPDF = window.review || (typeof review==="function" ? review : null);
+  if(typeof oldReviewPrintPDF === "function"){
+    window.review = function(){
+      const result = oldReviewPrintPDF.apply(this, arguments);
+      setTimeout(injectReviewPrintPanel, 80);
+      return result;
+    };
+  }
+
+  const oldRenderShellReviewPrint = window.renderShell;
+  if(typeof oldRenderShellReviewPrint === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellReviewPrint.apply(this, arguments);
+      setTimeout(injectReviewPrintPanel, 100);
+      return result;
+    };
+  }
+
+  setTimeout(injectReviewPrintPanel, 600);
+
+  try{
+    eval("review=window.review; injectReviewPrintPanel=window.injectReviewPrintPanel; renderReviewPrintPreview=window.renderReviewPrintPreview; refreshReviewPrintWorkOptions=window.refreshReviewPrintWorkOptions; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; downloadSubmittedWorkListCSV=window.downloadSubmittedWorkListCSV; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
