@@ -5743,6 +5743,69 @@ body.caFullscreenLock{
   gap:8px;
 }
 
+
+/* ===== ALPHABETICAL STUDENTS + EASY SWITCH + BACK BUTTON ===== */
+.quickNavBar{
+  position:fixed;
+  right:14px;
+  bottom:14px;
+  z-index:2147483600;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:flex-end;
+  pointer-events:none;
+}
+.quickNavBar button{
+  pointer-events:auto;
+  min-height:42px;
+  border:0;
+  border-radius:999px;
+  padding:9px 14px;
+  font-weight:950;
+  cursor:pointer;
+  box-shadow:0 10px 24px rgba(7,31,61,.20);
+  font-family:inherit;
+}
+.quickNavBackBtn{
+  background:#f4c430;
+  color:#071f3d;
+}
+.quickNavSwitchBtn{
+  background:#071f3d;
+  color:#fff;
+}
+.quickNavHomeBtn{
+  background:#0f7b4f;
+  color:#fff;
+}
+.quickNavSmallHint{
+  pointer-events:auto;
+  background:#fff;
+  color:#667085;
+  border:1px solid #d9e7f3;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:10px;
+  font-weight:900;
+  box-shadow:0 8px 18px rgba(7,31,61,.10);
+}
+@media(max-width:760px){
+  .quickNavBar{
+    right:8px;
+    bottom:8px;
+  }
+  .quickNavBar button{
+    min-height:38px;
+    padding:8px 11px;
+    font-size:12px;
+  }
+  .quickNavSmallHint{display:none}
+}
+@media print{
+  .quickNavBar{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -15726,6 +15789,271 @@ async function initSupabase(){
 
   try{
     eval("importOldAppStateToStable=window.importOldAppStateToStable; renderShell=window.renderShell; dashboard=window.dashboard; render=window.render;");
+  }catch(e){}
+})();
+
+
+
+/* ===== ALPHABETICAL STUDENTS + EASY SWITCH + BACK BUTTON ===== */
+(function(){
+  const NAV_STACK_LIMIT = 30;
+  window.navHistoryStack = window.navHistoryStack || [];
+
+  function alphaName(s){
+    return String((s && s.name) || "").trim().toLowerCase();
+  }
+  function alphaSortStudentsArray(arr){
+    if(!Array.isArray(arr)) return [];
+    return arr.slice().sort((a,b)=>{
+      const na = alphaName(a);
+      const nb = alphaName(b);
+      const byName = na.localeCompare(nb, undefined, {sensitivity:"base"});
+      if(byName !== 0) return byName;
+      return String(a.code||"").localeCompare(String(b.code||""), undefined, {numeric:true});
+    });
+  }
+
+  window.sortAllStudentsAlphabetically = function(){
+    if(Array.isArray(state?.students)){
+      state.students = alphaSortStudentsArray(state.students);
+    }
+  };
+
+  const oldNormalizeAlpha = window.normalize || (typeof normalize==="function" ? normalize : null);
+  window.normalize = function(){
+    if(oldNormalizeAlpha) oldNormalizeAlpha.apply(this, arguments);
+    sortAllStudentsAlphabetically();
+  };
+
+  function currentNavPoint(){
+    return {role:window.role||role, route:window.route||route, studentId:window.currentStudentId||currentStudentId||null};
+  }
+  function samePoint(a,b){
+    return a && b && a.role===b.role && a.route===b.route && String(a.studentId||"")===String(b.studentId||"");
+  }
+  function pushNavPoint(point){
+    if(!point || !point.route) return;
+    const last = navHistoryStack[navHistoryStack.length-1];
+    if(samePoint(last, point)) return;
+    navHistoryStack.push(point);
+    if(navHistoryStack.length>NAV_STACK_LIMIT) navHistoryStack.shift();
+  }
+
+  // Wrap setRoute where it exists, so ordinary navigation can go back.
+  const oldSetRouteQuickNav = window.setRoute || (typeof setRoute==="function" ? setRoute : null);
+  if(oldSetRouteQuickNav){
+    window.setRoute = function(r){
+      pushNavPoint(currentNavPoint());
+      const result = oldSetRouteQuickNav.apply(this, arguments);
+      setTimeout(renderQuickNavBar, 60);
+      return result;
+    };
+  }
+
+  function goPoint(point){
+    if(!point) return false;
+    try{
+      role = point.role;
+      window.role = point.role;
+      route = point.route;
+      window.route = point.route;
+      if(point.studentId){
+        currentStudentId = point.studentId;
+        window.currentStudentId = point.studentId;
+      }
+      if(typeof renderShell==="function") renderShell();
+      else if(typeof render==="function") render();
+      setTimeout(renderQuickNavBar, 60);
+      return true;
+    }catch(e){
+      console.error(e);
+      return false;
+    }
+  }
+
+  window.quickGoBack = function(){
+    let target = navHistoryStack.pop();
+    const now = currentNavPoint();
+    while(target && samePoint(target, now)){
+      target = navHistoryStack.pop();
+    }
+    if(target){
+      goPoint(target);
+      return;
+    }
+    // Useful fallback when no history exists.
+    if(role==="student"){
+      pushNavPoint(now);
+      route = "studentHome";
+      renderShell();
+    }else if(role==="admin"){
+      pushNavPoint(now);
+      route = "dashboard";
+      renderShell();
+    }else{
+      history.back();
+    }
+    setTimeout(renderQuickNavBar, 60);
+  };
+
+  window.quickSwitchMode = function(){
+    pushNavPoint(currentNavPoint());
+    if(role === "admin"){
+      role = "guest";
+      route = "studentLogin";
+      window.role = role;
+      window.route = route;
+      if(typeof renderShell==="function") renderShell();
+      else if(typeof render==="function") render();
+      setTimeout(()=>{
+        try{
+          if(typeof studentLogin==="function") studentLogin();
+        }catch(e){}
+        renderQuickNavBar();
+      },80);
+      return;
+    }
+    if(role === "student"){
+      role = "admin";
+      route = "dashboard";
+      window.role = role;
+      window.route = route;
+      if(typeof renderShell==="function") renderShell();
+      else if(typeof render==="function") render();
+      setTimeout(renderQuickNavBar,80);
+      return;
+    }
+    // Guest/student-list mode to admin
+    role = "admin";
+    route = "dashboard";
+    window.role = role;
+    window.route = route;
+    if(typeof renderShell==="function") renderShell();
+    else if(typeof render==="function") render();
+    setTimeout(renderQuickNavBar,80);
+  };
+
+  window.quickGoHome = function(){
+    pushNavPoint(currentNavPoint());
+    if(role==="admin"){
+      route="dashboard";
+    }else if(role==="student"){
+      route="studentHome";
+    }else{
+      route="studentLogin";
+    }
+    window.route=route;
+    if(typeof renderShell==="function") renderShell();
+    else if(typeof render==="function") render();
+    setTimeout(renderQuickNavBar,60);
+  };
+
+  window.renderQuickNavBar = function(){
+    let box = document.getElementById("quickNavBar");
+    if(!box){
+      document.body.insertAdjacentHTML("beforeend", `<div id="quickNavBar" class="quickNavBar"></div>`);
+      box = document.getElementById("quickNavBar");
+    }
+    const switchText = role==="admin" ? "Student View" : "Admin Mode";
+    const homeText = role==="admin" ? "Admin Home" : (role==="student" ? "Student Home" : "Student List");
+    box.innerHTML = `
+      <span class="quickNavSmallHint">Quick Navigation</span>
+      <button class="quickNavBackBtn" onclick="quickGoBack()">← Back</button>
+      <button class="quickNavHomeBtn" onclick="quickGoHome()">⌂ ${homeText}</button>
+      <button class="quickNavSwitchBtn" onclick="quickSwitchMode()">⇄ ${switchText}</button>
+    `;
+  };
+
+  // Force alphabetical order in common student list builders without changing the interface.
+  const oldBuildStudentVisibleListAlpha = window.buildStudentVisibleList;
+  if(typeof oldBuildStudentVisibleListAlpha === "function"){
+    window.buildStudentVisibleList = function(list, mode){
+      return oldBuildStudentVisibleListAlpha.call(this, alphaSortStudentsArray(list || []), mode);
+    };
+  }
+
+  const oldStudentsAlpha = window.students;
+  if(typeof oldStudentsAlpha === "function"){
+    window.students = function(){
+      sortAllStudentsAlphabetically();
+      const result = oldStudentsAlpha.apply(this, arguments);
+      setTimeout(renderQuickNavBar, 60);
+      return result;
+    };
+  }
+
+  const oldStudentLoginAlpha = window.studentLogin;
+  if(typeof oldStudentLoginAlpha === "function"){
+    window.studentLogin = function(){
+      sortAllStudentsAlphabetically();
+      const result = oldStudentLoginAlpha.apply(this, arguments);
+      setTimeout(renderQuickNavBar, 60);
+      return result;
+    };
+  }
+
+  const oldBulkImportAlpha = window.bulkImport;
+  if(typeof oldBulkImportAlpha === "function"){
+    window.bulkImport = function(){
+      const result = oldBulkImportAlpha.apply(this, arguments);
+      sortAllStudentsAlphabetically();
+      try{ save(); }catch(e){}
+      return result;
+    };
+  }
+
+  const oldAddStudentAlpha = window.addStudent;
+  if(typeof oldAddStudentAlpha === "function"){
+    window.addStudent = function(){
+      const result = oldAddStudentAlpha.apply(this, arguments);
+      sortAllStudentsAlphabetically();
+      try{ save(); }catch(e){}
+      return result;
+    };
+  }
+
+  // After all remote/local pulls, keep ordering stable.
+  const oldSaveLocalAlpha = window.saveLocal;
+  if(typeof oldSaveLocalAlpha === "function"){
+    window.saveLocal = function(){
+      sortAllStudentsAlphabetically();
+      return oldSaveLocalAlpha.apply(this, arguments);
+    };
+  }
+
+  const oldRenderShellQuickNav = window.renderShell;
+  if(typeof oldRenderShellQuickNav === "function"){
+    window.renderShell = function(){
+      sortAllStudentsAlphabetically();
+      const result = oldRenderShellQuickNav.apply(this, arguments);
+      setTimeout(renderQuickNavBar, 60);
+      return result;
+    };
+  }
+
+  const oldRenderQuickNav = window.render;
+  if(typeof oldRenderQuickNav === "function"){
+    window.render = function(){
+      sortAllStudentsAlphabetically();
+      const result = oldRenderQuickNav.apply(this, arguments);
+      setTimeout(renderQuickNavBar, 80);
+      return result;
+    };
+  }
+
+  document.addEventListener("keydown", function(e){
+    if(e.altKey && e.key === "ArrowLeft"){
+      e.preventDefault();
+      quickGoBack();
+    }
+  });
+
+  setTimeout(()=>{
+    try{ sortAllStudentsAlphabetically(); renderQuickNavBar(); }catch(e){}
+  }, 800);
+
+  try{
+    eval("normalize=window.normalize; setRoute=window.setRoute; quickGoBack=window.quickGoBack; quickSwitchMode=window.quickSwitchMode; quickGoHome=window.quickGoHome; renderQuickNavBar=window.renderQuickNavBar; buildStudentVisibleList=window.buildStudentVisibleList; students=window.students; studentLogin=window.studentLogin; renderShell=window.renderShell; render=window.render;");
   }catch(e){}
 })();
 
