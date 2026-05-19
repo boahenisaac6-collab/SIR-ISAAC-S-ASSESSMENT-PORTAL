@@ -5971,6 +5971,177 @@ body.quizInProgress aside.side{
   .quickNavBar,.quizLockNotice{display:none!important}
 }
 
+
+/* ===== BIG STUDENT SEARCH + REFRESH + ANNOUNCEMENT CONTROL ===== */
+.studentSearchHeroBox{
+  border:3px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#fffdf0 0%,#ffffff 55%,#ecfdf3 100%);
+  border-radius:24px;
+  padding:16px;
+  margin:14px 0;
+  box-shadow:0 14px 34px rgba(7,31,61,.14);
+  color:#071f3d;
+}
+.studentSearchHeroBox h2{
+  margin:0 0 8px;
+  color:#071f3d;
+  font-size:24px;
+  line-height:1.15;
+}
+.studentSearchHeroBox p{
+  margin:0 0 12px;
+  color:#344054;
+  font-weight:850;
+  line-height:1.45;
+}
+.bigStudentSearchRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+}
+.bigStudentSearchWrap{
+  position:relative;
+}
+.bigStudentSearchWrap::before{
+  content:"🔍";
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:22px;
+  z-index:2;
+}
+.bigStudentSearchInput{
+  width:100%!important;
+  min-height:62px!important;
+  border:3px solid #f4c430!important;
+  background:#fff!important;
+  color:#071f3d!important;
+  border-radius:18px!important;
+  padding:13px 16px 13px 48px!important;
+  font-size:21px!important;
+  font-weight:950!important;
+  outline:none!important;
+  box-shadow:inset 0 0 0 2px rgba(15,123,79,.08),0 8px 20px rgba(7,31,61,.10)!important;
+}
+.bigStudentSearchInput::placeholder{
+  color:#0f7b4f!important;
+  opacity:1!important;
+  font-weight:950!important;
+}
+.bigStudentSearchInput:focus{
+  border-color:#0f7b4f!important;
+  box-shadow:0 0 0 5px rgba(15,123,79,.16),0 10px 24px rgba(7,31,61,.14)!important;
+}
+.studentRefreshBtn{
+  min-height:62px;
+  border:0;
+  border-radius:18px;
+  background:#071f3d;
+  color:#fff;
+  padding:12px 16px;
+  font-weight:950;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(7,31,61,.18);
+  white-space:nowrap;
+}
+.studentRefreshBtn:hover{
+  background:#0f7b4f;
+}
+.studentRefreshNotice{
+  margin-top:9px;
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:9px 11px;
+  font-size:13px;
+  font-weight:850;
+  line-height:1.4;
+}
+.announcementControlPanel{
+  border:2px solid #d9e7f3;
+  border-left:8px solid #d92d20;
+  background:#fff;
+  border-radius:22px;
+  padding:14px;
+  margin:14px 0;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.announcementControlPanel h2,.announcementControlPanel h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.announcementControlPanel p{
+  margin:0 0 10px;
+  color:#667085;
+  line-height:1.45;
+  font-weight:750;
+}
+.announcementActionRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin:10px 0;
+}
+.announcementActionRow button{
+  min-height:38px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.announcementActionRow .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.announcementActionRow .green{border:0;background:#0f7b4f;color:#fff}
+.announcementActionRow .navy{border:0;background:#071f3d;color:#fff}
+.announcementActionRow .gold{border:0;background:#f4c430;color:#071f3d}
+.announcementListGrid{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+.announcementControlItem{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:16px;
+  padding:11px;
+  display:grid;
+  gap:6px;
+}
+.announcementControlItem b{
+  color:#071f3d;
+}
+.announcementControlItem small{
+  color:#667085;
+  font-weight:800;
+}
+@media(max-width:760px){
+  .studentSearchHeroBox{
+    padding:13px;
+    border-radius:20px;
+  }
+  .studentSearchHeroBox h2{
+    font-size:20px;
+  }
+  .bigStudentSearchRow{
+    grid-template-columns:1fr;
+  }
+  .bigStudentSearchInput{
+    min-height:58px!important;
+    font-size:18px!important;
+  }
+  .studentRefreshBtn{
+    min-height:50px;
+    width:100%;
+  }
+}
+@media print{
+  .studentSearchHeroBox,.announcementControlPanel{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -16527,6 +16698,232 @@ async function initSupabase(){
 
   try{
     eval("hideQuickNavForQuiz=window.hideQuickNavForQuiz; showQuickNavAfterQuiz=window.showQuickNavAfterQuiz; renderQuickNavBar=window.renderQuickNavBar; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; quickGoBack=window.quickGoBack; quickSwitchMode=window.quickSwitchMode; quickGoHome=window.quickGoHome; setRoute=window.setRoute; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== BIG STUDENT SEARCH + REFRESH + ANNOUNCEMENT CONTROL ===== */
+(function(){
+  function srSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("announcement control save skipped", e); }
+  }
+  function srEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function srNow(){ try{return typeof now==="function" ? now() : new Date().toLocaleString();}catch(e){return new Date().toLocaleString();} }
+
+  window.studentPortalHardRefresh = async function(){
+    const btn = document.getElementById("studentPortalRefreshBtn");
+    if(btn) btn.textContent = "Refreshing...";
+    try{
+      if(typeof stablePullRemote === "function" && typeof sb !== "undefined" && sb){
+        await stablePullRemote(true);
+        try{ saveLocal(); }catch(e){}
+      }else if(typeof pullRemote === "function"){
+        await pullRemote();
+      }
+    }catch(e){
+      console.warn("Remote refresh skipped", e);
+    }
+    try{
+      if(typeof renderShell === "function") renderShell();
+      else if(typeof render === "function") render();
+    }catch(e){}
+    setTimeout(()=>{
+      try{
+        if(typeof studentLogin === "function") studentLogin();
+      }catch(e){}
+    },100);
+  };
+
+  function srStudentList(){
+    return Array.isArray(state?.students) ? state.students.slice().sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"})) : [];
+  }
+  function srPhoto(studentId){
+    try{ if(typeof clickableStudentPhoto==="function") return clickableStudentPhoto(studentId); }catch(e){}
+    const s = (state.students||[]).find(x=>x.id===studentId);
+    if(!s) return "";
+    if(s.photo) return `<img class="clickablePhoto" src="${s.photo}" alt="${srEsc(s.name)}">`;
+    const initials = String(s.name||"ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+    return `<div class="clickableAvatar">${srEsc(initials)}</div>`;
+  }
+  function srSubjectForClass(className){
+    try{ return subjectForClass(className)||""; }catch(e){ return ""; }
+  }
+
+  function srCanOpenWithoutPassword(studentId){
+    try{
+      if(!state.settings.requireStudentPassword) return true;
+      if(typeof pwActiveShare==="function" && pwActiveShare(studentId)) return true;
+    }catch(e){}
+    return false;
+  }
+
+  function srStudentListHTML(list){
+    return `<div class="studentFullListGrid">
+      ${list.map((s,i)=>`<div class="studentFullListItem inlinePasswordReady">
+        ${srPhoto(s.id)}
+        <div class="studentFullInfo">
+          <b>${srEsc(s.name)}</b>
+          <small>${srEsc(s.phone || "No phone number")}</small>
+          <small>${srEsc(s.code || "")} • ${srEsc(s.className || "")} • ${srEsc(srSubjectForClass(s.className))}</small>
+          <small class="openLine">${srCanOpenWithoutPassword(s.id) ? "You may open the portal now. Your password is shown inside." : "Type your password below."}</small>
+        </div>
+        <div class="studentInlineLoginBox" onclick="event.stopPropagation()">
+          <input id="inlinePass_${s.id}" type="password" placeholder="Password" value="" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" name="student_password_${i}_${s.id}" readonly onfocus="this.removeAttribute('readonly'); this.value='';" onmousedown="this.removeAttribute('readonly'); this.value='';" onkeydown="if(event.key==='Enter'){studentCardLogin('${s.id}')}">
+          <button type="button" class="inlineViewPassBtn" onclick="togglePasswordView && togglePasswordView('inlinePass_${s.id}', this)">View</button>
+          <button onclick="studentCardLogin('${s.id}')">Open Portal</button>
+          <div class="studentInlineLoginHint">Type your password, then click Open Portal.</div>
+        </div>
+      </div>`).join("") || `<div class="empty">No student found.</div>`}
+    </div>`;
+  }
+
+  window.studentLoginSearchFilter = function(){
+    const q = (document.getElementById("bigStudentSearchInput")?.value || "").toLowerCase().trim();
+    const box = document.getElementById("studentSearchResults");
+    if(!box) return;
+    const list = srStudentList().filter(s=>{
+      if(!q) return true;
+      return String(s.name||"").toLowerCase().includes(q) ||
+             String(s.code||"").toLowerCase().includes(q) ||
+             String(s.className||"").toLowerCase().includes(q);
+    });
+    box.innerHTML = srStudentListHTML(list);
+    try{ if(typeof clearStudentLoginAutofill==="function") clearStudentLoginAutofill(); }catch(e){}
+  };
+
+  window.studentLogin = function(){
+    role = "guest";
+    route = "studentLogin";
+    const view = document.getElementById("view");
+    if(!view) return;
+    view.innerHTML = `<div class="studentSearchHeroBox">
+      <h2>Search for Your Name</h2>
+      <p>Type your name in the large box below. When your name appears, type your password and open your portal.</p>
+      <div class="bigStudentSearchRow">
+        <div class="bigStudentSearchWrap">
+          <input id="bigStudentSearchInput" class="bigStudentSearchInput" placeholder="Search for your name" autocomplete="off" oninput="studentLoginSearchFilter()">
+        </div>
+        <button id="studentPortalRefreshBtn" class="studentRefreshBtn" onclick="studentPortalHardRefresh()">Refresh App</button>
+      </div>
+      <div class="studentRefreshNotice">If you do not see the latest assignment, picture, or result, click <b>Refresh App</b> before you continue.</div>
+    </div>
+    <div id="studentSearchResults">${srStudentListHTML(srStudentList())}</div>`;
+    setTimeout(()=>{
+      document.getElementById("bigStudentSearchInput")?.focus();
+      try{ if(typeof clearStudentLoginAutofill==="function") clearStudentLoginAutofill(); }catch(e){}
+    },100);
+  };
+
+  function allAnnouncements(){
+    const items = [];
+    const pushItem = (source, obj, idx, title, body, createdAt)=>{
+      if(!obj) return;
+      items.push({source, idx, id: obj.id || obj.annId || obj.createdAt || String(idx), title:title || "Announcement", body:body || "", createdAt:createdAt || obj.createdAt || obj.time || ""});
+    };
+
+    (state.announcements||[]).forEach((a,i)=>pushItem("announcements",a,i,a.title||a.heading||"Announcement",a.body||a.message||a.text||"",a.createdAt||a.time));
+    (state.assignmentNotifications||[]).forEach((a,i)=>pushItem("assignmentNotifications",a,i,a.title||"Assignment Notice",a.message||a.body||"New assignment notice",a.createdAt||a.time));
+    (state.classMessages||[]).forEach((a,i)=>pushItem("classMessages",a,i,a.title||"Class Message",a.message||a.body||a.text||"",a.createdAt||a.time));
+    (state.teacherMessages||[]).forEach((a,i)=>pushItem("teacherMessages",a,i,a.title||"Teacher Message",a.message||a.body||a.text||"",a.createdAt||a.time));
+    (state.studentAnnouncements||[]).forEach((a,i)=>pushItem("studentAnnouncements",a,i,a.title||"Student Announcement",a.message||a.body||a.text||"",a.createdAt||a.time));
+    return items;
+  }
+
+  window.deleteStudentAnnouncementItem = function(source, idx){
+    if(!confirm("Delete this announcement/notice from the student portal?")) return;
+    if(Array.isArray(state[source])){
+      state[source].splice(Number(idx),1);
+      srSave();
+      alert("Announcement deleted.");
+      renderAnnouncementControlPanel();
+    }
+  };
+
+  window.clearAllStudentAnnouncements = function(){
+    if(!confirm("Clear ALL announcements and notices from the student portal?\n\nThis will remove student announcements, assignment notification notices, and class messages.")) return;
+    ["announcements","assignmentNotifications","classMessages","teacherMessages","studentAnnouncements"].forEach(k=>{
+      if(Array.isArray(state[k])) state[k] = [];
+    });
+    srSave();
+    alert("All student portal announcements have been cleared.");
+    renderAnnouncementControlPanel();
+  };
+
+  window.renderAnnouncementControlPanel = function(){
+    const panel = document.getElementById("announcementControlPanel");
+    if(!panel) return;
+    const items = allAnnouncements();
+    panel.innerHTML = `<h2>Student Portal Announcement Control</h2>
+      <p>Delete a wrong announcement or clear all announcements that students see in their portal.</p>
+      <div class="announcementActionRow">
+        <button class="red" onclick="clearAllStudentAnnouncements()">Clear All Announcements</button>
+        <button class="navy" onclick="renderAnnouncementControlPanel()">Refresh List</button>
+      </div>
+      <div class="announcementListGrid">
+        ${items.map(item=>`<div class="announcementControlItem">
+          <b>${srEsc(item.title)}</b>
+          <small>${srEsc(item.source)} ${item.createdAt ? "• " + srEsc(item.createdAt) : ""}</small>
+          <div>${srEsc(item.body || "No message body")}</div>
+          <div class="announcementActionRow"><button class="red" onclick="deleteStudentAnnouncementItem('${item.source}',${item.idx})">Delete This Announcement</button></div>
+        </div>`).join("") || `<div class="empty">No announcement or notice is currently showing for students.</div>`}
+      </div>`;
+  };
+
+  function injectAnnouncementControl(){
+    if(role !== "admin") return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("announcementControlPanel")) return;
+    // Put it on dashboard and settings/admin pages. It is safe and visible to admin.
+    if(route === "dashboard" || route === "settings" || route === "quizzes"){
+      view.insertAdjacentHTML("afterbegin", `<div id="announcementControlPanel" class="announcementControlPanel"></div>`);
+      renderAnnouncementControlPanel();
+    }
+  }
+
+  const oldDashboardAnnouncement = window.dashboard;
+  if(typeof oldDashboardAnnouncement === "function"){
+    window.dashboard = function(){
+      const result = oldDashboardAnnouncement.apply(this, arguments);
+      setTimeout(injectAnnouncementControl,60);
+      return result;
+    };
+  }
+
+  const oldSettingsAnnouncement = window.settings;
+  if(typeof oldSettingsAnnouncement === "function"){
+    window.settings = function(){
+      const result = oldSettingsAnnouncement.apply(this, arguments);
+      setTimeout(injectAnnouncementControl,60);
+      return result;
+    };
+  }
+
+  const oldQuizzesAnnouncement = window.quizzes;
+  if(typeof oldQuizzesAnnouncement === "function"){
+    window.quizzes = function(){
+      const result = oldQuizzesAnnouncement.apply(this, arguments);
+      setTimeout(injectAnnouncementControl,60);
+      return result;
+    };
+  }
+
+  const oldRenderShellAnnouncement = window.renderShell;
+  if(typeof oldRenderShellAnnouncement === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellAnnouncement.apply(this, arguments);
+      setTimeout(injectAnnouncementControl,80);
+      return result;
+    };
+  }
+
+  try{
+    eval("studentPortalHardRefresh=window.studentPortalHardRefresh; studentLoginSearchFilter=window.studentLoginSearchFilter; studentLogin=window.studentLogin; deleteStudentAnnouncementItem=window.deleteStudentAnnouncementItem; clearAllStudentAnnouncements=window.clearAllStudentAnnouncements; renderAnnouncementControlPanel=window.renderAnnouncementControlPanel; dashboard=window.dashboard; settings=window.settings; quizzes=window.quizzes; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
