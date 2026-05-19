@@ -8588,6 +8588,176 @@ html,body{
   .printStudentModalOverlay{display:none!important}
 }
 
+
+/* ===== FULL STUDENT LIST PRINT FIX - ALL PAGES ===== */
+.studentPrintArea{
+  display:none;
+}
+@media print{
+  @page{
+    size:A4 portrait;
+    margin:10mm;
+  }
+  html,body{
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  body.studentListPrinting #app,
+  body.studentListPrinting .appShell,
+  body.studentListPrinting .side,
+  body.studentListPrinting .main,
+  body.studentListPrinting .topbar,
+  body.studentListPrinting .printStudentModalOverlay,
+  body.studentListPrinting iframe,
+  body.studentListPrinting > *:not(#studentPrintArea){
+    display:none!important;
+  }
+  body.studentListPrinting #studentPrintArea{
+    display:block!important;
+    position:static!important;
+    width:100%!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+    color:#071f3d!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+  }
+  body.studentListPrinting #studentPrintArea *{
+    overflow:visible!important;
+  }
+  .studentPrintHeader{
+    border:2px solid #071f3d;
+    border-bottom:6px solid #f4c430;
+    border-radius:10px;
+    padding:9px 11px;
+    margin:0 0 8px 0;
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
+  .studentPrintSchool{
+    text-align:center;
+    font-weight:900;
+    text-transform:uppercase;
+    font-size:15px;
+    letter-spacing:.03em;
+    color:#071f3d!important;
+  }
+  .studentPrintTitle{
+    text-align:center;
+    font-size:19px;
+    font-weight:950;
+    margin-top:4px;
+    color:#071f3d!important;
+  }
+  .studentPrintMeta{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:6px;
+    margin-top:8px;
+    font-size:10.5px;
+  }
+  .studentPrintMeta div{
+    border:1px solid #d9e7f3;
+    border-radius:6px;
+    padding:5px;
+  }
+  .studentPrintMeta b{
+    display:block;
+    font-size:9px;
+    color:#667085!important;
+    text-transform:uppercase;
+    margin-bottom:2px;
+  }
+  .studentPrintTable{
+    width:100%!important;
+    border-collapse:collapse!important;
+    border-spacing:0!important;
+    table-layout:fixed!important;
+    font-size:10.2px!important;
+    page-break-inside:auto!important;
+    break-inside:auto!important;
+  }
+  .studentPrintTable thead{
+    display:table-header-group!important;
+  }
+  .studentPrintTable tfoot{
+    display:table-footer-group!important;
+  }
+  .studentPrintTable tr{
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    page-break-after:auto!important;
+  }
+  .studentPrintTable th{
+    background:#071f3d!important;
+    color:#fff!important;
+    border:1px solid #071f3d!important;
+    padding:4.5px!important;
+    text-align:left!important;
+    font-weight:900!important;
+  }
+  .studentPrintTable td{
+    border:1px solid #9aa7b8!important;
+    padding:4px!important;
+    vertical-align:middle!important;
+    color:#071f3d!important;
+    background:#fff!important;
+    word-break:break-word!important;
+  }
+  .studentPrintTable tbody tr:nth-child(even) td{
+    background:#f8fbff!important;
+  }
+  .studentPrintPhoto{
+    width:32px!important;
+    height:32px!important;
+    border-radius:50%!important;
+    object-fit:cover!important;
+    border:1.2px solid #071f3d!important;
+    background:#eef5fc!important;
+    display:block!important;
+  }
+  .studentPrintAvatar{
+    width:32px!important;
+    height:32px!important;
+    border-radius:50%!important;
+    display:grid!important;
+    place-items:center!important;
+    border:1.2px solid #071f3d!important;
+    background:#eef5fc!important;
+    color:#071f3d!important;
+    font-weight:850!important;
+    font-size:9px!important;
+  }
+  .studentPrintClassBreak{
+    page-break-before:always!important;
+    break-before:page!important;
+  }
+  .studentPrintClassBreak:first-child{
+    page-break-before:auto!important;
+    break-before:auto!important;
+  }
+  .studentPrintFooter{
+    margin-top:8px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    border-top:1px solid #d9e7f3;
+    padding-top:6px;
+    color:#475467!important;
+    font-size:9.5px;
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -27142,6 +27312,237 @@ async function initSupabase(){
 
   try{
     eval("professionalPrintStudents=window.professionalPrintStudents; cleanPrintCurrentClass=window.cleanPrintCurrentClass; openStudentPrintOptions=window.openStudentPrintOptions; closeStudentPrintOptions=window.closeStudentPrintOptions; previewSelectedStudentListCount=window.previewSelectedStudentListCount; printSelectedStudentListPDF=window.printSelectedStudentListPDF; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== FULL STUDENT LIST PRINT FIX V2 - NO IFRAME, ALL PAGES =====
+   This replaces the old iframe/screen-table print. It prints from an in-page
+   print area with normal document flow so the browser can paginate all rows.
+*/
+(function(){
+  function fpEsc(v){
+    return String(v ?? "").replace(/[<>&"]/g, c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+  }
+  function fpClasses(){
+    const list = []
+      .concat(Array.isArray(state.classes) ? state.classes : [])
+      .concat((state.students || []).map(s=>s.className).filter(Boolean));
+    return [...new Set(list.filter(Boolean))]
+      .sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true, sensitivity:"base"}));
+  }
+  function fpStudents(cls){
+    return (state.students || [])
+      .filter(s=>!s.deleted && !s._deletedHidden && !s.isDeleted)
+      .filter(s=>cls === "ALL" || String(s.className || "") === String(cls))
+      .sort((a,b)=>
+        String(a.className||"").localeCompare(String(b.className||""), undefined, {numeric:true, sensitivity:"base"}) ||
+        String(a.name||"").localeCompare(String(b.name||""), undefined, {sensitivity:"base"})
+      );
+  }
+  function fpSubject(cls){
+    try{ return typeof subjectForClass === "function" ? subjectForClass(cls) || "" : ""; }
+    catch(e){ return ""; }
+  }
+  function fpInitials(name){
+    return String(name || "ST").trim().split(/\s+/).map(x=>x[0] || "").join("").slice(0,2).toUpperCase() || "ST";
+  }
+  function fpPhoto(s){
+    if(s && s.photo) return `<img class="studentPrintPhoto" src="${s.photo}" alt="">`;
+    return `<div class="studentPrintAvatar">${fpEsc(fpInitials(s?.name))}</div>`;
+  }
+  function fpNow(){
+    try{
+      return new Date().toLocaleString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    }catch(e){ return new Date().toLocaleString(); }
+  }
+  function fpGroupedRows(rows){
+    const groups = new Map();
+    rows.forEach(s=>{
+      const c = s.className || "Unassigned";
+      if(!groups.has(c)) groups.set(c, []);
+      groups.get(c).push(s);
+    });
+    return [...groups.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]), undefined, {numeric:true, sensitivity:"base"}));
+  }
+  function fpRowsTable(rows, startIndex=0){
+    return `<table class="studentPrintTable">
+      <thead>
+        <tr>
+          <th style="width:32px">No.</th>
+          <th style="width:42px">Photo</th>
+          <th>Name</th>
+          <th style="width:76px">Class</th>
+          <th style="width:92px">Subject</th>
+          <th style="width:83px">Phone</th>
+          <th style="width:78px">Code</th>
+          <th style="width:78px">Password</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((s,i)=>`<tr>
+          <td>${startIndex+i+1}</td>
+          <td>${fpPhoto(s)}</td>
+          <td><b>${fpEsc(s.name)}</b></td>
+          <td>${fpEsc(s.className || "")}</td>
+          <td>${fpEsc(fpSubject(s.className))}</td>
+          <td>${fpEsc(s.phone || "")}</td>
+          <td>${fpEsc(s.code || "")}</td>
+          <td>${fpEsc(s.password || "")}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>`;
+  }
+  function fpBuildPrintHTML(cls, rows){
+    const printedAt = fpNow();
+    const classLabel = cls === "ALL" ? "All Classes" : cls;
+
+    let bodyHTML = "";
+    if(cls === "ALL"){
+      const groups = fpGroupedRows(rows);
+      let running = 0;
+      bodyHTML = groups.map(([className, classRows], index)=>{
+        const part = `<section class="studentPrintClassBreak">
+          <div class="studentPrintHeader">
+            <div class="studentPrintSchool">Akuse Methodist Senior High Technical School</div>
+            <div class="studentPrintTitle">Student List - ${fpEsc(className)}</div>
+            <div class="studentPrintMeta">
+              <div><b>Print Option</b>${fpEsc(classLabel)}</div>
+              <div><b>Class Total</b>${classRows.length}</div>
+              <div><b>Date</b>${fpEsc(printedAt)}</div>
+            </div>
+          </div>
+          ${fpRowsTable(classRows, running)}
+        </section>`;
+        running += classRows.length;
+        return part;
+      }).join("");
+    }else{
+      bodyHTML = `<section>
+        <div class="studentPrintHeader">
+          <div class="studentPrintSchool">Akuse Methodist Senior High Technical School</div>
+          <div class="studentPrintTitle">Student List - ${fpEsc(classLabel)}</div>
+          <div class="studentPrintMeta">
+            <div><b>Class</b>${fpEsc(classLabel)}</div>
+            <div><b>Total Students</b>${rows.length}</div>
+            <div><b>Date</b>${fpEsc(printedAt)}</div>
+          </div>
+        </div>
+        ${fpRowsTable(rows, 0)}
+      </section>`;
+    }
+
+    return `${bodyHTML}
+      <div class="studentPrintFooter">
+        <div>Prepared by Sir Isaac Boahen • 0248481762</div>
+        <div>Total printed records: ${rows.length} • Printed: ${fpEsc(printedAt)}</div>
+      </div>`;
+  }
+
+  window.openStudentPrintOptions = function(){
+    const classes = fpClasses();
+    const current = document.getElementById("professionalClassFilter")?.value || document.getElementById("cleanClassFilter")?.value || "ALL";
+    document.getElementById("printStudentModalOverlay")?.remove();
+
+    document.body.insertAdjacentHTML("beforeend", `<div id="printStudentModalOverlay" class="printStudentModalOverlay">
+      <div class="printStudentModal">
+        <div class="printStudentModalHeader">
+          <h2>Print Student List as PDF</h2>
+          <p>Select all classes or one class. The printout will continue across pages until all records are printed.</p>
+        </div>
+        <div class="printStudentModalBody">
+          <label>Print Option</label>
+          <select id="printStudentClassSelect" onchange="previewSelectedStudentListCount()">
+            <option value="ALL" ${current==="ALL"?"selected":""}>All Classes</option>
+            ${classes.map(c=>`<option value="${fpEsc(c)}" ${String(c)===String(current)?"selected":""}>${fpEsc(c)}</option>`).join("")}
+          </select>
+          <div class="printStudentModalActions">
+            <button class="light" onclick="closeStudentPrintOptions()">Cancel</button>
+            <button class="gold" onclick="printSelectedStudentListPDF()">Print / Save as PDF</button>
+            <button class="navy" onclick="previewSelectedStudentListCount()">Check Total</button>
+          </div>
+          <div id="printStudentCountInfo" style="margin-top:10px;color:#475467;font-weight:850;"></div>
+        </div>
+      </div>
+    </div>`);
+    previewSelectedStudentListCount();
+  };
+
+  window.closeStudentPrintOptions = function(){
+    document.getElementById("printStudentModalOverlay")?.remove();
+  };
+
+  window.previewSelectedStudentListCount = function(){
+    const cls = document.getElementById("printStudentClassSelect")?.value || "ALL";
+    const rows = fpStudents(cls);
+    const label = cls === "ALL" ? "All Classes" : cls;
+    const info = document.getElementById("printStudentCountInfo");
+    if(info) info.textContent = `${label}: ${rows.length} student record(s) will be printed.`;
+  };
+
+  window.printSelectedStudentListPDF = function(){
+    const cls = document.getElementById("printStudentClassSelect")?.value || "ALL";
+    const rows = fpStudents(cls);
+    if(!rows.length) return alert("No student found for the selected print option.");
+
+    let printArea = document.getElementById("studentPrintArea");
+    if(!printArea){
+      printArea = document.createElement("div");
+      printArea.id = "studentPrintArea";
+      printArea.className = "studentPrintArea";
+      document.body.appendChild(printArea);
+    }
+
+    printArea.innerHTML = fpBuildPrintHTML(cls, rows);
+    closeStudentPrintOptions();
+
+    // Important: no iframe and no scroll container. The print area is in normal document flow.
+    document.body.classList.add("studentListPrinting");
+
+    const cleanup = () => {
+      document.body.classList.remove("studentListPrinting");
+      // Keep print area but clear it after print, so it cannot affect normal screen view.
+      setTimeout(()=>{ const a=document.getElementById("studentPrintArea"); if(a) a.innerHTML=""; }, 500);
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+
+    // Give images/layout a moment, then print the in-page print area.
+    setTimeout(()=>window.print(), 350);
+  };
+
+  window.professionalPrintStudents = function(){ openStudentPrintOptions(); };
+  window.cleanPrintCurrentClass = function(){ openStudentPrintOptions(); };
+
+  function relabelPrintButtons(){
+    try{
+      document.querySelectorAll("button").forEach(btn=>{
+        const t = (btn.textContent || "").trim().toLowerCase();
+        if(t === "print list" || t === "print current list" || t === "print as pdf"){
+          btn.textContent = "Print as PDF";
+          if(!btn.dataset.fullPrintFixed){
+            btn.dataset.fullPrintFixed = "1";
+            btn.onclick = openStudentPrintOptions;
+          }
+        }
+      });
+    }catch(e){}
+  }
+
+  const oldRenderShellFullPrintFix = window.renderShell;
+  if(typeof oldRenderShellFullPrintFix === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellFullPrintFix.apply(this, arguments);
+      setTimeout(relabelPrintButtons, 120);
+      return result;
+    };
+  }
+
+  setInterval(relabelPrintButtons, 1500);
+
+  try{
+    eval("openStudentPrintOptions=window.openStudentPrintOptions; closeStudentPrintOptions=window.closeStudentPrintOptions; previewSelectedStudentListCount=window.previewSelectedStudentListCount; printSelectedStudentListPDF=window.printSelectedStudentListPDF; professionalPrintStudents=window.professionalPrintStudents; cleanPrintCurrentClass=window.cleanPrintCurrentClass; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
