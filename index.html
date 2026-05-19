@@ -7568,6 +7568,116 @@ html,body{
   display:none!important;
 }
 
+
+/* ===== 1 G3B CANONICAL CLASS CONTROL ===== */
+.classControlPanel{
+  border:3px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fffdf0,#ffffff,#ecfdf3);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.classControlPanel h2{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.classControlPanel p{
+  margin:0 0 12px;
+  color:#344054;
+  font-weight:800;
+  line-height:1.45;
+}
+.classControlGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  align-items:end;
+}
+.classControlGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.classControlGrid select,
+.classControlGrid input{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  background:#fff;
+  color:#071f3d;
+  font-weight:850;
+}
+.classControlActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.classControlActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.classControlActions .green{border:0;background:#0f7b4f;color:#fff}
+.classControlActions .navy{border:0;background:#071f3d;color:#fff}
+.classControlActions .gold{border:0;background:#f4c430;color:#071f3d}
+.classControlActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.classControlList{
+  margin-top:12px;
+  max-height:420px;
+  overflow:auto;
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:16px;
+  padding:10px;
+}
+.classControlTable{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.classControlTable th{
+  background:#071f3d;
+  color:#fff;
+  border:1px solid #071f3d;
+  padding:7px;
+  text-align:left;
+}
+.classControlTable td{
+  border:1px solid #d9e7f3;
+  padding:7px;
+  vertical-align:middle;
+}
+.classControlStatus{
+  margin-top:10px;
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:9px 11px;
+  font-size:13px;
+  font-weight:850;
+  line-height:1.45;
+}
+@media(max-width:760px){
+  .classControlGrid{grid-template-columns:1fr}
+  .classControlActions button{width:100%}
+  .classControlTable{font-size:12px}
+}
+@media print{
+  .classControlPanel{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -23080,6 +23190,434 @@ async function initSupabase(){
 
   try{
     eval("deleteDocAssignment=window.deleteDocAssignment; deleteQuiz=window.deleteQuiz; studentPortalHardRefresh=window.studentPortalHardRefresh; availableDocAssignments=window.availableDocAssignments; availableQuizzes=window.availableQuizzes; quiz=window.quiz; quizzes=window.quizzes; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; studentHome=window.studentHome; studentLogin=window.studentLogin; review=window.review; dashboard=window.dashboard; students=window.students; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; renderShell=window.renderShell; restoreBackup=window.restoreBackup;");
+  }catch(e){}
+})();
+
+
+
+/* ===== 1 G3B CANONICAL CLASS CONTROL ENGINE V1 =====
+   Background + admin tool:
+   - Imports the official 1 G3B class list supplied by Sir Isaac.
+   - Seals 1 G3B so refresh/pull cannot bring back old duplicate 1 G3B records.
+   - Adds admin class control: delete selected students or delete all students from a class.
+*/
+(function(){
+  const G3B_CLASS = "1 G3B";
+  const EXPECTED_TOTAL_STUDENTS = 205;
+  const G3B_NAMES = ["ABDUL-RAZAK KATARI TASNIM", "ADDO EVANS NKRUMAH", "ADJEI LETICIA KAI", "ADJORNOR REGINA", "AFERDI BAAH KWAO", "AGBEVE EDWIN EDEM", "AKOTO ERICA", "AMAMU OLIVIA EMEFA", "AMANKWAH HILLARY AKUA", "ANDREWS OFORI EMMANELLA OYEBA", "ANKOH MAAME ESI", "APPIAH BERNICE YEBOAAH", "APPIAH BLESSING AKYERE", "ARTHUR GIDEON", "ARTHUR PORTIA", "ASARE RANDY", "ASHIABI ANGEL ESINAM", "ASIATEY JEDIDIAH", "ATTEH ISABELLA", "AVORYI JENNIFER", "AYORNU ANNABELLE AMANORKIE", "AZIATRE CHRISTIANA AMA", "BAMFO BEATRICE AMPOMAH", "BARBELE RUFINA", "BIANTEY AARON JUNIOR", "BOSOMTWE REBECCA", "BRAY HARRIET", "COFFIE GLORIA KORYOO", "DANKWA ELIZABETH", "DANKWAH DORCAS AGYEIWAA", "DJAN STEPHANIE AFIA POKUAH", "DZRAMADO FAITH AKOSUA", "ERZOAH JEMIMMA", "ESSEL FLORENCE ABA", "FERNANDEZ DOE VICENTIA", "FORSON PAUL", "GABAH JOSEPH", "GYAMBIBI FRANCISCA AFUA", "GYASI RUTH AKABEHUNU", "HANSON JOANA", "INKOOM ISAAC ASSAN", "KATAMANI DAVID KWESI", "KUMI NATHANIEL KOFI", "LARTEY DINAH KORKOR KEENOR", "LARYEA DANIEL", "LAWER FELICIA", "MATEY PASCALINE DARLEY", "MENSAH MORINA", "MOHAMMED ABDUL-HAKEEM", "MOHAMMED RAHA", "NARH PRINCESS KORKOR", "NKETIAH ROLAND", "NTUMY GIFTY MAWULORM", "OBENG LOVE JANELLE", "OBENG NANA POKUAH", "OCANSEY PRINCE KANOR", "OFFORI-ATTA ISABELLA", "OSABUTEY JUDITH", "OTOO ANITA", "QUANSAH SHERRIF KOFI", "QUARSHIE LESLIE LARTEY", "SARPONG EMMANUEL ANTWI", "SERCHIE NARTEY EVELYN NARKIE", "SURAKA RUWEIDA", "TAKYIWAA ANITA", "TEI-NORTEY VANESSA NARKIE", "TETTEH BARACK KEKELI", "TETTEH LAURA AMAKI", "TETTEH RUTH DEDE", "TETTEY RICHARD", "TEYE-DOKU ISAAC", "YAKUBU ABDUL JALEEL", "YEHOUESSI FRANCIS SENANU", "YUSIF ZAINAB BANCE", "ZIGAH EMMANUELLA ELIKPLIM", "ZOWADAH DELCY NHYIRA"];
+  const CC_BUCKET = "__class_control_locks_v1__";
+  const CC_LOCAL = "amest_class_control_locks_v1";
+  let ccBusy = false;
+
+  function ccNow(){ return new Date().toISOString(); }
+  function ccKey(bucket,id){ return String(bucket)+"::"+String(id); }
+  function ccEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function ccUid(prefix){
+    try{ if(typeof uid==="function") return uid(prefix); }catch(e){}
+    try{ if(typeof exUid==="function") return exUid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function ccCleanName(name){
+    return String(name||"")
+      .toUpperCase()
+      .normalize("NFKD")
+      .replace(/\s+/g," ")
+      .replace(/[^\p{L}\p{N}\s-]/gu,"")
+      .trim();
+  }
+  function ccClassNorm(cls){
+    return String(cls||"").toUpperCase().replace(/\s+/g,"").replace(/-/g,"").trim();
+  }
+  function ccIsG3BClass(cls){
+    const c = ccClassNorm(cls);
+    return c === "1G3B" || c === "G3B" || c === "GENERALARTS3B" || c === "GENERALARTSB" || c === "1GENERALARTSB";
+  }
+  function ccIsG3BName(name){
+    const n = ccCleanName(name);
+    return G3B_NAMES.some(x=>ccCleanName(x)===n);
+  }
+  function ccLoadLocks(){
+    let locks = {};
+    try{ locks = JSON.parse(localStorage.getItem(CC_LOCAL) || "{}") || {}; }catch(e){}
+    try{ (state._classControlLocks || []).forEach(x=>{ if(x && x.bucket && x.itemId) locks[ccKey(x.bucket,x.itemId)] = x; }); }catch(e){}
+    return locks;
+  }
+  function ccSaveLocks(locks){
+    try{ localStorage.setItem(CC_LOCAL, JSON.stringify(locks || {})); }catch(e){}
+    state._classControlLocks = Object.values(locks || {});
+  }
+  function ccAddLock(bucket,id,reason){
+    if(!id) return;
+    const locks = ccLoadLocks();
+    locks[ccKey(bucket,id)] = {bucket,itemId:String(id),reason:reason||"deleted",deletedAt:ccNow()};
+    ccSaveLocks(locks);
+  }
+  function ccLockedIds(bucket){
+    return new Set(Object.values(ccLoadLocks()).filter(x=>x.bucket===bucket).map(x=>String(x.itemId)));
+  }
+  function ccTombstone(bucket,id,reason){
+    return {id:String(id), name:"Deleted", title:"Deleted", status:"Deleted", deleted:true, isDeleted:true, _deletedHidden:true, _deleteBucket:bucket, reason:reason||"deleted", deletedAt:ccNow()};
+  }
+  function ccScore(s){
+    let score=0;
+    ["photo","phone","password","studentPassword","code","gender","className","guardian","email"].forEach(k=>{ if(String(s?.[k] ?? "").trim()) score += 10; });
+    const id=s?.id;
+    if(id){
+      score += (state.submissions||[]).filter(x=>String(x.studentId)===String(id)).length * 60;
+      score += (state.docSubmissions||[]).filter(x=>String(x.studentId)===String(id)).length * 60;
+      score += (state.reportScores||[]).filter(x=>String(x.studentId)===String(id)).length * 40;
+      score += (state.scores||[]).filter(x=>String(x.studentId)===String(id)).length * 40;
+      score += (state.passwordShares||[]).filter(x=>String(x.studentId)===String(id)).length * 20;
+    }
+    return score;
+  }
+  function ccMergeStudentFields(keep, other){
+    Object.keys(other||{}).forEach(k=>{
+      if(k==="id") return;
+      const empty = keep[k]===undefined || keep[k]===null || String(keep[k]).trim()==="";
+      const has = other[k]!==undefined && other[k]!==null && String(other[k]).trim()!=="";
+      if(empty && has) keep[k]=other[k];
+    });
+  }
+  function ccReplaceStudentIdDeep(obj,fromId,toId){
+    if(!obj || typeof obj!=="object") return;
+    if(Array.isArray(obj)){ obj.forEach(x=>ccReplaceStudentIdDeep(x,fromId,toId)); return; }
+    Object.keys(obj).forEach(k=>{
+      if(k==="students") return;
+      const v=obj[k];
+      if(["studentId","senderId","receiverId","toStudentId","fromStudentId"].includes(k) && String(v)===String(fromId)){
+        obj[k]=toId;
+      }else if(v && typeof v==="object") ccReplaceStudentIdDeep(v,fromId,toId);
+    });
+  }
+  function ccApplyLocks(){
+    const locked = ccLockedIds("students");
+    if(locked.size){
+      state.students = (state.students||[]).filter(s=>!locked.has(String(s.id)));
+      state.submissions = (state.submissions||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.docSubmissions = (state.docSubmissions||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.reportScores = (state.reportScores||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.reportComments = (state.reportComments||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.scores = (state.scores||[]).filter(x=>!locked.has(String(x.studentId)));
+      state.passwordShares = (state.passwordShares||[]).filter(x=>!locked.has(String(x.studentId)));
+    }
+  }
+
+  function ccEnsureG3BSealed(){
+    if(!Array.isArray(state.students)) state.students = [];
+    if(!Array.isArray(state.classes)) state.classes = [];
+    if(!state.classes.some(c=>ccIsG3BClass(c))) state.classes.push(G3B_CLASS);
+    state.classes = state.classes.map(c=>ccIsG3BClass(c)?G3B_CLASS:c);
+    state.classes = [...new Set(state.classes)];
+
+    const existing = state.students.filter(s=>ccIsG3BClass(s.className) || ccIsG3BName(s.name));
+    const byName = new Map();
+    existing.forEach(s=>{
+      const n=ccCleanName(s.name);
+      if(!n) return;
+      if(!byName.has(n)) byName.set(n,[]);
+      byName.get(n).push(s);
+    });
+
+    const newG3B = [];
+    const usedIds = new Set();
+
+    G3B_NAMES.forEach((name,idx)=>{
+      const n = ccCleanName(name);
+      const list = (byName.get(n)||[]).slice().sort((a,b)=>ccScore(b)-ccScore(a));
+      let keep = list[0] || null;
+      if(keep){
+        keep.name = name;
+        keep.className = G3B_CLASS;
+        keep.status = keep.status || "Active";
+        keep.code = keep.code || ("1G3B-" + String(idx+1).padStart(3,"0"));
+        list.slice(1).forEach(dup=>{
+          ccMergeStudentFields(keep, dup);
+          ccReplaceStudentIdDeep(state, dup.id, keep.id);
+          usedIds.add(String(dup.id));
+          ccAddLock("students",dup.id,"removed_duplicate_1g3b");
+        });
+      }else{
+        keep = {id:ccUid("stu"), name, className:G3B_CLASS, code:"1G3B-" + String(idx+1).padStart(3,"0"), status:"Active", phone:"", photo:"", password:""};
+      }
+      usedIds.add(String(keep.id));
+      newG3B.push(keep);
+    });
+
+    // Remove every old 1 G3B/G3B record not in the official list.
+    state.students.forEach(s=>{
+      if((ccIsG3BClass(s.className) || ccIsG3BName(s.name)) && !usedIds.has(String(s.id))){
+        ccAddLock("students",s.id,"removed_extra_1g3b_record");
+      }
+    });
+
+    const locked = ccLockedIds("students");
+    const nonG3B = state.students.filter(s=>{
+      if(locked.has(String(s.id))) return false;
+      if(ccIsG3BClass(s.className)) return false;
+      if(ccIsG3BName(s.name)) return false;
+      return true;
+    });
+
+    state.students = nonG3B.concat(newG3B);
+    try{
+      state.students = state.students.slice().sort((a,b)=>
+        String(a.className||"").localeCompare(String(b.className||""),undefined,{numeric:true,sensitivity:"base"}) ||
+        String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"})
+      );
+    }catch(e){}
+
+    state._sealed1G3B = {className:G3B_CLASS, count:G3B_NAMES.length, sealedAt:ccNow()};
+  }
+
+  function ccDedupAllExact(){
+    const map=new Map();
+    (state.students||[]).forEach(s=>{
+      const k=ccCleanName(s.name)+"||"+ccClassNorm(s.className);
+      if(!ccCleanName(s.name)) return;
+      if(!map.has(k)) map.set(k,[]);
+      map.get(k).push(s);
+    });
+    const remove=[];
+    [...map.values()].forEach(list=>{
+      if(list.length<=1) return;
+      list.sort((a,b)=>ccScore(b)-ccScore(a));
+      const keep=list[0];
+      list.slice(1).forEach(dup=>{
+        ccMergeStudentFields(keep,dup);
+        ccReplaceStudentIdDeep(state,dup.id,keep.id);
+        remove.push(dup.id);
+      });
+    });
+    remove.forEach(id=>ccAddLock("students",id,"exact_duplicate_student"));
+    ccApplyLocks();
+  }
+
+  function ccRunClassControl(){
+    if(ccBusy) return;
+    ccBusy=true;
+    try{
+      if(typeof normalize==="function") normalize();
+      ccApplyLocks();
+      ccEnsureG3BSealed();
+      ccDedupAllExact();
+      state._studentCountExpected = EXPECTED_TOTAL_STUDENTS;
+      state._studentCountActual = (state.students||[]).length;
+    }catch(e){ console.warn("Class control cleanup failed", e); }
+    finally{ ccBusy=false; }
+  }
+
+  async function ccLoadRemoteLocks(){
+    if(!sb) return;
+    const locks=ccLoadLocks();
+    try{
+      const {data,error}=await sb.from("stable_items").select("item_id,data").eq("bucket",CC_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const lock=row.data||{};
+        if(lock.bucket && lock.itemId) locks[ccKey(lock.bucket,lock.itemId)] = lock;
+      });
+      ccSaveLocks(locks);
+    }catch(e){ console.warn("Class control lock load failed", e); }
+  }
+
+  async function ccSaveRemoteLocksAndTombstones(){
+    if(!sb) return;
+    const rows=[];
+    Object.values(ccLoadLocks()).forEach(lock=>{
+      rows.push({bucket:CC_BUCKET,item_id:ccKey(lock.bucket,lock.itemId),data:lock,updated_at:new Date().toISOString()});
+      if(lock.bucket==="students"){
+        rows.push({bucket:"students",item_id:String(lock.itemId),data:ccTombstone("students",lock.itemId,lock.reason),updated_at:new Date().toISOString()});
+      }
+    });
+    for(let i=0;i<rows.length;i+=80){
+      const batch=rows.slice(i,i+80);
+      if(!batch.length) continue;
+      try{
+        const {error}=await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+        if(error) throw error;
+      }catch(e){ console.warn("Class control lock save failed", e); }
+    }
+  }
+
+  async function ccDeleteRemoteLockedDependents(){
+    if(!sb) return;
+    for(const id of [...ccLockedIds("students")]){
+      for(const bucket of ["submissions","docSubmissions","reportScores","reportComments","scores","passwordShares","messages","chatMessages","studentMessages"]){
+        try{ await sb.from("stable_items").delete().eq("bucket",bucket).filter("data->>studentId","eq",String(id)); }catch(e){}
+      }
+    }
+  }
+
+  async function ccWriteCleanState(){
+    if(!sb) return;
+    try{
+      await sb.from("app_state").upsert({id:"main",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){ console.warn("Class control app_state write failed", e); }
+  }
+
+  async function ccPersist(){
+    await ccLoadRemoteLocks();
+    ccRunClassControl();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    await ccSaveRemoteLocksAndTombstones();
+    await ccDeleteRemoteLockedDependents();
+    try{
+      if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+      else if(sb && typeof pushRemote==="function") await pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("Class control main save skipped", e); }
+    await ccSaveRemoteLocksAndTombstones();
+    await ccDeleteRemoteLockedDependents();
+    await ccWriteCleanState();
+    try{ if(typeof recalculateLiveDashboardStats==="function") recalculateLiveDashboardStats(); }catch(e){}
+  }
+
+  window.sealAndRestore1G3BClass = async function(showAlert=true){
+    await ccPersist();
+    if(showAlert) alert(`1 G3B has been restored and sealed.\nOfficial 1 G3B names: ${G3B_NAMES.length}\nCurrent total students: ${(state.students||[]).length}\nExpected total: ${EXPECTED_TOTAL_STUDENTS}`);
+    if(typeof students==="function" && route==="students") students();
+    else if(typeof dashboard==="function" && route==="dashboard") dashboard();
+  };
+
+  function ccClassOptions(){
+    const classes=[...new Set((state.classes||[]).concat((state.students||[]).map(s=>s.className).filter(Boolean)))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:"base"}));
+    return classes.map(c=>`<option value="${ccEsc(c)}" ${ccIsG3BClass(c)?"selected":""}>${ccEsc(c)}</option>`).join("");
+  }
+
+  window.renderClassControlList = function(){
+    const cls = document.getElementById("classControlClass")?.value || G3B_CLASS;
+    const box = document.getElementById("classControlList");
+    if(!box) return;
+    const list=(state.students||[]).filter(s=>String(s.className||"")===String(cls)).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"}));
+    box.innerHTML = `<table class="classControlTable"><thead><tr><th><input type="checkbox" onchange="document.querySelectorAll('.classControlCheck').forEach(x=>x.checked=this.checked)"></th><th>No.</th><th>Name</th><th>Class</th><th>Phone</th><th>Code</th></tr></thead><tbody>${list.map((s,i)=>`<tr><td><input class="classControlCheck" type="checkbox" value="${ccEsc(s.id)}"></td><td>${i+1}</td><td>${ccEsc(s.name)}</td><td>${ccEsc(s.className)}</td><td>${ccEsc(s.phone||"")}</td><td>${ccEsc(s.code||"")}</td></tr>`).join("") || `<tr><td colspan="6">No student found in this class.</td></tr>`}</tbody></table>`;
+    const st=document.getElementById("classControlStatus");
+    if(st) st.textContent = `${cls}: ${list.length} student(s). Total students now: ${(state.students||[]).length}. Expected total: ${EXPECTED_TOTAL_STUDENTS}.`;
+  };
+
+  window.deleteSelectedClassStudents = async function(){
+    const ids=[...document.querySelectorAll(".classControlCheck:checked")].map(x=>x.value);
+    if(!ids.length) return alert("Select at least one student to delete.");
+    if(!confirm(`Delete ${ids.length} selected student(s) permanently from the class?`)) return;
+    ids.forEach(id=>ccAddLock("students",id,"admin_selected_delete_from_class"));
+    await ccPersist();
+    renderClassControlList();
+    alert("Selected student(s) deleted and locked.");
+    if(typeof students==="function") students();
+  };
+
+  window.deleteEntireClassStudents = async function(){
+    const cls=document.getElementById("classControlClass")?.value || "";
+    if(!cls) return alert("Select a class.");
+    const pass=prompt("Enter admin password to delete the entire class list:");
+    if(pass !== (state.settings?.adminPass || "")) return alert("Wrong admin password. Action cancelled.");
+    const list=(state.students||[]).filter(s=>String(s.className||"")===String(cls));
+    if(!list.length) return alert("No student found in this class.");
+    if(!confirm(`Delete ALL ${list.length} student(s) from ${cls}? This cannot be restored unless you import the class again.`)) return;
+    list.forEach(s=>ccAddLock("students",s.id,"admin_delete_entire_class"));
+    await ccPersist();
+    alert(`All students in ${cls} have been deleted and locked.`);
+    if(typeof students==="function") students();
+  };
+
+  function ccPanelHTML(){
+    return `<div id="classControlPanel" class="classControlPanel">
+      <h2>Class Student Control</h2>
+      <p>The official 1 G3B class list has been imported and sealed. You can also delete selected students or delete an entire class list from here.</p>
+      <div class="classControlGrid">
+        <div><label>Select Class</label><select id="classControlClass" onchange="renderClassControlList()">${ccClassOptions()}</select></div>
+        <div><label>Official 1 G3B Count</label><input value="${G3B_NAMES.length} names" readonly></div>
+        <div><label>Expected Total Students</label><input value="${EXPECTED_TOTAL_STUDENTS}" readonly></div>
+        <div><label>Current Total Students</label><input value="${(state.students||[]).length}" readonly></div>
+      </div>
+      <div class="classControlActions">
+        <button class="green" onclick="sealAndRestore1G3BClass(true)">Restore / Seal 1 G3B</button>
+        <button class="navy" onclick="renderClassControlList()">Show Selected Class</button>
+        <button class="gold" onclick="deleteSelectedClassStudents()">Delete Selected Student(s)</button>
+        <button class="red" onclick="deleteEntireClassStudents()">Delete Entire Class List</button>
+      </div>
+      <div id="classControlStatus" class="classControlStatus">Class control is active.</div>
+      <div id="classControlList" class="classControlList"></div>
+    </div>`;
+  }
+
+  window.injectClassControlPanel = function(){
+    if(role!=="admin" || route!=="students") return;
+    const view=document.getElementById("view");
+    if(!view || document.getElementById("classControlPanel")) return;
+    view.insertAdjacentHTML("afterbegin", ccPanelHTML());
+    setTimeout(renderClassControlList,80);
+  };
+
+  // Wrap core functions so 1 G3B remains sealed after refresh/live pulls.
+  if(typeof window.stablePullRemote==="function"){
+    const old=window.stablePullRemote;
+    window.stablePullRemote=async function(){
+      await ccLoadRemoteLocks();
+      const result=await old.apply(this,arguments);
+      await ccPersist();
+      return result;
+    };
+  }
+  if(typeof window.pushRemote==="function"){
+    const old=window.pushRemote;
+    window.pushRemote=async function(){
+      ccRunClassControl();
+      const result=await old.apply(this,arguments);
+      await ccSaveRemoteLocksAndTombstones();
+      await ccDeleteRemoteLockedDependents();
+      await ccWriteCleanState();
+      return result;
+    };
+  }
+  if(typeof window.stableWriteRemoteItems==="function"){
+    const old=window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems=async function(){
+      ccRunClassControl();
+      const result=await old.apply(this,arguments);
+      await ccSaveRemoteLocksAndTombstones();
+      await ccDeleteRemoteLockedDependents();
+      await ccWriteCleanState();
+      return result;
+    };
+  }
+
+  const oldSave=window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSave==="function"){
+    window.save=function(){
+      ccRunClassControl();
+      return oldSave.apply(this,arguments);
+    };
+  }
+
+  ["dashboard","students","studentLogin","studentHome","studentQuizzes","review","renderReviewPrintPreview","printSubmittedWorkListPDF"].forEach(fn=>{
+    const old=window[fn];
+    if(typeof old==="function"){
+      window[fn]=function(){
+        ccRunClassControl();
+        const result=old.apply(this,arguments);
+        setTimeout(injectClassControlPanel,80);
+        return result;
+      };
+    }
+  });
+
+  const oldRenderShell=window.renderShell;
+  if(typeof oldRenderShell==="function"){
+    window.renderShell=function(){
+      ccRunClassControl();
+      const result=oldRenderShell.apply(this,arguments);
+      setTimeout(injectClassControlPanel,100);
+      return result;
+    };
+  }
+
+  setTimeout(()=>{ ccPersist().then(()=>{ if(["dashboard","students"].includes(route) && typeof renderShell==="function") renderShell(); }); }, 900);
+  setTimeout(()=>{ ccPersist(); }, 3200);
+
+  try{
+    eval("sealAndRestore1G3BClass=window.sealAndRestore1G3BClass; renderClassControlList=window.renderClassControlList; deleteSelectedClassStudents=window.deleteSelectedClassStudents; deleteEntireClassStudents=window.deleteEntireClassStudents; injectClassControlPanel=window.injectClassControlPanel; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; dashboard=window.dashboard; students=window.students; studentLogin=window.studentLogin; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; review=window.review; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
