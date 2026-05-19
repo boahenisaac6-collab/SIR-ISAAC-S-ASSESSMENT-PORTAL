@@ -6164,6 +6164,34 @@ body.quizInProgress aside.side{
   color:#fff!important;
 }
 
+
+/* ===== ADMIN ANNOUNCEMENTS LEFT PANEL FIX CSS ===== */
+.adminAnnouncementsPage{display:grid;gap:14px}
+.adminAnnouncementsHero{border:3px solid #f4c430;border-left:10px solid #071f3d;background:linear-gradient(135deg,#fffdf0,#ffffff);border-radius:22px;padding:15px;color:#071f3d;box-shadow:0 10px 26px rgba(7,31,61,.10)}
+.adminAnnouncementsHero h2{margin:0 0 8px;color:#071f3d}
+.adminAnnouncementsHero p{margin:0;color:#344054;font-weight:800;line-height:1.45}
+.adminAnnouncementComposer,.adminAnnouncementList{border:2px solid #d9e7f3;background:#fff;border-radius:22px;padding:14px;box-shadow:0 8px 24px rgba(7,31,61,.08)}
+.adminAnnouncementComposer h3,.adminAnnouncementList h3{margin:0 0 8px;color:#071f3d}
+.adminAnnouncementComposer textarea,.adminAnnouncementComposer input,.adminAnnouncementComposer select{width:100%;border:1px solid #cbd9e8;border-radius:12px;padding:9px 10px;min-height:42px;font-family:inherit}
+.adminAnnouncementComposer textarea{min-height:100px;resize:vertical}
+.adminAnnouncementGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.adminAnnouncementGrid label{display:block;font-size:11px;text-transform:uppercase;color:#667085;font-weight:950;margin-bottom:4px}
+.adminAnnouncementActions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.adminAnnouncementActions button{min-height:40px;border-radius:12px;padding:8px 12px;font-weight:950;cursor:pointer}
+.adminAnnouncementActions .green{border:0;background:#0f7b4f;color:#fff}
+.adminAnnouncementActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.adminAnnouncementActions .navy{border:0;background:#071f3d;color:#fff}
+.adminAnnouncementActions .gold{border:0;background:#f4c430;color:#071f3d}
+.adminAnnouncementActions .light{border:1px solid #d9e7f3;background:#eef5fc;color:#071f3d}
+.adminAnnouncementCards{display:grid;gap:10px}
+.adminAnnouncementCard{border:1px solid #d9e7f3;background:#f8fbff;border-radius:18px;padding:12px;display:grid;gap:7px}
+.adminAnnouncementCard h4{margin:0;color:#071f3d}
+.adminAnnouncementCard small{color:#667085;font-weight:850}
+.adminAnnouncementCard p{margin:0;color:#344054;font-weight:750;line-height:1.45}
+.announcementControlPanel{display:none!important}
+body.adminAnnouncementsRoute .announcementControlPanel{display:block!important}
+@media(max-width:760px){.adminAnnouncementGrid{grid-template-columns:1fr}.adminAnnouncementActions button{width:100%}}
+
 </style>
 </head>
 <body>
@@ -17179,6 +17207,181 @@ async function initSupabase(){
 
   try{
     eval("quickSwitchMode=window.quickSwitchMode; quickGoBack=window.quickGoBack; quickGoHome=window.quickGoHome; quickNavStudentBackConfirmAdmin=window.quickNavStudentBackConfirmAdmin; setRoute=window.setRoute; studentLogin=window.studentLogin; finishStudentLogin=window.finishStudentLogin; studentCardLogin=window.studentCardLogin; renderQuickNavBar=window.renderQuickNavBar;");
+  }catch(e){}
+})();
+
+
+
+/* ===== ADMIN ANNOUNCEMENTS LEFT PANEL FIX JS ===== */
+(function(){
+  function anSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote==="function") pushRemote();
+      else if(typeof save==="function") save();
+    }catch(e){ console.warn("announcement page save skipped", e); }
+  }
+  function anEsc(v){ return typeof esc==="function" ? esc(v) : String(v ?? ""); }
+  function anUid(prefix){ return typeof uid==="function" ? uid(prefix) : prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function anNow(){ try{return typeof now==="function" ? now() : new Date().toLocaleString();}catch(e){return new Date().toLocaleString();} }
+
+  function anEnsure(){
+    state.announcements = Array.isArray(state.announcements) ? state.announcements : [];
+    state.assignmentNotifications = Array.isArray(state.assignmentNotifications) ? state.assignmentNotifications : [];
+    state.classMessages = Array.isArray(state.classMessages) ? state.classMessages : [];
+    state.teacherMessages = Array.isArray(state.teacherMessages) ? state.teacherMessages : [];
+    state.studentAnnouncements = Array.isArray(state.studentAnnouncements) ? state.studentAnnouncements : [];
+  }
+
+  function anAll(){
+    anEnsure();
+    const items = [];
+    const add = (source, obj, idx, title, body, createdAt, audience)=>{
+      if(!obj) return;
+      items.push({
+        source, idx,
+        id: obj.id || obj.annId || obj.createdAt || String(idx),
+        title: title || "Announcement",
+        body: body || "",
+        createdAt: createdAt || obj.createdAt || obj.time || "",
+        audience: audience || obj.audience || obj.className || obj.subject || "All students"
+      });
+    };
+    state.announcements.forEach((a,i)=>add("announcements",a,i,a.title||a.heading||"Announcement",a.body||a.message||a.text||"",a.createdAt||a.time,a.audience));
+    state.assignmentNotifications.forEach((a,i)=>add("assignmentNotifications",a,i,a.title||"Assignment Notice",a.message||a.body||"New assignment notice",a.createdAt||a.time,a.audience));
+    state.classMessages.forEach((a,i)=>add("classMessages",a,i,a.title||"Class Message",a.message||a.body||a.text||"",a.createdAt||a.time,a.className));
+    state.teacherMessages.forEach((a,i)=>add("teacherMessages",a,i,a.title||"Teacher Message",a.message||a.body||a.text||"",a.createdAt||a.time,a.audience));
+    state.studentAnnouncements.forEach((a,i)=>add("studentAnnouncements",a,i,a.title||"Student Announcement",a.message||a.body||a.text||"",a.createdAt||a.time,a.audience));
+    return items.sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  }
+
+  window.adminAnnouncements = function(){
+    anEnsure();
+    document.body.classList.add("adminAnnouncementsRoute");
+    const view = document.getElementById("view");
+    if(!view) return;
+    const classOptions = (state.classes||[]).map(c=>`<option value="${anEsc(c)}">${anEsc(c)}</option>`).join("");
+    const items = anAll();
+    view.innerHTML = `<div class="adminAnnouncementsPage">
+      <div class="adminAnnouncementsHero">
+        <h2>Student Portal Announcements</h2>
+        <p>Post, view, delete, or clear announcements from this page. This keeps the admin dashboard clean.</p>
+      </div>
+      <div class="adminAnnouncementComposer">
+        <h3>Post New Announcement</h3>
+        <div class="adminAnnouncementGrid">
+          <div><label>Title</label><input id="newAnnTitle" placeholder="Example: New Assignment Uploaded"></div>
+          <div><label>Audience</label><select id="newAnnAudience"><option value="All students">All students</option>${classOptions}</select></div>
+        </div>
+        <div style="margin-top:10px"><label style="display:block;font-size:11px;text-transform:uppercase;color:#667085;font-weight:950;margin-bottom:4px">Message</label><textarea id="newAnnBody" placeholder="Type the announcement students should see..."></textarea></div>
+        <div class="adminAnnouncementActions">
+          <button class="green" onclick="postStudentPortalAnnouncement()">Post Announcement</button>
+          <button class="red" onclick="clearAllStudentAnnouncements()">Clear All Announcements</button>
+          <button class="light" onclick="adminAnnouncements()">Refresh</button>
+        </div>
+      </div>
+      <div class="adminAnnouncementList">
+        <h3>All Announcements / Notices</h3>
+        <p style="margin:0 0 10px;color:#667085;font-weight:750">Delete any wrong or old announcement from here.</p>
+        <div class="adminAnnouncementCards">
+          ${items.map(item=>`<div class="adminAnnouncementCard">
+            <h4>${anEsc(item.title)}</h4>
+            <small>${anEsc(item.source)} • ${anEsc(item.audience)} ${item.createdAt ? "• " + anEsc(item.createdAt) : ""}</small>
+            <p>${anEsc(item.body || "No message body")}</p>
+            <div class="adminAnnouncementActions"><button class="red" onclick="deleteStudentAnnouncementItem('${item.source}',${item.idx})">Delete This Announcement</button></div>
+          </div>`).join("") || `<div class="empty">No announcement or notice is currently showing for students.</div>`}
+        </div>
+      </div>
+    </div>`;
+  };
+
+  window.postStudentPortalAnnouncement = function(){
+    anEnsure();
+    const title = (document.getElementById("newAnnTitle")?.value || "").trim();
+    const body = (document.getElementById("newAnnBody")?.value || "").trim();
+    const audience = document.getElementById("newAnnAudience")?.value || "All students";
+    if(!title) return alert("Please type the announcement title.");
+    if(!body) return alert("Please type the announcement message.");
+    state.announcements.push({id:anUid("ann"),title,body,message:body,audience,createdAt:anNow(),active:true});
+    anSave();
+    alert("Announcement posted.");
+    adminAnnouncements();
+  };
+
+  window.deleteStudentAnnouncementItem = function(source, idx){
+    anEnsure();
+    if(!Array.isArray(state[source])) return alert("Announcement source not found.");
+    if(!confirm("Delete this announcement from the student portal?")) return;
+    state[source].splice(Number(idx),1);
+    anSave();
+    alert("Announcement deleted.");
+    adminAnnouncements();
+  };
+
+  window.clearAllStudentAnnouncements = function(){
+    anEnsure();
+    if(!confirm("Clear ALL announcements and notices from the student portal?")) return;
+    ["announcements","assignmentNotifications","classMessages","teacherMessages","studentAnnouncements"].forEach(k=>{ if(Array.isArray(state[k])) state[k]=[]; });
+    anSave();
+    alert("All student announcements have been cleared.");
+    adminAnnouncements();
+  };
+
+  const oldNavItemsAnnouncements = window.navItems || (typeof navItems==="function" ? navItems : null);
+  if(oldNavItemsAnnouncements){
+    window.navItems = function(){
+      const items = oldNavItemsAnnouncements.apply(this, arguments);
+      if(role === "admin" && Array.isArray(items) && !items.some(x=>x[0]==="announcements")){
+        const pos = items.findIndex(x=>x[0]==="dashboard");
+        if(pos >= 0) items.splice(pos+1,0,["announcements","Announcements"]);
+        else items.unshift(["announcements","Announcements"]);
+      }
+      return items;
+    };
+  }
+
+  const oldSetRouteAnnouncements = window.setRoute;
+  if(typeof oldSetRouteAnnouncements === "function"){
+    window.setRoute = function(r){
+      document.body.classList.toggle("adminAnnouncementsRoute", r === "announcements");
+      if(r === "announcements"){
+        route = "announcements";
+        window.route = route;
+        if(typeof renderShell === "function") renderShell();
+        else if(typeof render === "function") render();
+        setTimeout(adminAnnouncements,50);
+        return;
+      }
+      return oldSetRouteAnnouncements.apply(this, arguments);
+    };
+  }
+
+  const oldRenderShellAnnouncements = window.renderShell;
+  if(typeof oldRenderShellAnnouncements === "function"){
+    window.renderShell = function(){
+      document.body.classList.toggle("adminAnnouncementsRoute", route === "announcements");
+      const result = oldRenderShellAnnouncements.apply(this, arguments);
+      if(route !== "announcements"){
+        setTimeout(()=>document.querySelectorAll("#announcementControlPanel,.announcementControlPanel").forEach(el=>el.remove()),80);
+      }else{
+        setTimeout(adminAnnouncements,60);
+      }
+      return result;
+    };
+  }
+
+  const oldDashboardAnnouncements = window.dashboard;
+  if(typeof oldDashboardAnnouncements === "function"){
+    window.dashboard = function(){
+      const result = oldDashboardAnnouncements.apply(this, arguments);
+      setTimeout(()=>document.querySelectorAll("#announcementControlPanel,.announcementControlPanel").forEach(el=>el.remove()),80);
+      return result;
+    };
+  }
+
+  try{
+    eval("adminAnnouncements=window.adminAnnouncements; postStudentPortalAnnouncement=window.postStudentPortalAnnouncement; deleteStudentAnnouncementItem=window.deleteStudentAnnouncementItem; clearAllStudentAnnouncements=window.clearAllStudentAnnouncements; navItems=window.navItems; setRoute=window.setRoute; renderShell=window.renderShell; dashboard=window.dashboard;");
   }catch(e){}
 })();
 
