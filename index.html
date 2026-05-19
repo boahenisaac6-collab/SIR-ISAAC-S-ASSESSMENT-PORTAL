@@ -7836,6 +7836,144 @@ html,body{
   display:none!important;
 }
 
+
+/* ===== FINAL 205 + FREE ADMIN FIX ===== */
+#classControlPanel,.classControlPanel,
+#directClassDeletePanel,.directClassDeletePanel,
+#realOldDataImportPanel,.realOldDataImportPanel,
+#oldDataMigrationPanel,.oldDataMigrationPanel,
+#permanentDeletePanel,.permanentDeletePanel,
+#smartCleanPanel,.smartCleanPanel,
+#mergeLockPanel,.mergeLockPanel,
+#liveStatsFixPanel,.liveStatsFixPanel,
+#duplicateManagerPanel,.duplicateManagerPanel,
+#reviewPrintPanel .light,
+#announcementControlPanel,.announcementControlPanel{
+  display:none!important;
+}
+.cleanStudentsShell{
+  display:grid;
+  gap:14px;
+}
+.cleanAdminNotice{
+  border:3px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fffdf0,#ffffff);
+  border-radius:22px;
+  padding:14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.10);
+}
+.cleanAdminNotice h2{margin:0 0 6px;color:#071f3d}
+.cleanAdminNotice p{margin:0;color:#344054;font-weight:850;line-height:1.45}
+.cleanStudentControls{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:22px;
+  padding:14px;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.cleanStudentGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  align-items:end;
+}
+.cleanStudentGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.cleanStudentGrid input,.cleanStudentGrid select{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  background:#fff;
+  color:#071f3d;
+  font-weight:850;
+}
+.cleanStudentActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.cleanStudentActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.cleanStudentActions .navy{border:0;background:#071f3d;color:#fff}
+.cleanStudentActions .gold{border:0;background:#f4c430;color:#071f3d}
+.cleanStudentActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.cleanStudentActions .green{border:0;background:#0f7b4f;color:#fff}
+.cleanStudentTableWrap{
+  overflow:auto;
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  background:#fff;
+}
+.cleanStudentTable{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.cleanStudentTable th{
+  background:#071f3d;
+  color:#fff;
+  border:1px solid #071f3d;
+  padding:8px;
+  text-align:left;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+.cleanStudentTable td{
+  border:1px solid #d9e7f3;
+  padding:7px;
+  vertical-align:middle;
+}
+.cleanPhoto{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #f4c430;
+  background:#eef5fc;
+}
+.cleanAvatar{
+  width:32px;height:32px;border-radius:50%;
+  display:grid;place-items:center;
+  border:2px solid #f4c430;background:#eef5fc;
+  color:#071f3d;font-weight:950;font-size:11px;
+}
+.cleanStatus{
+  margin-top:10px;
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:9px 11px;
+  font-size:13px;
+  font-weight:850;
+}
+@media(max-width:760px){
+  .cleanStudentGrid{grid-template-columns:1fr}
+  .cleanStudentActions button{width:100%}
+  .cleanStudentTable{font-size:12px}
+}
+@media print{
+  .side,.topbar,.cleanStudentControls,.cleanAdminNotice{display:none!important}
+  .cleanStudentTableWrap{border:0}
+}
+
 </style>
 </head>
 <body>
@@ -24913,6 +25051,464 @@ async function initSupabase(){
     eval("removeDeletedScannedAssignmentsNow=window.removeDeletedScannedAssignmentsNow; availableDocAssignments=window.availableDocAssignments; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; review=window.review; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; stablePullRemote=window.stablePullRemote; pushRemote=window.pushRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; renderShell=window.renderShell;");
   }catch(e){}
 
+})();
+
+
+
+/* ===== FINAL 205 + FREE ADMIN ENGINE V1 =====
+   Final override:
+   - Forces the official 1 G3B list to be inside the app automatically.
+   - Ignores/removes old 1 G3B name locks that caused 201 students.
+   - Keeps admin Students page clean: no add student, no bulk import, no upload photo/picture, no restore/seal, no refresh/import panels.
+   - Removes Settings and Backup from admin menu to avoid accidental restore/change.
+*/
+(function(){
+  const F205_CLASS = "1 G3B";
+  const F205_NAMES = ["ABDUL-RAZAK KATARI TASNIM", "ADDO EVANS NKRUMAH", "ADJEI LETICIA KAI", "ADJORNOR REGINA", "AFERDI BAAH KWAO", "AGBEVE EDWIN EDEM", "AKOTO ERICA", "AMAMU OLIVIA EMEFA", "AMANKWAH HILLARY AKUA", "ANDREWS OFORI EMMANELLA OYEBA", "ANKOH MAAME ESI", "APPIAH BERNICE YEBOAAH", "APPIAH BLESSING AKYERE", "ARTHUR GIDEON", "ARTHUR PORTIA", "ASARE RANDY", "ASHIABI ANGEL ESINAM", "ASIATEY JEDIDIAH", "ATTEH ISABELLA", "AVORYI JENNIFER", "AYORNU ANNABELLE AMANORKIE", "AZIATRE CHRISTIANA AMA", "BAMFO BEATRICE AMPOMAH", "BARBELE RUFINA", "BIANTEY AARON JUNIOR", "BOSOMTWE REBECCA", "BRAY HARRIET", "COFFIE GLORIA KORYOO", "DANKWA ELIZABETH", "DANKWAH DORCAS AGYEIWAA", "DJAN STEPHANIE AFIA POKUAH", "DZRAMADO FAITH AKOSUA", "ERZOAH JEMIMMA", "ESSEL FLORENCE ABA", "FERNANDEZ DOE VICENTIA", "FORSON PAUL", "GABAH JOSEPH", "GYAMBIBI FRANCISCA AFUA", "GYASI RUTH AKABEHUNU", "HANSON JOANA", "INKOOM ISAAC ASSAN", "KATAMANI DAVID KWESI", "KUMI NATHANIEL KOFI", "LARTEY DINAH KORKOR KEENOR", "LARYEA DANIEL", "LAWER FELICIA", "MATEY PASCALINE DARLEY", "MENSAH MORINA", "MOHAMMED ABDUL-HAKEEM", "MOHAMMED RAHA", "NARH PRINCESS KORKOR", "NKETIAH ROLAND", "NTUMY GIFTY MAWULORM", "OBENG LOVE JANELLE", "OBENG NANA POKUAH", "OCANSEY PRINCE KANOR", "OFFORI-ATTA ISABELLA", "OSABUTEY JUDITH", "OTOO ANITA", "QUANSAH SHERRIF KOFI", "QUARSHIE LESLIE LARTEY", "SARPONG EMMANUEL ANTWI", "SERCHIE NARTEY EVELYN NARKIE", "SURAKA RUWEIDA", "TAKYIWAA ANITA", "TEI-NORTEY VANESSA NARKIE", "TETTEH BARACK KEKELI", "TETTEH LAURA AMAKI", "TETTEH RUTH DEDE", "TETTEY RICHARD", "TEYE-DOKU ISAAC", "YAKUBU ABDUL JALEEL", "YEHOUESSI FRANCIS SENANU", "YUSIF ZAINAB BANCE", "ZIGAH EMMANUELLA ELIKPLIM", "ZOWADAH DELCY NHYIRA"];
+  const EXPECTED_TOTAL = 205;
+  const LOCK_BUCKET = "__final_205_free_admin_v1__";
+  const LOCK_LOCAL = "amest_final_205_free_admin_v1";
+  let running = false;
+  let syncing = false;
+
+  function now(){ return new Date().toISOString(); }
+  function esc2(v){ try{ return typeof esc==="function" ? esc(v) : String(v ?? ""); }catch(e){ return String(v ?? ""); } }
+  function cleanName(name){
+    return String(name||"").toUpperCase()
+      .normalize("NFKD")
+      .replace(/\b(MR|MRS|MISS|SIR|MADAM)\b/g,"")
+      .replace(/\s+/g," ")
+      .replace(/[^\p{L}\p{N}\s-]/gu,"")
+      .trim();
+  }
+  function classNorm(c){ return String(c||"").toUpperCase().replace(/\s+/g,"").replace(/-/g,"").trim(); }
+  function isG3BClass(c){
+    const x=classNorm(c);
+    return x==="1G3B" || x==="G3B" || x==="GENERALARTS3B" || x==="GENERALARTSB" || x==="1GENERALARTSB";
+  }
+  function isOfficialG3BName(name){
+    const n=cleanName(name);
+    return F205_NAMES.some(x=>cleanName(x)===n);
+  }
+  function safeId(name,idx){
+    return "stu_1g3b_" + String(idx+1).padStart(3,"0") + "_" + cleanName(name).toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,34);
+  }
+  function loadLocks(){
+    let locks={};
+    try{ locks=JSON.parse(localStorage.getItem(LOCK_LOCAL)||"{}")||{}; }catch(e){}
+    try{ (state._final205Locks||[]).forEach(x=>{ if(x && x.bucket && x.itemId) locks[x.bucket+"::"+x.itemId]=x; }); }catch(e){}
+    return locks;
+  }
+  function saveLocks(locks){
+    try{ localStorage.setItem(LOCK_LOCAL, JSON.stringify(locks||{})); }catch(e){}
+    state._final205Locks = Object.values(locks||{});
+  }
+  function addLock(bucket,id,reason){
+    if(!id) return;
+    const locks=loadLocks();
+    locks[bucket+"::"+String(id)]={bucket,itemId:String(id),reason:reason||"deleted",deletedAt:now()};
+    saveLocks(locks);
+  }
+  function lockedIds(bucket){
+    return new Set(Object.values(loadLocks()).filter(x=>x.bucket===bucket).map(x=>String(x.itemId)));
+  }
+  function purgeOldG3BNameLocks(){
+    // Clear the old lock style that prevented 4 official 1 G3B names from coming back.
+    const keys=[
+      "amest_direct_1g3b_import_v2",
+      "amest_class_control_locks_v1",
+      "amest_final_cleanup_v4",
+      "amest_deleted_registry_true_v2",
+      "amest_final_clean_registry_v3"
+    ];
+    keys.forEach(k=>{
+      try{
+        const raw=localStorage.getItem(k);
+        if(!raw) return;
+        const obj=JSON.parse(raw);
+        let changed=false;
+        Object.keys(obj||{}).forEach(lockKey=>{
+          const lock=obj[lockKey]||{};
+          const item=String(lock.itemId||"");
+          const bucket=String(lock.bucket||"");
+          if(bucket==="g3bNames" || item.startsWith("stu_1g3b_")){
+            delete obj[lockKey];
+            changed=true;
+          }
+        });
+        if(changed) localStorage.setItem(k,JSON.stringify(obj));
+      }catch(e){}
+    });
+    ["_direct1G3BLocks","_classControlLocks","_finalCleanupV4","_trueDeletedRegistry","_finalCleanRegistry"].forEach(k=>{
+      if(Array.isArray(state[k])) state[k]=state[k].filter(lock=>!(lock && (lock.bucket==="g3bNames" || String(lock.itemId||"").startsWith("stu_1g3b_"))));
+    });
+  }
+  function score(s){
+    let x=0;
+    ["photo","phone","password","studentPassword","code","gender","className","guardian","email"].forEach(k=>{ if(String(s?.[k]??"").trim()) x+=10; });
+    const id=s?.id;
+    if(id){
+      x += (state.submissions||[]).filter(r=>String(r.studentId)===String(id)).length*60;
+      x += (state.docSubmissions||[]).filter(r=>String(r.studentId)===String(id)).length*60;
+      x += (state.reportScores||[]).filter(r=>String(r.studentId)===String(id)).length*40;
+      x += (state.scores||[]).filter(r=>String(r.studentId)===String(id)).length*40;
+      x += (state.passwordShares||[]).filter(r=>String(r.studentId)===String(id)).length*20;
+    }
+    return x;
+  }
+  function mergeFields(keep, other){
+    Object.keys(other||{}).forEach(k=>{
+      if(k==="id") return;
+      const empty = keep[k]===undefined || keep[k]===null || String(keep[k]).trim()==="";
+      const has = other[k]!==undefined && other[k]!==null && String(other[k]).trim()!=="";
+      if(empty && has) keep[k]=other[k];
+    });
+  }
+  function replaceStudentId(obj,fromId,toId){
+    if(!obj || typeof obj!=="object") return;
+    if(Array.isArray(obj)){ obj.forEach(x=>replaceStudentId(x,fromId,toId)); return; }
+    Object.keys(obj).forEach(k=>{
+      if(k==="students") return;
+      const v=obj[k];
+      if(["studentId","senderId","receiverId","toStudentId","fromStudentId"].includes(k) && String(v)===String(fromId)){
+        obj[k]=toId;
+      }else if(v && typeof v==="object") replaceStudentId(v,fromId,toId);
+    });
+  }
+  function applyDeletedStudentLocks(){
+    const locked=lockedIds("students");
+    if(!locked.size) return;
+    state.students=(state.students||[]).filter(s=>!locked.has(String(s.id)));
+    ["submissions","docSubmissions","reportScores","reportComments","scores","passwordShares"].forEach(k=>{
+      if(Array.isArray(state[k])) state[k]=state[k].filter(r=>!locked.has(String(r.studentId)));
+    });
+  }
+  function forceOfficialG3B(){
+    if(!Array.isArray(state.students)) state.students=[];
+    if(!Array.isArray(state.classes)) state.classes=[];
+    if(!state.classes.some(c=>isG3BClass(c))) state.classes.push(F205_CLASS);
+    state.classes=[...new Set(state.classes.map(c=>isG3BClass(c)?F205_CLASS:c))];
+
+    const all=state.students || [];
+    const canonical=[];
+    const canonicalIds=new Set();
+
+    F205_NAMES.forEach((name,idx)=>{
+      const cid=safeId(name,idx);
+      const cname=cleanName(name);
+      const candidates=all.filter(s=>cleanName(s.name)===cname || String(s.id)===cid)
+        .sort((a,b)=>score(b)-score(a));
+      const keep={id:cid,name,className:F205_CLASS,code:"1G3B-"+String(idx+1).padStart(3,"0"),status:"Active",phone:"",photo:"",password:""};
+      candidates.forEach(c=>{
+        mergeFields(keep,c);
+        if(String(c.id)!==cid){
+          replaceStudentId(state,c.id,cid);
+          addLock("students",c.id,"old_1g3b_duplicate_replaced");
+        }
+      });
+      keep.id=cid;
+      keep.name=name;
+      keep.className=F205_CLASS;
+      keep.code=keep.code || ("1G3B-"+String(idx+1).padStart(3,"0"));
+      keep.status=keep.status || "Active";
+      canonical.push(keep);
+      canonicalIds.add(cid);
+    });
+
+    // Remove all old 1 G3B/general arts B records and official-name duplicates that are not the canonical list.
+    (state.students||[]).forEach(s=>{
+      if(canonicalIds.has(String(s.id))) return;
+      if(isG3BClass(s.className) || isOfficialG3BName(s.name)){
+        addLock("students",s.id,"extra_or_old_1g3b_record_removed");
+      }
+    });
+    applyDeletedStudentLocks();
+
+    const nonG3B=(state.students||[]).filter(s=>{
+      if(canonicalIds.has(String(s.id))) return false;
+      if(isG3BClass(s.className)) return false;
+      if(isOfficialG3BName(s.name)) return false;
+      if(lockedIds("students").has(String(s.id))) return false;
+      return true;
+    });
+    state.students=nonG3B.concat(canonical);
+  }
+  function dedupOtherClasses(){
+    const map=new Map();
+    (state.students||[]).forEach(s=>{
+      if(isG3BClass(s.className)) return;
+      const n=cleanName(s.name);
+      if(!n) return;
+      const k=n+"||"+classNorm(s.className);
+      if(!map.has(k)) map.set(k,[]);
+      map.get(k).push(s);
+    });
+    const remove=[];
+    [...map.values()].forEach(list=>{
+      if(list.length<=1) return;
+      list.sort((a,b)=>score(b)-score(a));
+      const keep=list[0];
+      list.slice(1).forEach(dup=>{
+        mergeFields(keep,dup);
+        replaceStudentId(state,dup.id,keep.id);
+        remove.push(dup.id);
+      });
+    });
+    remove.forEach(id=>addLock("students",id,"exact_duplicate_removed"));
+    applyDeletedStudentLocks();
+  }
+  function finalClean(){
+    if(running) return;
+    running=true;
+    try{
+      if(typeof normalize==="function") normalize();
+      purgeOldG3BNameLocks();
+      applyDeletedStudentLocks();
+      forceOfficialG3B();
+      dedupOtherClasses();
+      // Keep class names clean and sorted.
+      state.classes=[...new Set((state.classes||[]).concat((state.students||[]).map(s=>s.className).filter(Boolean)).map(c=>isG3BClass(c)?F205_CLASS:c))]
+        .sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:"base"}));
+      state._studentCountExpected=EXPECTED_TOTAL;
+      state._studentCountActual=(state.students||[]).length;
+      state._official1G3B={count:F205_NAMES.length, className:F205_CLASS, updatedAt:now()};
+      try{
+        state.students=state.students.slice().sort((a,b)=>
+          String(a.className||"").localeCompare(String(b.className||""),undefined,{numeric:true,sensitivity:"base"}) ||
+          String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"})
+        );
+      }catch(e){}
+    }finally{
+      running=false;
+    }
+  }
+  function classOptionsClean(sel=""){
+    return (state.classes||[]).map(c=>`<option value="${esc2(c)}" ${String(c)===String(sel)?"selected":""}>${esc2(c)}</option>`).join("");
+  }
+  function photoCell(s){
+    if(s.photo) return `<img class="cleanPhoto" src="${s.photo}" alt="">`;
+    const init=String(s.name||"ST").split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase();
+    return `<div class="cleanAvatar">${esc2(init||"ST")}</div>`;
+  }
+  window.cleanDeleteSelectedStudents = async function(){
+    const ids=[...document.querySelectorAll(".cleanStudentCheck:checked")].map(x=>x.value);
+    if(!ids.length) return alert("Select at least one student first.");
+    if(!confirm(`Delete ${ids.length} selected student(s) from the class list?`)) return;
+    ids.forEach(id=>addLock("students",id,"admin_selected_delete"));
+    await finalPersist(true);
+    if(typeof students==="function") students();
+  };
+  window.cleanDeleteEntireClass = async function(){
+    const cls=document.getElementById("cleanClassFilter")?.value || "";
+    if(!cls || cls==="ALL") return alert("Select one particular class first.");
+    const pass=prompt("Enter admin password to delete the whole class:");
+    if(pass !== (state.settings?.adminPass || "")) return alert("Wrong admin password. Action cancelled.");
+    const list=(state.students||[]).filter(s=>String(s.className)===String(cls));
+    if(!list.length) return alert("No student found in the selected class.");
+    if(!confirm(`Delete all ${list.length} student(s) in ${cls}?`)) return;
+    list.forEach(s=>addLock("students",s.id,"admin_entire_class_delete"));
+    await finalPersist(true);
+    if(typeof students==="function") students();
+  };
+  window.cleanPrintCurrentClass = function(){
+    window.print();
+  };
+  window.students = function(){
+    finalClean();
+    const cls=document.getElementById("cleanClassFilter")?.value || "ALL";
+    const q=String(document.getElementById("cleanStudentSearch")?.value || "").toLowerCase();
+    const list=(state.students||[]).filter(s=>(cls==="ALL"||s.className===cls)&&(!q || String(s.name||"").toLowerCase().includes(q)||String(s.code||"").toLowerCase().includes(q)||String(s.phone||"").includes(q)));
+    const g3bCount=(state.students||[]).filter(s=>isG3BClass(s.className)).length;
+    $("view").innerHTML=`<div class="cleanStudentsShell">
+      <div class="cleanAdminNotice">
+        <h2>Student Records</h2>
+        <p>The official 1 G3B General Arts list is already loaded automatically. Upload, bulk import, restore, refresh, and picture-upload controls have been removed from this page.</p>
+      </div>
+      <div class="cleanStudentControls">
+        <div class="cleanStudentGrid">
+          <div><label>Class</label><select id="cleanClassFilter" onchange="students()"><option value="ALL">All Classes</option>${classOptionsClean(cls)}</select></div>
+          <div><label>Search Student</label><input id="cleanStudentSearch" value="${esc2(q)}" oninput="students()" placeholder="Type name, code or phone"></div>
+          <div><label>Total Students</label><input value="${(state.students||[]).length} / Expected ${EXPECTED_TOTAL}" readonly></div>
+          <div><label>1 G3B Count</label><input value="${g3bCount} / ${F205_NAMES.length}" readonly></div>
+        </div>
+        <div class="cleanStudentActions">
+          <button class="navy" onclick="students()">Refresh List</button>
+          <button class="gold" onclick="cleanPrintCurrentClass()">Print Current List</button>
+          <button class="red" onclick="cleanDeleteSelectedStudents()">Delete Selected Student(s)</button>
+          <button class="red" onclick="cleanDeleteEntireClass()">Delete Entire Selected Class</button>
+        </div>
+        <div class="cleanStatus">${cls==="ALL"?"All classes":esc2(cls)}: ${list.length} record(s) showing. Official 1 G3B should show ${F205_NAMES.length} names.</div>
+      </div>
+      <div class="cleanStudentTableWrap">
+        <table class="cleanStudentTable">
+          <thead><tr><th><input type="checkbox" onchange="document.querySelectorAll('.cleanStudentCheck').forEach(x=>x.checked=this.checked)"></th><th>No.</th><th>Photo</th><th>Name</th><th>Class</th><th>Phone</th><th>Code</th><th>Password</th></tr></thead>
+          <tbody>${list.map((s,i)=>`<tr><td><input class="cleanStudentCheck" type="checkbox" value="${esc2(s.id)}"></td><td>${i+1}</td><td>${photoCell(s)}</td><td><b>${esc2(s.name)}</b></td><td>${esc2(s.className)}</td><td>${esc2(s.phone||"")}</td><td>${esc2(s.code||"")}</td><td>${esc2(s.password||"")}</td></tr>`).join("") || `<tr><td colspan="8">No student found.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+  };
+  window.navItems = function(){
+    if(role==="admin") return [["dashboard","Dashboard"],["students","Students"],["quizzes","Quiz Builder"],["review","Review / Marking"],["components","CA Components"],["reports","Reports"]];
+    if(role==="student") return [["studentHome","Home"],["studentQuizzes","My Quizzes"],["studentResults","My Results"]];
+    return [["studentLogin","Student Login"]];
+  };
+  window.backup = function(){
+    route="dashboard";
+    renderShell();
+  };
+  window.settings = function(){
+    route="dashboard";
+    renderShell();
+  };
+  function removeAdminClutter(){
+    if(role!=="admin") return;
+    document.querySelectorAll("#classControlPanel,.classControlPanel,#directClassDeletePanel,.directClassDeletePanel,#realOldDataImportPanel,.realOldDataImportPanel,#oldDataMigrationPanel,.oldDataMigrationPanel,#duplicateManagerPanel,.duplicateManagerPanel").forEach(el=>el.remove());
+    document.querySelectorAll("button,label").forEach(el=>{
+      const t=String(el.textContent||"").toLowerCase();
+      if(t.includes("import old") || t.includes("upload photo") || t.includes("upload picture") || t.includes("camera") || t.includes("remove pic") || t.includes("refresh app") || t.includes("restore") || t.includes("bulk import") || t.includes("import names")){
+        const card=el.closest(".card,#realOldDataImportPanel,.realOldDataImportPanel");
+        if(card && (card.textContent||"").toLowerCase().includes("old")) card.remove();
+        else el.remove();
+      }
+    });
+  }
+  async function loadRemoteLocks(){
+    if(!sb) return;
+    const locks=loadLocks();
+    try{
+      const {data,error}=await sb.from("stable_items").select("item_id,data").eq("bucket",LOCK_BUCKET).limit(20000);
+      if(error) throw error;
+      (data||[]).forEach(row=>{
+        const l=row.data||{};
+        if(l.bucket && l.itemId) locks[l.bucket+"::"+l.itemId]=l;
+      });
+      saveLocks(locks);
+    }catch(e){ console.warn("Final 205 locks load skipped",e); }
+  }
+  async function saveRemoteLocks(){
+    if(!sb) return;
+    const rows=Object.values(loadLocks()).map(l=>({bucket:LOCK_BUCKET,item_id:l.bucket+"::"+l.itemId,data:l,updated_at:new Date().toISOString()}));
+    Object.values(loadLocks()).forEach(l=>{
+      if(l.bucket==="students"){
+        rows.push({bucket:"students",item_id:String(l.itemId),data:{id:String(l.itemId),name:"Deleted",className:"Deleted",deleted:true,isDeleted:true,_deletedHidden:true,status:"Deleted",deletedAt:now()},updated_at:new Date().toISOString()});
+      }
+    });
+    for(let i=0;i<rows.length;i+=80){
+      const batch=rows.slice(i,i+80);
+      if(!batch.length) continue;
+      try{ const {error}=await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"}); if(error) throw error; }catch(e){ console.warn("Final 205 locks save skipped",e); }
+    }
+  }
+  async function deleteRemoteDependents(){
+    if(!sb) return;
+    for(const id of [...lockedIds("students")]){
+      for(const bucket of ["submissions","docSubmissions","reportScores","reportComments","scores","passwordShares","messages","chatMessages","studentMessages"]){
+        try{ await sb.from("stable_items").delete().eq("bucket",bucket).filter("data->>studentId","eq",String(id)); }catch(e){}
+      }
+    }
+    try{ await sb.from("stable_items").delete().eq("bucket","__direct_1g3b_import_v2__").filter("data->>bucket","eq","g3bNames"); }catch(e){}
+    try{ await sb.from("stable_items").delete().eq("bucket","__class_control_locks_v1__").filter("data->>bucket","eq","g3bNames"); }catch(e){}
+  }
+  async function writeAppState(){
+    if(!sb) return;
+    try{
+      await sb.from("app_state").upsert({id:"main",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:state,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){ console.warn("Final 205 app_state write skipped",e); }
+  }
+  async function finalPersist(silent=false){
+    if(syncing){ finalClean(); return; }
+    syncing=true;
+    try{
+      await loadRemoteLocks();
+      finalClean();
+      try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+      await saveRemoteLocks();
+      await deleteRemoteDependents();
+      try{
+        if(sb && typeof stableWriteRemoteItems==="function") await stableWriteRemoteItems();
+        else if(sb && typeof pushRemote==="function") await pushRemote();
+        else if(typeof save==="function") save();
+      }catch(e){ console.warn("Final 205 main save skipped",e); }
+      finalClean();
+      try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+      await saveRemoteLocks();
+      await deleteRemoteDependents();
+      await writeAppState();
+      try{ if(typeof recalculateLiveDashboardStats==="function") recalculateLiveDashboardStats(); }catch(e){}
+      if(!silent){}
+    }finally{
+      syncing=false;
+    }
+  }
+  if(typeof window.stablePullRemote==="function"){
+    const old=window.stablePullRemote;
+    window.stablePullRemote=async function(){
+      await loadRemoteLocks();
+      const result=await old.apply(this,arguments);
+      await finalPersist(true);
+      return result;
+    };
+  }
+  if(typeof window.stableWriteRemoteItems==="function"){
+    const old=window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems=async function(){
+      finalClean();
+      const result=await old.apply(this,arguments);
+      await saveRemoteLocks();
+      await deleteRemoteDependents();
+      await writeAppState();
+      return result;
+    };
+  }
+  if(typeof window.pushRemote==="function"){
+    const old=window.pushRemote;
+    window.pushRemote=async function(){
+      finalClean();
+      const result=await old.apply(this,arguments);
+      await saveRemoteLocks();
+      await deleteRemoteDependents();
+      await writeAppState();
+      return result;
+    };
+  }
+  const oldSave=window.save || (typeof save==="function" ? save : null);
+  if(typeof oldSave==="function"){
+    window.save=function(){
+      finalClean();
+      return oldSave.apply(this,arguments);
+    };
+  }
+  ["dashboard","studentLogin","studentHome","studentQuizzes","review","components","reports","renderReviewPrintPreview","printSubmittedWorkListPDF"].forEach(fn=>{
+    const old=window[fn];
+    if(typeof old==="function"){
+      window[fn]=function(){
+        finalClean();
+        const result=old.apply(this,arguments);
+        setTimeout(removeAdminClutter,80);
+        return result;
+      };
+    }
+  });
+  const oldRenderShell=window.renderShell;
+  if(typeof oldRenderShell==="function"){
+    window.renderShell=function(){
+      if(route==="settings" || route==="backup") route="dashboard";
+      finalClean();
+      const result=oldRenderShell.apply(this,arguments);
+      setTimeout(removeAdminClutter,100);
+      return result;
+    };
+  }
+  window.importOldAppStateToStable=function(){ alert("Old data import has been disabled to protect the current records."); };
+  window.studentPortalHardRefresh=function(){ window.location.reload(); };
+  setTimeout(()=>{ finalPersist(true).then(()=>{ if(["dashboard","students","studentLogin","studentHome"].includes(route) && typeof renderShell==="function") renderShell(); }); },900);
+  setTimeout(()=>{ finalPersist(true); },3500);
+  setInterval(()=>{ try{ finalClean(); removeAdminClutter(); }catch(e){} },4000);
+
+  try{
+    eval("students=window.students; navItems=window.navItems; backup=window.backup; settings=window.settings; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; pushRemote=window.pushRemote; save=window.save; dashboard=window.dashboard; studentLogin=window.studentLogin; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; review=window.review; components=window.components; reports=window.reports; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; renderShell=window.renderShell; cleanDeleteSelectedStudents=window.cleanDeleteSelectedStudents; cleanDeleteEntireClass=window.cleanDeleteEntireClass; cleanPrintCurrentClass=window.cleanPrintCurrentClass; importOldAppStateToStable=window.importOldAppStateToStable; studentPortalHardRefresh=window.studentPortalHardRefresh;");
+  }catch(e){}
 })();
 
 
