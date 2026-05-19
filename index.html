@@ -7974,6 +7974,151 @@ html,body{
   .cleanStudentTableWrap{border:0}
 }
 
+
+/* ===== PROFESSIONAL ADMIN UI FINAL CLEANUP ===== */
+#classControlPanel,.classControlPanel,
+#directClassDeletePanel,.directClassDeletePanel,
+#realOldDataImportPanel,.realOldDataImportPanel,
+#oldDataMigrationPanel,.oldDataMigrationPanel,
+#permanentDeletePanel,.permanentDeletePanel,
+#smartCleanPanel,.smartCleanPanel,
+#mergeLockPanel,.mergeLockPanel,
+#liveStatsFixPanel,.liveStatsFixPanel,
+#duplicateManagerPanel,.duplicateManagerPanel,
+#announcementControlPanel,.announcementControlPanel,
+.cleanAdminNotice{
+  display:none!important;
+}
+.professionalStudentsShell{
+  display:grid;
+  gap:14px;
+}
+.professionalStudentHeader{
+  border:1px solid #d9e7f3;
+  background:linear-gradient(135deg,#ffffff,#f8fbff);
+  border-radius:22px;
+  padding:16px;
+  color:#071f3d;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.professionalStudentHeader h2{
+  margin:0 0 6px;
+  color:#071f3d;
+}
+.professionalStudentHeader p{
+  margin:0;
+  color:#475467;
+  font-weight:800;
+  line-height:1.45;
+}
+.professionalStudentControls{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:22px;
+  padding:14px;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.professionalStudentGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  align-items:end;
+}
+.professionalStudentGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.professionalStudentGrid input,
+.professionalStudentGrid select{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  background:#fff;
+  color:#071f3d;
+  font-weight:850;
+}
+.professionalStudentActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.professionalStudentActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.professionalStudentActions .navy{border:0;background:#071f3d;color:#fff}
+.professionalStudentActions .gold{border:0;background:#f4c430;color:#071f3d}
+.professionalStudentActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.professionalStatus{
+  margin-top:10px;
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  color:#071f3d;
+  border-radius:14px;
+  padding:9px 11px;
+  font-size:13px;
+  font-weight:850;
+}
+.professionalStudentTableWrap{
+  overflow:auto;
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  background:#fff;
+}
+.professionalStudentTable{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.professionalStudentTable th{
+  background:#071f3d;
+  color:#fff;
+  border:1px solid #071f3d;
+  padding:8px;
+  text-align:left;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+.professionalStudentTable td{
+  border:1px solid #d9e7f3;
+  padding:7px;
+  vertical-align:middle;
+}
+.professionalPhoto{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #f4c430;
+  background:#eef5fc;
+}
+.professionalAvatar{
+  width:32px;height:32px;border-radius:50%;
+  display:grid;place-items:center;
+  border:2px solid #f4c430;background:#eef5fc;
+  color:#071f3d;font-weight:950;font-size:11px;
+}
+@media(max-width:760px){
+  .professionalStudentGrid{grid-template-columns:1fr}
+  .professionalStudentActions button{width:100%}
+  .professionalStudentTable{font-size:12px}
+}
+@media print{
+  .side,.topbar,.professionalStudentControls,.professionalStudentHeader{display:none!important}
+  .professionalStudentTableWrap{border:0}
+}
+
 </style>
 </head>
 <body>
@@ -25508,6 +25653,212 @@ async function initSupabase(){
 
   try{
     eval("students=window.students; navItems=window.navItems; backup=window.backup; settings=window.settings; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; pushRemote=window.pushRemote; save=window.save; dashboard=window.dashboard; studentLogin=window.studentLogin; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; review=window.review; components=window.components; reports=window.reports; renderReviewPrintPreview=window.renderReviewPrintPreview; printSubmittedWorkListPDF=window.printSubmittedWorkListPDF; renderShell=window.renderShell; cleanDeleteSelectedStudents=window.cleanDeleteSelectedStudents; cleanDeleteEntireClass=window.cleanDeleteEntireClass; cleanPrintCurrentClass=window.cleanPrintCurrentClass; importOldAppStateToStable=window.importOldAppStateToStable; studentPortalHardRefresh=window.studentPortalHardRefresh;");
+  }catch(e){}
+})();
+
+
+
+/* ===== PROFESSIONAL ADMIN UI FINAL CLEANUP V1 =====
+   Final UI override:
+   - Keeps the background fixes active.
+   - Removes public/admin wording that says the class has been fixed/imported.
+   - Makes Admin → Students formal and simple.
+   - Removes Settings/Backup from the admin menu.
+*/
+(function(){
+  function pEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function pSubjectForClass(c){
+    try{ return typeof subjectForClass === "function" ? subjectForClass(c) : ""; }
+    catch(e){ return ""; }
+  }
+  function pClassOptions(sel=""){
+    const classes = Array.isArray(state?.classes) ? state.classes.slice() : [];
+    const fromStudents = Array.isArray(state?.students) ? state.students.map(s=>s.className).filter(Boolean) : [];
+    return [...new Set(classes.concat(fromStudents))]
+      .sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:"base"}))
+      .map(c=>`<option value="${pEsc(c)}" ${String(c)===String(sel)?"selected":""}>${pEsc(c)}</option>`)
+      .join("");
+  }
+  function pPhotoCell(s){
+    if(s && s.photo) return `<img class="professionalPhoto" src="${s.photo}" alt="">`;
+    const init = String(s?.name || "ST").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase() || "ST";
+    return `<div class="professionalAvatar">${pEsc(init)}</div>`;
+  }
+  function pCleanBeforeView(){
+    try{ if(typeof finalClean === "function") finalClean(); }catch(e){}
+    try{
+      document.querySelectorAll("#classControlPanel,.classControlPanel,#directClassDeletePanel,.directClassDeletePanel,#realOldDataImportPanel,.realOldDataImportPanel,#oldDataMigrationPanel,.oldDataMigrationPanel,#duplicateManagerPanel,.duplicateManagerPanel,.cleanAdminNotice").forEach(el=>el.remove());
+    }catch(e){}
+  }
+
+  window.professionalDeleteSelectedStudents = async function(){
+    const ids = [...document.querySelectorAll(".professionalStudentCheck:checked")].map(x=>x.value);
+    if(!ids.length) return alert("Select at least one student first.");
+    if(!confirm(`Delete ${ids.length} selected student(s)?`)) return;
+
+    if(typeof addLock === "function"){
+      ids.forEach(id=>addLock("students",id,"admin_selected_delete"));
+    }else{
+      const set = new Set(ids.map(String));
+      state.students = (state.students||[]).filter(s=>!set.has(String(s.id)));
+    }
+
+    try{ if(typeof finalPersist === "function") await finalPersist(true); else if(typeof save === "function") save(); }catch(e){ try{ save(); }catch(_){} }
+    if(typeof students === "function") students();
+  };
+
+  window.professionalDeleteEntireClass = async function(){
+    const cls = document.getElementById("professionalClassFilter")?.value || "";
+    if(!cls || cls === "ALL") return alert("Select one particular class first.");
+    const pass = prompt("Enter admin password to delete the selected class:");
+    if(pass !== (state.settings?.adminPass || "")) return alert("Wrong admin password. Action cancelled.");
+
+    const list = (state.students||[]).filter(s=>String(s.className)===String(cls));
+    if(!list.length) return alert("No student found in the selected class.");
+    if(!confirm(`Delete all ${list.length} student(s) in ${cls}?`)) return;
+
+    if(typeof addLock === "function"){
+      list.forEach(s=>addLock("students",s.id,"admin_entire_class_delete"));
+    }else{
+      const ids = new Set(list.map(s=>String(s.id)));
+      state.students = (state.students||[]).filter(s=>!ids.has(String(s.id)));
+    }
+
+    try{ if(typeof finalPersist === "function") await finalPersist(true); else if(typeof save === "function") save(); }catch(e){ try{ save(); }catch(_){} }
+    if(typeof students === "function") students();
+  };
+
+  window.professionalPrintStudents = function(){
+    window.print();
+  };
+
+  window.students = function(){
+    pCleanBeforeView();
+
+    const cls = document.getElementById("professionalClassFilter")?.value || "ALL";
+    const q = String(document.getElementById("professionalStudentSearch")?.value || "").toLowerCase();
+    const allStudents = Array.isArray(state?.students) ? state.students.slice() : [];
+    const list = allStudents
+      .filter(s => (cls==="ALL" || s.className===cls) &&
+        (!q || String(s.name||"").toLowerCase().includes(q) || String(s.code||"").toLowerCase().includes(q) || String(s.phone||"").includes(q)))
+      .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"}));
+
+    const classLabel = cls==="ALL" ? "All Classes" : cls;
+
+    $("view").innerHTML = `<div class="professionalStudentsShell">
+      <div class="professionalStudentHeader">
+        <h2>Student Records</h2>
+        <p>View, search, print, and manage student records.</p>
+      </div>
+
+      <div class="professionalStudentControls">
+        <div class="professionalStudentGrid">
+          <div><label>Class</label><select id="professionalClassFilter" onchange="students()"><option value="ALL">All Classes</option>${pClassOptions(cls)}</select></div>
+          <div><label>Search</label><input id="professionalStudentSearch" value="${pEsc(q)}" oninput="students()" placeholder="Search by name, code or phone"></div>
+          <div><label>Total Records</label><input value="${allStudents.length}" readonly></div>
+          <div><label>Displayed Records</label><input value="${list.length}" readonly></div>
+        </div>
+        <div class="professionalStudentActions">
+          <button class="navy" onclick="students()">Reload List</button>
+          <button class="gold" onclick="professionalPrintStudents()">Print List</button>
+          <button class="red" onclick="professionalDeleteSelectedStudents()">Delete Selected</button>
+          <button class="red" onclick="professionalDeleteEntireClass()">Delete Selected Class</button>
+        </div>
+        <div class="professionalStatus">${pEsc(classLabel)}: ${list.length} record(s)</div>
+      </div>
+
+      <div class="professionalStudentTableWrap">
+        <table class="professionalStudentTable">
+          <thead>
+            <tr>
+              <th><input type="checkbox" onchange="document.querySelectorAll('.professionalStudentCheck').forEach(x=>x.checked=this.checked)"></th>
+              <th>No.</th>
+              <th>Photo</th>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Subject</th>
+              <th>Phone</th>
+              <th>Code</th>
+              <th>Password</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map((s,i)=>`<tr>
+              <td><input class="professionalStudentCheck" type="checkbox" value="${pEsc(s.id)}"></td>
+              <td>${i+1}</td>
+              <td>${pPhotoCell(s)}</td>
+              <td><b>${pEsc(s.name)}</b></td>
+              <td>${pEsc(s.className)}</td>
+              <td>${pEsc(pSubjectForClass(s.className))}</td>
+              <td>${pEsc(s.phone||"")}</td>
+              <td>${pEsc(s.code||"")}</td>
+              <td>${pEsc(s.password||"")}</td>
+            </tr>`).join("") || `<tr><td colspan="9">No student found.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  };
+
+  window.navItems = function(){
+    if(role==="admin") return [["dashboard","Dashboard"],["students","Students"],["quizzes","Quiz Builder"],["review","Review / Marking"],["components","CA Components"],["reports","Reports"]];
+    if(role==="student") return [["studentHome","Home"],["studentQuizzes","My Quizzes"],["studentResults","My Results"]];
+    return [["studentLogin","Student Login"]];
+  };
+
+  window.backup = function(){ route="dashboard"; renderShell(); };
+  window.settings = function(){ route="dashboard"; renderShell(); };
+  window.importOldAppStateToStable = function(){ alert("This action has been disabled."); };
+  window.injectClassControlPanel = function(){};
+  window.injectDirectClassDeletePanel = function(){};
+  window.injectDuplicateStudentsManager = function(){};
+  window.injectLiveStatsFixPanel = function(){};
+  window.injectMergeLockPanel = function(){};
+  window.injectSmartCleanPanel = function(){};
+  window.injectPermanentDeletePanel = function(){};
+
+  function pRemoveClutter(){
+    if(role !== "admin") return;
+    document.querySelectorAll("#classControlPanel,.classControlPanel,#directClassDeletePanel,.directClassDeletePanel,#realOldDataImportPanel,.realOldDataImportPanel,#oldDataMigrationPanel,.oldDataMigrationPanel,#duplicateManagerPanel,.duplicateManagerPanel,.cleanAdminNotice").forEach(el=>el.remove());
+    document.querySelectorAll("button,label").forEach(el=>{
+      const t = String(el.textContent || "").toLowerCase();
+      if(t.includes("restore / seal") || t.includes("import old") || t.includes("old pictures") || t.includes("upload photo") || t.includes("camera") || t.includes("remove pic") || t.includes("bulk import") || t.includes("add student") || t.includes("create class")){
+        const card = el.closest(".card,#realOldDataImportPanel,.realOldDataImportPanel,#classControlPanel,.classControlPanel,#directClassDeletePanel,.directClassDeletePanel");
+        if(card) card.remove(); else el.remove();
+      }
+    });
+  }
+
+  const oldRenderShellProfessional = window.renderShell;
+  if(typeof oldRenderShellProfessional === "function"){
+    window.renderShell = function(){
+      if(route==="settings" || route==="backup") route="dashboard";
+      pCleanBeforeView();
+      const result = oldRenderShellProfessional.apply(this, arguments);
+      setTimeout(pRemoveClutter,100);
+      return result;
+    };
+  }
+
+  ["dashboard","quizzes","review","components","reports","studentHome","studentLogin","studentQuizzes","studentResults"].forEach(fn=>{
+    const old = window[fn];
+    if(typeof old === "function"){
+      window[fn] = function(){
+        pCleanBeforeView();
+        const result = old.apply(this, arguments);
+        setTimeout(pRemoveClutter,80);
+        return result;
+      };
+    }
+  });
+
+  setInterval(()=>{ try{ pRemoveClutter(); }catch(e){} }, 3000);
+
+  try{
+    eval("students=window.students; navItems=window.navItems; backup=window.backup; settings=window.settings; importOldAppStateToStable=window.importOldAppStateToStable; injectClassControlPanel=window.injectClassControlPanel; injectDirectClassDeletePanel=window.injectDirectClassDeletePanel; injectDuplicateStudentsManager=window.injectDuplicateStudentsManager; injectLiveStatsFixPanel=window.injectLiveStatsFixPanel; injectMergeLockPanel=window.injectMergeLockPanel; injectSmartCleanPanel=window.injectSmartCleanPanel; injectPermanentDeletePanel=window.injectPermanentDeletePanel; renderShell=window.renderShell; dashboard=window.dashboard; quizzes=window.quizzes; review=window.review; components=window.components; reports=window.reports; studentHome=window.studentHome; studentLogin=window.studentLogin; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; professionalDeleteSelectedStudents=window.professionalDeleteSelectedStudents; professionalDeleteEntireClass=window.professionalDeleteEntireClass; professionalPrintStudents=window.professionalPrintStudents;");
   }catch(e){}
 })();
 
