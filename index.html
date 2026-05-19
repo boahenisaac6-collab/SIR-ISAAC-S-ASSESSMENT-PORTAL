@@ -5632,6 +5632,38 @@ body.caFullscreenLock{
 .signedPdfButtons .gold{border:0;background:#f4c430;color:#071f3d}
 .signedPdfButtons .light{border:1px solid #d9e7f3;background:#eef5fc;color:#071f3d}
 
+
+/* ===== STABLE DATABASE + STORAGE SYNC LAYER ===== */
+.stableSyncPanel{
+  border:2px solid #d9e7f3;
+  border-left:8px solid #0f7b4f;
+  background:#fff;
+  border-radius:20px;
+  padding:12px;
+  margin:12px 0;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.stableSyncPanel h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.stableSyncPanel p{
+  margin:0 0 8px;
+  color:#667085;
+  line-height:1.45;
+  font-weight:750;
+}
+.stableSyncBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 10px;
+  font-size:12px;
+  font-weight:950;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border:1px solid #bce8ce;
+}
+
 </style>
 </head>
 <body>
@@ -15112,6 +15144,400 @@ ${printable}
     eval("downloadMarkedSubmissionPDF=window.downloadMarkedSubmissionPDF; downloadMarkedScriptFile=window.downloadMarkedScriptFile; downloadAllMarkedScriptsPDF=window.downloadAllMarkedScriptsPDF;");
   }catch(e){}
 })();
+
+
+/* ===== STABLE DATABASE + STORAGE SYNC LAYER =====
+   This layer keeps the same interface but changes the saving method:
+   - each main record is saved separately in stable_items
+   - pictures, scanned scripts, and marked scripts are uploaded to Supabase Storage
+   - saves merge with the latest online data before uploading, reducing overwrite/loss
+*/
+const STABLE_BUCKET = "assessment-files";
+const STABLE_LIST_KEYS = [
+  "students","quizzes","submissions","docAssignments","docSubmissions",
+  "reportScores","reportComments","scores","publishedReports",
+  "passwordShares","assignmentNotifications","quizResets",
+  "announcements","messages","chatMessages","chatThreads",
+  "classMessages","teacherMessages","studentMessages"
+];
+let stableChannel = null;
+let stableRemoteReady = false;
+let stableLastPull = 0;
+let stablePullTimer = null;
+let stablePushing = false;
+
+function stableStatus(text, cls="live"){
+  try{ status(text, cls); }catch(e){}
+  const el=document.getElementById("stableSyncStatus");
+  if(el) el.textContent=text;
+}
+
+function stableId(){
+  return "id_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+}
+
+function stableClone(obj){
+  try{return JSON.parse(JSON.stringify(obj));}catch(e){return obj;}
+}
+
+function stableArrayItemId(key,item,index){
+  if(item && item.id) return String(item.id);
+  if(item && item.studentId && (key==="reportScores" || key==="reportComments" || key==="scores")) return String(item.studentId);
+  if(item && item.quizId && item.studentId) return String(item.quizId)+"_"+String(item.studentId);
+  if(item && item.assignmentId && item.studentId) return String(item.assignmentId)+"_"+String(item.studentId);
+  if(item && item.createdAt) return String(item.createdAt)+"_"+index;
+  return key+"_"+index;
+}
+
+function stableCoreState(st){
+  const core = {};
+  Object.keys(st || {}).forEach(k=>{
+    if(!STABLE_LIST_KEYS.includes(k)) core[k] = st[k];
+  });
+  return core;
+}
+
+function stableNonEmpty(v){
+  if(v===undefined || v===null) return false;
+  if(typeof v==="string" && v.trim()==="") return false;
+  if(Array.isArray(v) && v.length===0) return false;
+  return true;
+}
+
+function stableMergeValue(remoteVal, localVal){
+  if(Array.isArray(remoteVal) || Array.isArray(localVal)){
+    const r = Array.isArray(remoteVal) ? remoteVal : [];
+    const l = Array.isArray(localVal) ? localVal : [];
+    const max = Math.max(r.length,l.length);
+    const out = [];
+    for(let i=0;i<max;i++){
+      if(typeof r[i]==="object" && typeof l[i]==="object" && r[i] && l[i]) out[i]=stableMergeObject(r[i],l[i]);
+      else out[i] = stableNonEmpty(l[i]) ? l[i] : r[i];
+    }
+    return out.filter(x=>x!==undefined);
+  }
+  if(remoteVal && typeof remoteVal==="object" && localVal && typeof localVal==="object"){
+    return stableMergeObject(remoteVal, localVal);
+  }
+  if(!stableNonEmpty(localVal) && stableNonEmpty(remoteVal)) return remoteVal;
+  return localVal;
+}
+
+function stableMergeObject(remoteObj, localObj){
+  const out = stableClone(remoteObj || {});
+  const loc = localObj || {};
+  Object.keys(loc).forEach(k=>{
+    out[k] = stableMergeValue(out[k], loc[k]);
+  });
+  return out;
+}
+
+function stableMergeArrayById(remoteArr, localArr, key){
+  const map = new Map();
+  (remoteArr||[]).forEach((item,i)=>{
+    if(!item) return;
+    const id = stableArrayItemId(key,item,i);
+    map.set(id, stableClone(item));
+  });
+  (localArr||[]).forEach((item,i)=>{
+    if(!item) return;
+    const id = stableArrayItemId(key,item,i);
+    const existing = map.get(id);
+    map.set(id, existing ? stableMergeObject(existing,item) : stableClone(item));
+  });
+  return Array.from(map.values());
+}
+
+function stableMergeStates(remoteState, localState){
+  const base = deepMerge(defaultState(), remoteState || {});
+  const loc = localState || {};
+  Object.keys(loc).forEach(k=>{
+    if(STABLE_LIST_KEYS.includes(k)) return;
+    base[k] = stableMergeValue(base[k], loc[k]);
+  });
+  STABLE_LIST_KEYS.forEach(k=>{
+    base[k] = stableMergeArrayById(base[k]||[], loc[k]||[], k);
+  });
+  return base;
+}
+
+function stableSafeLocalState(st){
+  const copy = stableClone(st || {});
+  // After Storage migration, media values are URLs. If old base64 remains and localStorage is full,
+  // strip only the huge local copy while keeping the online copy intact.
+  const stripData = (obj)=>{
+    if(!obj || typeof obj!=="object") return;
+    Object.keys(obj).forEach(k=>{
+      const v=obj[k];
+      if(typeof v==="string" && v.startsWith("data:") && v.length>50000){
+        obj[k]="";
+        obj._stable_media_stripped=true;
+      }else if(v && typeof v==="object"){
+        stripData(v);
+      }
+    });
+  };
+  return copy;
+}
+
+function saveLocal(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify(state));
+  }catch(e){
+    try{
+      const safe = stableSafeLocalState(state);
+      localStorage.setItem(KEY, JSON.stringify(safe));
+      console.warn("Local storage was full. Saved lightweight local copy; online data remains complete.", e);
+    }catch(err){
+      console.warn("Local storage save skipped. Online sync remains active.", err);
+    }
+  }
+}
+
+function save(){
+  normalize();
+  saveLocal();
+  if(sb && !applyingRemote){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(pushRemote,700);
+  }
+}
+
+function stableMimeExt(mime, fallback="bin"){
+  mime = String(mime||"").toLowerCase();
+  if(mime.includes("jpeg") || mime.includes("jpg")) return "jpg";
+  if(mime.includes("png")) return "png";
+  if(mime.includes("webp")) return "webp";
+  if(mime.includes("pdf")) return "pdf";
+  return fallback;
+}
+
+async function stableDataUrlToBlob(dataUrl){
+  const res = await fetch(dataUrl);
+  return await res.blob();
+}
+
+async function stableUploadDataUrl(dataUrl,pathBase,nameHint="file"){
+  if(!sb || !dataUrl || typeof dataUrl!=="string" || !dataUrl.startsWith("data:")) return dataUrl;
+  const mime = (dataUrl.match(/^data:([^;]+);/)||[])[1] || "application/octet-stream";
+  const ext = stableMimeExt(mime, "dat");
+  const safeName = String(nameHint||"file").replace(/\.[^.]+$/,"").replace(/[^\w\-]+/g,"_").slice(0,80) || "file";
+  const path = `${pathBase}/${safeName}_${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
+  try{
+    const blob = await stableDataUrlToBlob(dataUrl);
+    const {error} = await sb.storage.from(STABLE_BUCKET).upload(path, blob, {upsert:true, contentType:mime});
+    if(error) throw error;
+    const {data} = sb.storage.from(STABLE_BUCKET).getPublicUrl(path);
+    return data.publicUrl;
+  }catch(e){
+    console.error("Storage upload failed:", e);
+    stableStatus("Storage upload failed: run stable setup SQL","bad");
+    return dataUrl; // fallback preserves data if Storage is not ready
+  }
+}
+
+async function stableMigrateMedia(){
+  if(!sb) return;
+  normalize();
+
+  for(const s of (state.students||[])){
+    if(s && typeof s.photo==="string" && s.photo.startsWith("data:")){
+      s.photo = await stableUploadDataUrl(s.photo, `students/${s.id}`, "profile_photo");
+    }
+  }
+
+  for(const a of (state.docAssignments||[])){
+    if(a && a.questionFile && typeof a.questionFile.data==="string" && a.questionFile.data.startsWith("data:")){
+      a.questionFile.data = await stableUploadDataUrl(a.questionFile.data, `assignments/${a.id}`, a.questionFile.name || "question_paper");
+    }
+  }
+
+  for(const ds of (state.docSubmissions||[])){
+    if(!ds) continue;
+    if(Array.isArray(ds.files)){
+      for(let i=0;i<ds.files.length;i++){
+        const f=ds.files[i];
+        if(f && typeof f.data==="string" && f.data.startsWith("data:")){
+          f.data = await stableUploadDataUrl(f.data, `submissions/${ds.id}`, f.name || `submitted_page_${i+1}`);
+        }
+      }
+    }
+    if(Array.isArray(ds.markedFiles)){
+      for(let i=0;i<ds.markedFiles.length;i++){
+        const f=ds.markedFiles[i];
+        if(f && typeof f.data==="string" && f.data.startsWith("data:")){
+          f.data = await stableUploadDataUrl(f.data, `marked/${ds.id}`, f.name || `marked_page_${i+1}`);
+        }
+      }
+    }
+  }
+}
+
+async function stableLoadRemoteItems(){
+  if(!sb) return null;
+  const {data,error} = await sb.from("stable_items").select("bucket,item_id,data,updated_at").limit(20000);
+  if(error){
+    console.error(error);
+    stableStatus("Stable tables missing: run setup SQL","bad");
+    return null;
+  }
+  if(!data || !data.length) return {empty:true,state:null};
+  const remote = defaultState();
+  const core = data.find(r=>r.bucket==="core" && r.item_id==="main");
+  if(core && core.data) Object.assign(remote, deepMerge(remote, core.data));
+
+  STABLE_LIST_KEYS.forEach(k=>{ remote[k]=[]; });
+  data.forEach(r=>{
+    if(r.bucket==="core") return;
+    if(!STABLE_LIST_KEYS.includes(r.bucket)) return;
+    const item = r.data || {};
+    item._stableRemoteUpdatedAt = r.updated_at;
+    remote[r.bucket].push(item);
+  });
+  return {empty:false,state:remote};
+}
+
+async function stablePullRemote(mergeLocal=true){
+  if(!sb) return false;
+  const loaded = await stableLoadRemoteItems();
+  if(!loaded) return false;
+  if(loaded.empty) return false;
+  applyingRemote = true;
+  const localCopy = stableClone(state || {});
+  state = mergeLocal ? stableMergeStates(loaded.state, localCopy) : deepMerge(defaultState(), loaded.state);
+  normalize();
+  saveLocal();
+  applyingRemote = false;
+  stableRemoteReady = true;
+  stableLastPull = Date.now();
+  return true;
+}
+
+async function stableWriteRemoteItems(){
+  if(!sb) return;
+  normalize();
+
+  const core = stableCoreState(state);
+  const rows = [{bucket:"core", item_id:"main", data:core, updated_at:new Date().toISOString()}];
+
+  STABLE_LIST_KEYS.forEach(key=>{
+    const arr = Array.isArray(state[key]) ? state[key] : [];
+    arr.forEach((item,i)=>{
+      if(!item) return;
+      const data = stableClone(item);
+      delete data._stableRemoteUpdatedAt;
+      data._stableSavedAt = new Date().toISOString();
+      rows.push({bucket:key, item_id:stableArrayItemId(key,data,i), data, updated_at:new Date().toISOString()});
+    });
+  });
+
+  for(let i=0;i<rows.length;i+=80){
+    const batch = rows.slice(i,i+80);
+    const {error} = await sb.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+    if(error) throw error;
+  }
+}
+
+async function pushRemote(){
+  if(!sb || stablePushing) return;
+  stablePushing = true;
+  try{
+    stableStatus("Saving live...","warn");
+
+    // Pull before push so one student cannot overwrite another student's latest work.
+    await stablePullRemote(true);
+
+    await stableMigrateMedia();
+    normalize();
+    saveLocal();
+    await stableWriteRemoteItems();
+
+    // Keep the old single app_state as a lightweight backup only.
+    try{
+      const backup = stableCoreState(state);
+      await sb.from("app_state").upsert({id:"main_backup",data:backup,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){}
+
+    stableStatus("Live stable","live");
+  }catch(e){
+    console.error(e);
+    stableStatus("Stable sync error - run setup SQL","bad");
+  }finally{
+    stablePushing = false;
+  }
+}
+
+async function initSupabase(){
+  const url = window.AMEST_SUPABASE_URL;
+  const key = window.AMEST_SUPABASE_ANON_KEY;
+  if(!url || !key || url.includes("PASTE")){
+    stableStatus("Offline mode: add Supabase keys","warn"); return;
+  }
+  try{
+    sb = window.supabase.createClient(url,key);
+    stableStatus("Connecting stable live...","warn");
+
+    let loaded = await stablePullRemote(true);
+
+    if(!loaded){
+      // First stable run: migrate from old app_state if it exists, otherwise migrate current local data.
+      try{
+        const {data,error}=await sb.from("app_state").select("data").eq("id","main").maybeSingle();
+        if(!error && data && data.data && Object.keys(data.data).length){
+          state = stableMergeStates(data.data, state);
+          normalize();
+          saveLocal();
+        }
+      }catch(e){console.warn("Old app_state migration skipped", e);}
+      await pushRemote();
+    }
+
+    if(stableChannel){
+      try{ await sb.removeChannel(stableChannel); }catch(e){}
+    }
+
+    stableChannel = sb.channel("isaacs-stable-items-live")
+      .on("postgres_changes",{event:"*",schema:"public",table:"stable_items"},payload=>{
+        if(stablePushing) return;
+        clearTimeout(stablePullTimer);
+        stablePullTimer = setTimeout(async ()=>{
+          try{
+            applyingRemote=true;
+            await stablePullRemote(true);
+            applyingRemote=false;
+            stableStatus("Live stable updated","live");
+            if(typeof render==="function") render();
+          }catch(e){console.error(e);}
+        },650);
+      })
+      .subscribe(s=>{ if(s==="SUBSCRIBED") stableStatus("Live stable","live"); });
+
+    stableRemoteReady = true;
+  }catch(e){
+    console.error(e);
+    stableStatus("Supabase stable error","bad");
+  }
+}
+
+// Add a small admin notice without changing the main interface.
+(function(){
+  const oldDashboard = window.dashboard;
+  if(typeof oldDashboard==="function"){
+    window.dashboard = function(){
+      const result = oldDashboard.apply(this, arguments);
+      const view=document.getElementById("view");
+      if(view && !document.getElementById("stableSyncPanel")){
+        view.insertAdjacentHTML("afterbegin", `<div id="stableSyncPanel" class="stableSyncPanel">
+          <h3>Stable Live Database</h3>
+          <p>The app now saves student photos, submissions, marked scripts, quizzes and records separately online. This prevents one student's upload from overwriting another student's work.</p>
+          <span id="stableSyncStatus" class="stableSyncBadge">Live stable</span>
+        </div>`);
+      }
+      return result;
+    };
+  }
+})();
+
 
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
