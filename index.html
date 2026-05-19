@@ -8758,6 +8758,149 @@ html,body{
   }
 }
 
+
+/* ===== PASSWORD SETTINGS CONTROL UPDATE ===== */
+.passwordSettingsShell{
+  display:grid;
+  gap:14px;
+}
+.passwordSettingsHero{
+  border:1px solid #d9e7f3;
+  background:linear-gradient(135deg,#ffffff,#f8fbff);
+  border-radius:22px;
+  padding:16px;
+  color:#071f3d;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.passwordSettingsHero h2{
+  margin:0 0 6px;
+  color:#071f3d;
+}
+.passwordSettingsHero p{
+  margin:0;
+  color:#475467;
+  font-weight:800;
+  line-height:1.45;
+}
+.passwordSettingsGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:14px;
+}
+.passwordSettingsCard{
+  background:#fff;
+  border:1px solid #d9e7f3;
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+  color:#071f3d;
+}
+.passwordSettingsCard h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.passwordSettingsCard p{
+  margin:0 0 12px;
+  color:#475467;
+  font-weight:800;
+  line-height:1.45;
+}
+.passwordSettingsField{
+  margin:10px 0;
+}
+.passwordSettingsField label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:5px;
+}
+.passwordSettingsField input,
+.passwordSettingsField select{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  background:#fff;
+  color:#071f3d;
+  font-weight:850;
+}
+.passwordSettingsActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.passwordSettingsActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.passwordSettingsActions .green{border:0;background:#0f7b4f;color:#fff}
+.passwordSettingsActions .navy{border:0;background:#071f3d;color:#fff}
+.passwordSettingsActions .gold{border:0;background:#f4c430;color:#071f3d}
+.passwordSettingsActions .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.passwordStatusBadge{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:6px 10px;
+  font-weight:950;
+  font-size:12px;
+  border:1px solid #d9e7f3;
+  background:#eef5fc;
+  color:#071f3d;
+  margin:4px 0 10px;
+}
+.passwordStatusBadge.on{
+  background:#fff1f0;
+  color:#b42318;
+  border-color:#ffd4d0;
+}
+.passwordStatusBadge.off{
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-color:#bce8ce;
+}
+.passwordFreeNotice{
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ecfdf3,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:18px;
+  padding:12px 14px;
+  margin:0 0 14px;
+  box-shadow:0 8px 22px rgba(7,31,61,.08);
+}
+.passwordFreeNotice h3{
+  margin:0 0 4px;
+  color:#071f3d;
+}
+.passwordFreeNotice p{
+  margin:0;
+  color:#475467;
+  font-weight:850;
+  line-height:1.45;
+}
+.passwordCountdownText{
+  display:inline-flex;
+  margin-top:6px;
+  border-radius:999px;
+  background:#071f3d;
+  color:#fff;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:950;
+}
+@media(max-width:760px){
+  .passwordSettingsGrid{grid-template-columns:1fr}
+  .passwordSettingsActions button{width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -27543,6 +27686,383 @@ async function initSupabase(){
 
   try{
     eval("openStudentPrintOptions=window.openStudentPrintOptions; closeStudentPrintOptions=window.closeStudentPrintOptions; previewSelectedStudentListCount=window.previewSelectedStudentListCount; printSelectedStudentListPDF=window.printSelectedStudentListPDF; professionalPrintStudents=window.professionalPrintStudents; cleanPrintCurrentClass=window.cleanPrintCurrentClass; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== PASSWORD SETTINGS CONTROL UPDATE V1 =====
+   Restores Admin Settings and adds:
+   - Password ON/OFF for all students.
+   - Reset all passwords.
+   - Default password for all students.
+   - Default password for selected class.
+   - Password-free access window for 1 to 24 hours, with student-side countdown.
+*/
+(function(){
+  function psEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function psClasses(){
+    const list = []
+      .concat(Array.isArray(state.classes) ? state.classes : [])
+      .concat((state.students || []).map(s=>s.className).filter(Boolean));
+    return [...new Set(list.filter(Boolean))]
+      .sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true, sensitivity:"base"}));
+  }
+  function psNow(){ return Date.now(); }
+  function psUntilMs(){
+    const until = state.settings?.passwordFreeUntil || "";
+    const t = until ? new Date(until).getTime() : 0;
+    return Number.isFinite(t) ? t : 0;
+  }
+  function psIsPasswordFreeWindowActive(){
+    return psUntilMs() > psNow();
+  }
+  function psTimeLeft(){
+    const ms = Math.max(0, psUntilMs() - psNow());
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    if(h > 0) return `${h}h ${String(m).padStart(2,"0")}m ${String(s).padStart(2,"0")}s`;
+    return `${m}m ${String(s).padStart(2,"0")}s`;
+  }
+  function psPasswordModeText(){
+    if(!state.settings.requireStudentPassword) return "Password is OFF for all students.";
+    if(psIsPasswordFreeWindowActive()) return "Temporary no-password access is active.";
+    return "Password is ON for all students.";
+  }
+  function psCanOpenWithoutPassword(studentId){
+    try{
+      if(!state.settings.requireStudentPassword) return true;
+      if(psIsPasswordFreeWindowActive()) return true;
+      if(typeof pwActiveShare === "function" && pwActiveShare(studentId)) return true;
+    }catch(e){}
+    return false;
+  }
+  function psSave(){
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof pushRemote === "function") pushRemote();
+      else if(typeof save === "function") save();
+    }catch(e){ console.warn("Password settings save skipped", e); }
+  }
+  function psDefaultPasswordForStudent(s){
+    return s.code || ("PASS-" + String(s.name || "STUDENT").replace(/\s+/g,"").slice(0,6).toUpperCase());
+  }
+  function psClassOptions(selected=""){
+    return psClasses().map(c=>`<option value="${psEsc(c)}" ${String(c)===String(selected)?"selected":""}>${psEsc(c)}</option>`).join("");
+  }
+
+  window.settings = function(){
+    state.settings = state.settings || {};
+    state.settings.requireStudentPassword = state.settings.requireStudentPassword !== false;
+    const selectedClass = document.getElementById("passwordClassSelect")?.value || psClasses()[0] || "";
+    const active = psIsPasswordFreeWindowActive();
+    const badgeClass = (!state.settings.requireStudentPassword || active) ? "off" : "on";
+
+    $("view").innerHTML = `<div class="passwordSettingsShell">
+      <div class="passwordSettingsHero">
+        <h2>Portal Settings</h2>
+        <p>Manage student password access, temporary open access, and student password resets.</p>
+      </div>
+
+      <div class="passwordSettingsGrid">
+        <div class="passwordSettingsCard">
+          <h3>Student Password Mode</h3>
+          <span class="passwordStatusBadge ${badgeClass}">${psEsc(psPasswordModeText())}</span>
+          <p>Use this to allow all students to enter with or without password.</p>
+          <div class="passwordSettingsActions">
+            <button class="green" onclick="turnStudentPasswordOff()">Turn Password OFF</button>
+            <button class="navy" onclick="turnStudentPasswordOn()">Turn Password ON</button>
+          </div>
+        </div>
+
+        <div class="passwordSettingsCard">
+          <h3>Temporary Open Access</h3>
+          <p>Open all student portals without password for a selected period. After the time ends, password mode returns automatically.</p>
+          <div class="passwordSettingsField">
+            <label>Duration</label>
+            <select id="passwordFreeHours">
+              ${Array.from({length:24},(_,i)=>i+1).map(h=>`<option value="${h}">${h} hour${h>1?"s":""}</option>`).join("")}
+            </select>
+          </div>
+          ${active ? `<span class="passwordStatusBadge off">Open access ends in ${psEsc(psTimeLeft())}</span>` : `<span class="passwordStatusBadge">No temporary open access running</span>`}
+          <div class="passwordSettingsActions">
+            <button class="green" onclick="startPasswordFreeWindow()">Start Open Access</button>
+            <button class="red" onclick="stopPasswordFreeWindow()">Stop Open Access</button>
+          </div>
+        </div>
+
+        <div class="passwordSettingsCard">
+          <h3>Default Password for All Students</h3>
+          <p>Set one default password for every student.</p>
+          <div class="passwordSettingsField">
+            <label>Default Password</label>
+            <input id="allDefaultPassword" type="text" placeholder="Example: amest123">
+          </div>
+          <div class="passwordSettingsActions">
+            <button class="gold" onclick="setDefaultPasswordForAll()">Set for All Students</button>
+            <button class="navy" onclick="resetAllPasswordsToCodes()">Reset All to Student Codes</button>
+          </div>
+        </div>
+
+        <div class="passwordSettingsCard">
+          <h3>Default Password by Class</h3>
+          <p>Set one default password for a particular class only.</p>
+          <div class="passwordSettingsField">
+            <label>Select Class</label>
+            <select id="passwordClassSelect">${psClassOptions(selectedClass)}</select>
+          </div>
+          <div class="passwordSettingsField">
+            <label>Class Default Password</label>
+            <input id="classDefaultPassword" type="text" placeholder="Example: science123">
+          </div>
+          <div class="passwordSettingsActions">
+            <button class="gold" onclick="setDefaultPasswordForClass()">Set for Selected Class</button>
+            <button class="navy" onclick="resetClassPasswordsToCodes()">Reset Selected Class to Codes</button>
+          </div>
+        </div>
+
+        <div class="passwordSettingsCard">
+          <h3>Admin Details</h3>
+          <p>Basic portal identity settings.</p>
+          <div class="passwordSettingsField">
+            <label>Teacher Name</label>
+            <input value="${psEsc(state.settings.teacherName || "")}" onchange="state.settings.teacherName=this.value;psSettingsSaveAndRefresh(false)">
+          </div>
+          <div class="passwordSettingsField">
+            <label>School Name</label>
+            <input value="${psEsc(state.settings.school || "")}" onchange="state.settings.school=this.value;psSettingsSaveAndRefresh(false)">
+          </div>
+          <div class="passwordSettingsField">
+            <label>Admin Password</label>
+            <input value="${psEsc(state.settings.adminPass || "")}" onchange="state.settings.adminPass=this.value;psSettingsSaveAndRefresh(false)">
+          </div>
+        </div>
+
+        <div class="passwordSettingsCard">
+          <h3>Quick Summary</h3>
+          <p><b>Total students:</b> ${(state.students || []).length}</p>
+          <p><b>Classes:</b> ${psClasses().length}</p>
+          <p><b>Password mode:</b> ${psEsc(psPasswordModeText())}</p>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  window.psSettingsSaveAndRefresh = function(refresh=true){
+    psSave();
+    if(refresh) settings();
+  };
+
+  window.turnStudentPasswordOff = function(){
+    state.settings.requireStudentPassword = false;
+    state.settings.passwordFreeUntil = "";
+    psSave();
+    settings();
+    alert("Password is now OFF. Students can open their portals without password.");
+  };
+
+  window.turnStudentPasswordOn = function(){
+    state.settings.requireStudentPassword = true;
+    state.settings.passwordFreeUntil = "";
+    psSave();
+    settings();
+    alert("Password is now ON. Students must enter their password.");
+  };
+
+  window.startPasswordFreeWindow = function(){
+    const hours = Math.max(1, Math.min(24, parseInt(document.getElementById("passwordFreeHours")?.value || "1", 10)));
+    state.settings.requireStudentPassword = true;
+    state.settings.passwordFreeStartedAt = new Date().toISOString();
+    state.settings.passwordFreeUntil = new Date(Date.now() + hours * 3600000).toISOString();
+    state.settings.passwordFreeDurationHours = hours;
+    psSave();
+    settings();
+    alert(`Temporary no-password access has started for ${hours} hour${hours>1?"s":""}.`);
+  };
+
+  window.stopPasswordFreeWindow = function(){
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    psSave();
+    settings();
+    alert("Temporary no-password access has been stopped.");
+  };
+
+  window.setDefaultPasswordForAll = function(){
+    const pass = (document.getElementById("allDefaultPassword")?.value || "").trim();
+    if(!pass) return alert("Type the default password first.");
+    if(!confirm(`Set this password for all ${(state.students || []).length} students?`)) return;
+    (state.students || []).forEach(s=>{ s.password = pass; });
+    psSave();
+    settings();
+    alert("Default password has been assigned to all students.");
+  };
+
+  window.resetAllPasswordsToCodes = function(){
+    if(!confirm("Reset all student passwords to their student codes?")) return;
+    (state.students || []).forEach(s=>{ s.password = psDefaultPasswordForStudent(s); });
+    psSave();
+    settings();
+    alert("All passwords have been reset to student codes.");
+  };
+
+  window.setDefaultPasswordForClass = function(){
+    const cls = document.getElementById("passwordClassSelect")?.value || "";
+    const pass = (document.getElementById("classDefaultPassword")?.value || "").trim();
+    if(!cls) return alert("Select a class first.");
+    if(!pass) return alert("Type the class default password first.");
+    const list = (state.students || []).filter(s=>String(s.className || "") === String(cls));
+    if(!list.length) return alert("No student found in the selected class.");
+    if(!confirm(`Set this password for all ${list.length} students in ${cls}?`)) return;
+    list.forEach(s=>{ s.password = pass; });
+    psSave();
+    settings();
+    alert(`Default password has been assigned to ${cls}.`);
+  };
+
+  window.resetClassPasswordsToCodes = function(){
+    const cls = document.getElementById("passwordClassSelect")?.value || "";
+    if(!cls) return alert("Select a class first.");
+    const list = (state.students || []).filter(s=>String(s.className || "") === String(cls));
+    if(!list.length) return alert("No student found in the selected class.");
+    if(!confirm(`Reset passwords for ${list.length} students in ${cls} to their student codes?`)) return;
+    list.forEach(s=>{ s.password = psDefaultPasswordForStudent(s); });
+    psSave();
+    settings();
+    alert(`Passwords for ${cls} have been reset to student codes.`);
+  };
+
+  function passwordNoticeHTML(){
+    if(!state || !state.settings) return "";
+    if(!state.settings.requireStudentPassword){
+      return `<div id="passwordFreeNotice" class="passwordFreeNotice">
+        <h3>Student Portal Open</h3>
+        <p>Students can open their portals without password at the moment.</p>
+      </div>`;
+    }
+    if(psIsPasswordFreeWindowActive()){
+      return `<div id="passwordFreeNotice" class="passwordFreeNotice">
+        <h3>Temporary No-Password Access</h3>
+        <p>The student portal is open without password for a limited time.</p>
+        <span class="passwordCountdownText">Time remaining: <span id="passwordFreeCountdown">${psEsc(psTimeLeft())}</span></span>
+      </div>`;
+    }
+    return "";
+  }
+
+  window.injectPasswordFreeNotice = function(){
+    try{
+      if(role === "admin") return;
+      const view = document.getElementById("view");
+      if(!view) return;
+      const old = document.getElementById("passwordFreeNotice");
+      const html = passwordNoticeHTML();
+      if(old) old.remove();
+      if(html) view.insertAdjacentHTML("afterbegin", html);
+    }catch(e){}
+  };
+
+  function updatePasswordCountdown(){
+    const el = document.getElementById("passwordFreeCountdown");
+    if(el) el.textContent = psTimeLeft();
+    if(state.settings?.passwordFreeUntil && !psIsPasswordFreeWindowActive()){
+      state.settings.passwordFreeUntil = "";
+      state.settings.passwordFreeStartedAt = "";
+      psSave();
+      injectPasswordFreeNotice();
+    }
+  }
+
+  window.selectStudentLogin = function(id){
+    currentStudentId = id;
+    const s = typeof student === "function" ? student(id) : (state.students || []).find(x=>String(x.id)===String(id));
+    if(!s) return alert("Student record not found.");
+
+    if(psCanOpenWithoutPassword(id)){
+      role = "student";
+      route = "studentHome";
+      renderShell();
+      return;
+    }
+
+    const box = document.getElementById("studentPassBox");
+    if(box){
+      box.innerHTML = `<div class="card"><h3>${psEsc(s.name)}</h3><label class="label">Enter Password</label><input id="stuPass" class="input" type="password" onkeydown="if(event.key==='Enter')finishStudentLogin()"><button class="btn green full" onclick="finishStudentLogin()">Open Portal</button></div>`;
+    }
+  };
+
+  // Also update class-list clickable portal opening from the recent update.
+  window.openClassMemberPortal = function(studentId){
+    const s = typeof student === "function" ? student(studentId) : (state.students || []).find(x=>String(x.id)===String(studentId));
+    if(!s) return alert("Student record not found.");
+    currentStudentId = studentId;
+
+    if(psCanOpenWithoutPassword(studentId)){
+      role = "student";
+      route = "studentHome";
+      renderShell();
+      return;
+    }
+
+    let box = document.getElementById("classMemberPasswordBox");
+    if(!box){
+      const view = document.getElementById("view");
+      if(view){
+        view.insertAdjacentHTML("afterbegin", `<div id="classMemberPasswordBox"></div>`);
+        box = document.getElementById("classMemberPasswordBox");
+      }
+    }
+    if(!box) return alert("Enter your password from Student Login.");
+
+    box.innerHTML = `<div class="classMemberPasswordBox">
+      <h3>${psEsc(s.name)}</h3>
+      <p>Enter your password to open your portal.</p>
+      <div class="classMemberPasswordGrid">
+        <input id="classMemberPassInput" type="password" placeholder="Type password here" onkeydown="if(event.key==='Enter')finishClassMemberPortalLogin()">
+        <button class="green" onclick="finishClassMemberPortalLogin()">Open Portal</button>
+        <button class="light" onclick="toggleClassMemberPasswordView()">View</button>
+      </div>
+    </div>`;
+    setTimeout(()=>document.getElementById("classMemberPassInput")?.focus(), 80);
+    box.scrollIntoView({behavior:"smooth", block:"start"});
+  };
+
+  // Restore settings to admin menu but keep Backup hidden.
+  window.navItems = function(){
+    if(role === "admin") return [["dashboard","Dashboard"],["students","Students"],["quizzes","Quiz Builder"],["review","Review / Marking"],["components","CA Components"],["reports","Reports"],["settings","Settings"]];
+    if(role === "student") return [["studentHome","Home"],["studentQuizzes","My Quizzes"],["studentResults","My Results"]];
+    return [["studentLogin","Student Login"]];
+  };
+
+  const oldRenderShellPasswordSettings = window.renderShell;
+  if(typeof oldRenderShellPasswordSettings === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellPasswordSettings.apply(this, arguments);
+      setTimeout(injectPasswordFreeNotice, 120);
+      return result;
+    };
+  }
+
+  ["studentLogin","studentHome","studentQuizzes","studentResults","studentClassMembers","studentSubmissionOptions","studentSubmittedList"].forEach(fn=>{
+    const old = window[fn];
+    if(typeof old === "function"){
+      window[fn] = function(){
+        const result = old.apply(this, arguments);
+        setTimeout(injectPasswordFreeNotice, 80);
+        return result;
+      };
+    }
+  });
+
+  setInterval(updatePasswordCountdown, 1000);
+
+  try{
+    eval("settings=window.settings; navItems=window.navItems; selectStudentLogin=window.selectStudentLogin; openClassMemberPortal=window.openClassMemberPortal; injectPasswordFreeNotice=window.injectPasswordFreeNotice; renderShell=window.renderShell; studentLogin=window.studentLogin; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; studentClassMembers=window.studentClassMembers; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList; psSettingsSaveAndRefresh=window.psSettingsSaveAndRefresh; turnStudentPasswordOff=window.turnStudentPasswordOff; turnStudentPasswordOn=window.turnStudentPasswordOn; startPasswordFreeWindow=window.startPasswordFreeWindow; stopPasswordFreeWindow=window.stopPasswordFreeWindow; setDefaultPasswordForAll=window.setDefaultPasswordForAll; resetAllPasswordsToCodes=window.resetAllPasswordsToCodes; setDefaultPasswordForClass=window.setDefaultPasswordForClass; resetClassPasswordsToCodes=window.resetClassPasswordsToCodes;");
   }catch(e){}
 })();
 
