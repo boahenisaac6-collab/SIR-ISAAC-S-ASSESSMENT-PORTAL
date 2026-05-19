@@ -6142,6 +6142,28 @@ body.quizInProgress aside.side{
   .studentSearchHeroBox,.announcementControlPanel{display:none!important}
 }
 
+
+/* ===== STUDENT NAVIGATION BACK TO SEARCH FIX ===== */
+.studentBackSearchHint{
+  border:1px solid #bce8ce;
+  background:#ecfdf3;
+  color:#0f6b47;
+  border-radius:14px;
+  padding:8px 10px;
+  margin:8px 0;
+  font-size:12px;
+  font-weight:850;
+  line-height:1.4;
+}
+.quickNavBar button.quickNavBackBtn{
+  background:#f4c430!important;
+  color:#071f3d!important;
+}
+.quickNavBar button.quickNavSwitchBtn{
+  background:#071f3d!important;
+  color:#fff!important;
+}
+
 </style>
 </head>
 <body>
@@ -16924,6 +16946,239 @@ async function initSupabase(){
 
   try{
     eval("studentPortalHardRefresh=window.studentPortalHardRefresh; studentLoginSearchFilter=window.studentLoginSearchFilter; studentLogin=window.studentLogin; deleteStudentAnnouncementItem=window.deleteStudentAnnouncementItem; clearAllStudentAnnouncements=window.clearAllStudentAnnouncements; renderAnnouncementControlPanel=window.renderAnnouncementControlPanel; dashboard=window.dashboard; settings=window.settings; quizzes=window.quizzes; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== STUDENT NAVIGATION BACK TO SEARCH FIX ===== */
+(function(){
+  window.studentRouteStack = window.studentRouteStack || [];
+
+  function nbSet(nextRole,nextRoute,nextStudentId=null){
+    role = nextRole;
+    window.role = nextRole;
+    route = nextRoute;
+    window.route = nextRoute;
+    if(nextStudentId !== null){
+      currentStudentId = nextStudentId;
+      window.currentStudentId = nextStudentId;
+    }
+    if(typeof renderShell === "function") renderShell();
+    else if(typeof render === "function") render();
+    setTimeout(()=>{try{renderQuickNavBar()}catch(e){}},80);
+  }
+
+  function nbOpenStudentSearch(){
+    currentStudentId = null;
+    window.currentStudentId = null;
+    nbSet("guest","studentLogin",null);
+    setTimeout(()=>{
+      try{
+        if(typeof studentLogin === "function") studentLogin();
+        const input = document.getElementById("bigStudentSearchInput");
+        if(input) input.focus();
+      }catch(e){}
+    },100);
+  }
+
+  function nbPushStudentRoute(r){
+    if(role !== "student") return;
+    if(!r) return;
+    const last = studentRouteStack[studentRouteStack.length-1];
+    if(last === r) return;
+    studentRouteStack.push(r);
+    if(studentRouteStack.length > 20) studentRouteStack.shift();
+  }
+
+  // Make every student route movement remember the previous student section.
+  const previousSetRouteForStudentBack = window.setRoute;
+  if(typeof previousSetRouteForStudentBack === "function"){
+    window.setRoute = function(r){
+      if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+        alert("Quiz is in progress. Submit before leaving this page.");
+        return;
+      }
+      if(role === "student" && route && r !== route){
+        nbPushStudentRoute(route);
+      }
+      const result = previousSetRouteForStudentBack.apply(this, arguments);
+      setTimeout(()=>{try{renderQuickNavBar()}catch(e){}},80);
+      return result;
+    };
+  }
+
+  // Student View button must always go to the search page, not a specific student's account.
+  window.quickSwitchMode = function(){
+    if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+      alert("You cannot switch mode while the quiz is in progress. Submit the quiz first.");
+      return;
+    }
+
+    try{
+      if(typeof pushNavPoint === "function") pushNavPoint({role,route,studentId:currentStudentId||null});
+    }catch(e){}
+
+    if(role === "admin"){
+      studentRouteStack = [];
+      window.studentRouteStack = studentRouteStack;
+      nbOpenStudentSearch();
+      return;
+    }
+
+    // Student/guest to Admin must request admin password when that function exists.
+    if(typeof quickNavConfirmAdminPassword === "function"){
+      document.getElementById("quickNavSecurityModal")?.remove();
+      document.body.insertAdjacentHTML("beforeend", `<div id="quickNavSecurityModal" class="quickNavSecurityModal">
+        <div class="quickNavSecurityBox">
+          <div class="quickNavSecurityHead"><h2>Admin Password Required</h2></div>
+          <div class="quickNavSecurityBody">
+            <p>Enter the admin password before opening Admin Mode.</p>
+            <input id="quickNavAdminPass" type="password" placeholder="Admin password" autocomplete="new-password" onkeydown="if(event.key==='Enter')quickNavStudentBackConfirmAdmin()">
+          </div>
+          <div class="quickNavSecurityActions">
+            <button class="cancel" onclick="document.getElementById('quickNavSecurityModal')?.remove()">Cancel</button>
+            <button class="login" onclick="quickNavStudentBackConfirmAdmin()">Open Admin Mode</button>
+          </div>
+        </div>
+      </div>`);
+      setTimeout(()=>document.getElementById("quickNavAdminPass")?.focus(),80);
+    }else{
+      const pass = prompt("Enter admin password:");
+      if(pass !== (state.settings?.adminPass || "")) return alert("Wrong admin password.");
+      nbSet("admin","dashboard",null);
+    }
+  };
+
+  window.quickNavStudentBackConfirmAdmin = function(){
+    const pass = document.getElementById("quickNavAdminPass")?.value || "";
+    if(pass !== (state.settings?.adminPass || "")){
+      alert("Wrong admin password.");
+      const input = document.getElementById("quickNavAdminPass");
+      if(input){ input.value=""; input.focus(); }
+      return;
+    }
+    document.getElementById("quickNavSecurityModal")?.remove();
+    nbSet("admin","dashboard",null);
+  };
+
+  // Back button: Student side goes step-by-step and finally returns to name search.
+  window.quickGoBack = function(){
+    if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+      alert("You cannot go back while the quiz is in progress. Submit the quiz first.");
+      return;
+    }
+
+    if(role === "student"){
+      if(route === "studentResults" || route === "studentQuizzes"){
+        nbSet("student","studentHome",currentStudentId || null);
+        return;
+      }
+      if(route === "studentHome"){
+        nbOpenStudentSearch();
+        return;
+      }
+      nbOpenStudentSearch();
+      return;
+    }
+
+    if(role === "guest" && route === "studentLogin"){
+      nbOpenStudentSearch();
+      return;
+    }
+
+    // Admin side: safe normal back to previous admin section or dashboard.
+    let target = null;
+    try{
+      target = (window.navHistoryStack || []).pop();
+      const now = {role,route,studentId:currentStudentId||null};
+      const same = (a,b)=>a && b && a.role===b.role && a.route===b.route && String(a.studentId||"")===String(b.studentId||"");
+      while(target && same(target, now)){
+        target = (window.navHistoryStack || []).pop();
+      }
+    }catch(e){}
+
+    if(target && target.role === "admin"){
+      nbSet("admin", target.route || "dashboard", null);
+      return;
+    }
+    if(role === "admin"){
+      nbSet("admin","dashboard",null);
+      return;
+    }
+    nbOpenStudentSearch();
+  };
+
+  window.quickGoHome = function(){
+    if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+      alert("You cannot leave while the quiz is in progress. Submit the quiz first.");
+      return;
+    }
+    if(role === "admin"){
+      nbSet("admin","dashboard",null);
+    }else if(role === "student" && currentStudentId){
+      nbSet("student","studentHome",currentStudentId);
+    }else{
+      nbOpenStudentSearch();
+    }
+  };
+
+  const oldStudentLoginBackFix = window.studentLogin;
+  if(typeof oldStudentLoginBackFix === "function"){
+    window.studentLogin = function(){
+      studentRouteStack = [];
+      window.studentRouteStack = studentRouteStack;
+      const result = oldStudentLoginBackFix.apply(this, arguments);
+      const hero = document.querySelector(".studentSearchHeroBox");
+      if(hero && !hero.querySelector(".studentBackSearchHint")){
+        hero.insertAdjacentHTML("beforeend", `<div class="studentBackSearchHint">Use this page to search for your name. If you move to another section, the Back button will return you here step by step.</div>`);
+      }
+      return result;
+    };
+  }
+
+  // When a student logs in, start a clean student-route history.
+  const oldFinishStudentLoginBackFix = window.finishStudentLogin;
+  if(typeof oldFinishStudentLoginBackFix === "function"){
+    window.finishStudentLogin = function(){
+      studentRouteStack = ["studentLogin"];
+      window.studentRouteStack = studentRouteStack;
+      return oldFinishStudentLoginBackFix.apply(this, arguments);
+    };
+  }
+
+  const oldStudentCardLoginBackFix = window.studentCardLogin;
+  if(typeof oldStudentCardLoginBackFix === "function"){
+    window.studentCardLogin = function(){
+      studentRouteStack = ["studentLogin"];
+      window.studentRouteStack = studentRouteStack;
+      return oldStudentCardLoginBackFix.apply(this, arguments);
+    };
+  }
+
+  const oldRenderQuickNavBarBackFix = window.renderQuickNavBar;
+  if(typeof oldRenderQuickNavBarBackFix === "function"){
+    window.renderQuickNavBar = function(){
+      const result = oldRenderQuickNavBarBackFix.apply(this, arguments);
+      const switchBtn = document.querySelector(".quickNavSwitchBtn");
+      const backBtn = document.querySelector(".quickNavBackBtn");
+      const homeBtn = document.querySelector(".quickNavHomeBtn");
+      if(switchBtn){
+        switchBtn.textContent = role === "admin" ? "⇄ Student Search" : "⇄ Admin Mode";
+        switchBtn.title = role === "admin" ? "Go to the student name search page." : "Admin password required.";
+      }
+      if(backBtn){
+        backBtn.title = "Go back step by step. In student mode, this returns to the name search page.";
+      }
+      if(homeBtn && role !== "admin"){
+        homeBtn.textContent = role === "student" ? "⌂ Student Home" : "⌂ Name Search";
+      }
+      return result;
+    };
+  }
+
+  try{
+    eval("quickSwitchMode=window.quickSwitchMode; quickGoBack=window.quickGoBack; quickGoHome=window.quickGoHome; quickNavStudentBackConfirmAdmin=window.quickNavStudentBackConfirmAdmin; setRoute=window.setRoute; studentLogin=window.studentLogin; finishStudentLogin=window.finishStudentLogin; studentCardLogin=window.studentCardLogin; renderQuickNavBar=window.renderQuickNavBar;");
   }catch(e){}
 })();
 
