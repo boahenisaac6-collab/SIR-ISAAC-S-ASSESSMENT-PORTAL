@@ -8303,6 +8303,93 @@ html,body{
   .studentClassGrid,.submissionWorkGrid{grid-template-columns:1fr}
 }
 
+
+/* ===== CLICKABLE CLASS MEMBERS TO STUDENT PORTAL ===== */
+.studentMemberCard.clickableMember{
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+.studentMemberCard.clickableMember:hover{
+  transform:translateY(-2px);
+  border-color:#f4c430;
+  background:#fffdf0;
+  box-shadow:0 12px 28px rgba(7,31,61,.12);
+}
+.studentMemberCard .memberOpenText{
+  display:inline-flex;
+  margin-top:4px;
+  color:#0f7b4f;
+  font-weight:950;
+  font-size:12px;
+}
+.classTotalBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border-radius:999px;
+  background:#ecfdf3;
+  border:1px solid #bce8ce;
+  color:#0f6b47;
+  font-weight:950;
+  padding:7px 11px;
+  margin-top:10px;
+  font-size:13px;
+}
+.classMemberPasswordBox{
+  border:3px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fffdf0,#ffffff);
+  border-radius:22px;
+  padding:14px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 28px rgba(7,31,61,.12);
+}
+.classMemberPasswordBox h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.classMemberPasswordBox p{
+  margin:0 0 10px;
+  color:#475467;
+  font-weight:800;
+}
+.classMemberPasswordGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:8px;
+  align-items:end;
+}
+.classMemberPasswordGrid input{
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:850;
+}
+.classMemberPasswordGrid button{
+  min-height:42px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.classMemberPasswordGrid .green{
+  border:0;
+  background:#0f7b4f;
+  color:#fff;
+}
+.classMemberPasswordGrid .light{
+  border:1px solid #d9e7f3;
+  background:#eef5fc;
+  color:#071f3d;
+}
+@media(max-width:760px){
+  .classMemberPasswordGrid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -26275,6 +26362,122 @@ async function initSupabase(){
 
   try{
     eval("renderShell=window.renderShell; openStudentClassMembers=window.openStudentClassMembers; openStudentSubmissionOptions=window.openStudentSubmissionOptions; openStudentSubmittedList=window.openStudentSubmittedList; studentClassMembers=window.studentClassMembers; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList;");
+  }catch(e){}
+})();
+
+
+
+/* ===== CLICKABLE CLASS MEMBERS TO STUDENT PORTAL V1 =====
+   When students click a class, the total number appears.
+   Each student name/card is clickable and opens the student's portal
+   or asks for password when required.
+*/
+(function(){
+  function cmEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function cmStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students || []).find(s=>String(s.id)===String(id)) || null;
+  }
+  function cmSubjectForClass(cls){
+    try{ return typeof subjectForClass === "function" ? subjectForClass(cls) : ""; }
+    catch(e){ return ""; }
+  }
+  function cmInitials(name){
+    return String(name || "ST").trim().split(/\s+/).map(x=>x[0] || "").join("").slice(0,2).toUpperCase() || "ST";
+  }
+  function cmPhoto(s){
+    if(s && s.photo) return `<img class="studentMemberPhoto" src="${s.photo}" alt="">`;
+    return `<div class="studentMemberAvatar">${cmEsc(cmInitials(s?.name))}</div>`;
+  }
+  function cmClasses(){
+    const arr = []
+      .concat(Array.isArray(state.classes) ? state.classes : [])
+      .concat((state.students || []).map(s=>s.className).filter(Boolean));
+    return [...new Set(arr.filter(Boolean))]
+      .sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true, sensitivity:"base"}));
+  }
+  function cmMembers(cls){
+    return (state.students || [])
+      .filter(s=>String(s.className || "") === String(cls) && !s.deleted && !s._deletedHidden)
+      .sort((a,b)=>String(a.name || "").localeCompare(String(b.name || ""), undefined, {sensitivity:"base"}));
+  }
+  function cmCanOpenWithoutPassword(studentId){
+    try{
+      if(!state.settings.requireStudentPassword) return true;
+      if(typeof pwActiveShare === "function" && pwActiveShare(studentId)) return true;
+    }catch(e){}
+    return false;
+  }
+
+  window.openClassMemberPortal = function(studentId){
+    const s = cmStudent(studentId);
+    if(!s) return alert("Student record not found.");
+    currentStudentId = studentId;
+
+    if(cmCanOpenWithoutPassword(studentId)){
+      role = "student";
+      route = "studentHome";
+      renderShell();
+      return;
+    }
+
+    const box = document.getElementById("classMemberPasswordBox");
+    if(!box) return;
+    box.innerHTML = `<div class="classMemberPasswordBox">
+      <h3>${cmEsc(s.name)}</h3>
+      <p>Enter your password to open your portal.</p>
+      <div class="classMemberPasswordGrid">
+        <input id="classMemberPassInput" type="password" placeholder="Type password here" onkeydown="if(event.key==='Enter')finishClassMemberPortalLogin()">
+        <button class="green" onclick="finishClassMemberPortalLogin()">Open Portal</button>
+        <button class="light" onclick="document.getElementById('classMemberPassInput').type = document.getElementById('classMemberPassInput').type === 'password' ? 'text' : 'password'">View</button>
+      </div>
+    </div>`;
+    setTimeout(()=>document.getElementById("classMemberPassInput")?.focus(), 80);
+    box.scrollIntoView({behavior:"smooth", block:"start"});
+  };
+
+  window.finishClassMemberPortalLogin = function(){
+    const s = cmStudent(currentStudentId);
+    if(!s) return alert("Student record not found.");
+    const typed = document.getElementById("classMemberPassInput")?.value || "";
+    if(typed !== s.password) return alert("Wrong password.");
+    role = "student";
+    route = "studentHome";
+    renderShell();
+  };
+
+  window.studentClassMembers = function(){
+    const cls = window.publicClassSelected || cmClasses()[0] || "";
+    window.publicClassSelected = cls;
+    const list = cmMembers(cls);
+
+    $("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>${cmEsc(cls)} Class Members</h2>
+      <p>Tap your name to open your student portal.</p>
+      <div class="classTotalBadge">Total Students: ${list.length}</div>
+    </div>
+    <div id="classMemberPasswordBox"></div>
+    <div class="studentViewToolbar">
+      <button class="navy" onclick="setRoute('studentLogin')">Student Login</button>
+      <button class="gold" onclick="openStudentSubmissionOptions()">View Submitted Work Lists</button>
+    </div>
+    <div class="studentClassGrid">
+      ${list.map((s,i)=>`<div class="studentMemberCard clickableMember" onclick="openClassMemberPortal('${cmEsc(s.id)}')" title="Open student portal">
+        ${cmPhoto(s)}
+        <div>
+          <b>${i+1}. ${cmEsc(s.name)}</b>
+          <small>${cmEsc(s.code || "")} ${s.code ? "•" : ""} ${cmEsc(s.className || "")} ${cmSubjectForClass(s.className) ? "• " + cmEsc(cmSubjectForClass(s.className)) : ""}</small>
+          <span class="memberOpenText">Click to open portal</span>
+        </div>
+      </div>`).join("") || `<div class="empty">No student found in this class.</div>`}
+    </div>`;
+  };
+
+  try{
+    eval("studentClassMembers=window.studentClassMembers; openClassMemberPortal=window.openClassMemberPortal; finishClassMemberPortalLogin=window.finishClassMemberPortalLogin;");
   }catch(e){}
 })();
 
