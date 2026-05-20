@@ -28928,6 +28928,330 @@ async function initSupabase(){
 })();
 
 
+/* ===== RESET REQUEST V2: EXISTING SUBMISSIONS + DUPLICATE SUBMISSION CLEANUP ===== */
+(function(){
+  const RRV2_VERSION = "existing-submissions-request-reset-and-dedupe-2026-05-20";
+
+  function v2Esc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? "").replace(/[&<>\"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[m])); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function v2Uid(prefix){
+    try{ return typeof uid === "function" ? uid(prefix) : prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8); }
+    catch(e){ return prefix + "_" + Date.now(); }
+  }
+  function v2Now(){ return new Date().toISOString(); }
+  function v2Time(v){ try{ return v ? new Date(v).toLocaleString() : ""; }catch(e){ return v || ""; } }
+  function v2Ms(v){
+    const t = Date.parse(v || "");
+    return Number.isFinite(t) ? t : 9999999999999;
+  }
+  function v2Ensure(){
+    state.students = Array.isArray(state.students) ? state.students : [];
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.quizResets = Array.isArray(state.quizResets) ? state.quizResets : [];
+    state.quizResetRequests = Array.isArray(state.quizResetRequests) ? state.quizResetRequests : [];
+    state.removedDuplicateSubmissions = Array.isArray(state.removedDuplicateSubmissions) ? state.removedDuplicateSubmissions : [];
+    state.resetRequestV2Version = RRV2_VERSION;
+  }
+  function v2Save(){
+    v2Ensure();
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof save === "function") save(); else if(typeof saveLocal === "function") saveLocal(); else localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(x){} }
+  }
+  function v2Student(id){
+    try{ return typeof student === "function" ? student(id) : (state.students||[]).find(s => String(s.id) === String(id)); }
+    catch(e){ return (state.students||[]).find(s => String(s.id) === String(id)); }
+  }
+  function v2Quiz(id){
+    try{ return typeof quiz === "function" ? quiz(id) : (state.quizzes||[]).find(q => String(q.id) === String(id)); }
+    catch(e){ return (state.quizzes||[]).find(q => String(q.id) === String(id)); }
+  }
+  function v2SubjectForClass(className){
+    try{ return typeof subjectForClass === "function" ? subjectForClass(className) : ((state.subjects||[]).find(x => (x.classes||[]).map(String).includes(String(className)))||{}).name; }
+    catch(e){ return ((state.subjects||[]).find(x => (x.classes||[]).map(String).includes(String(className)))||{}).name; }
+  }
+  function v2SubKey(s){ return String(s.studentId||"") + "::" + String(s.quizId||""); }
+  function v2SubmittedAt(s){ return s.submittedAt || s.startedAt || s.createdAt || s.lastSeenAt || ""; }
+  function v2IsMarked(s){ return s && (s.published || s.teacherScore !== null && s.teacherScore !== undefined || String(s.feedback||"").trim()); }
+  function v2IsCompleted(s){ return s && !s.startedOnly && s.lockStatus !== "started_locked"; }
+  function v2AnswersCount(s){ try{ return Object.keys(s.answers || {}).length; }catch(e){ return 0; } }
+  function v2ChooseKeeper(group){
+    // Protect already-marked work first. Otherwise keep the earliest real completed attempt.
+    const marked = group.filter(v2IsMarked);
+    const completed = group.filter(v2IsCompleted);
+    const pool = marked.length ? marked : (completed.length ? completed : group);
+    return pool.slice().sort((a,b) => {
+      const ta = v2Ms(v2SubmittedAt(a)), tb = v2Ms(v2SubmittedAt(b));
+      if(ta !== tb) return ta - tb;
+      return v2AnswersCount(b) - v2AnswersCount(a);
+    })[0];
+  }
+  function v2MergeUsefulData(keep, removed){
+    removed.forEach(r => {
+      if((keep.teacherScore === null || keep.teacherScore === undefined || keep.teacherScore === "") && r.teacherScore !== null && r.teacherScore !== undefined && r.teacherScore !== "") keep.teacherScore = r.teacherScore;
+      if(!keep.feedback && r.feedback) keep.feedback = r.feedback;
+      if(!keep.published && r.published){ keep.published = true; keep.publishedAt = keep.publishedAt || r.publishedAt || v2Now(); }
+      if((!keep.answers || !Object.keys(keep.answers||{}).length) && r.answers) keep.answers = r.answers;
+      if(!keep.maxScore && r.maxScore) keep.maxScore = r.maxScore;
+      if(!keep.autoScore && r.autoScore) keep.autoScore = r.autoScore;
+    });
+    keep.duplicateCleaned = true;
+    keep.duplicateCleanedAt = keep.duplicateCleanedAt || v2Now();
+    return keep;
+  }
+  function v2CleanDuplicateQuizSubmissions(silent=true){
+    v2Ensure();
+    const groups = new Map();
+    (state.submissions||[]).forEach(s => {
+      if(!s || !s.studentId || !s.quizId) return;
+      const key = v2SubKey(s);
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(s);
+    });
+    let removed = [];
+    let kept = [];
+    groups.forEach(group => {
+      if(group.length <= 1){ kept.push(group[0]); return; }
+      const keep = v2ChooseKeeper(group);
+      const extra = group.filter(x => x !== keep);
+      v2MergeUsefulData(keep, extra);
+      kept.push(keep);
+      removed = removed.concat(extra.map(x => ({...x, removedAsDuplicate:true, removedAt:v2Now(), keptSubmissionId:keep.id || ""})));
+    });
+    // Preserve any unusual legacy record that does not have studentId + quizId.
+    const unusual = (state.submissions||[]).filter(s => !s || !s.studentId || !s.quizId);
+    const changed = removed.length > 0 || kept.length + unusual.length !== (state.submissions||[]).length;
+    if(changed){
+      const seen = new Set();
+      state.submissions = kept.concat(unusual).filter(s => {
+        const id = String(s?.id || v2SubKey(s));
+        if(seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
+      state.removedDuplicateSubmissions = (state.removedDuplicateSubmissions||[]).concat(removed);
+      state.lastDuplicateSubmissionCleanup = {at:v2Now(), removedCount:removed.length};
+      v2Save();
+    }
+    if(!silent){
+      alert(removed.length ? `Duplicate cleanup completed. ${removed.length} extra duplicate submission record(s) removed from active submitted lists.` : "No duplicate quiz submissions were found.");
+      try{ if(typeof render === "function") render(); }catch(e){}
+    }
+    return removed.length;
+  }
+  window.cleanDuplicateQuizSubmissionsNow = function(){ return v2CleanDuplicateQuizSubmissions(false); };
+
+  function v2Submission(studentId, quizId){
+    v2Ensure();
+    const matches = (state.submissions||[]).filter(s => String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId));
+    if(matches.length > 1){ v2CleanDuplicateQuizSubmissions(true); return (state.submissions||[]).find(s => String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId)); }
+    return matches[0] || null;
+  }
+  function v2ActiveReset(studentId, quizId){
+    v2Ensure();
+    return (state.quizResets||[]).find(r => String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active);
+  }
+  function v2CanAttempt(studentId, quizId){ return !v2Submission(studentId, quizId) || !!v2ActiveReset(studentId, quizId); }
+  function v2Requests(studentId, quizId){
+    v2Ensure();
+    return (state.quizResetRequests||[])
+      .filter(r => (!studentId || String(r.studentId) === String(studentId)) && (!quizId || String(r.quizId) === String(quizId)))
+      .sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  }
+  function v2LatestRequest(studentId, quizId){ return v2Requests(studentId, quizId)[0] || null; }
+  function v2PendingRequest(studentId, quizId){ return v2Requests(studentId, quizId).find(r => r.status === "Pending") || null; }
+  function v2StatusBadge(req){
+    if(!req) return `<span class="rrBadge none">No request</span>`;
+    const cls = req.status === "Pending" ? "pending" : req.status === "Granted" ? "granted" : "denied";
+    return `<span class="rrBadge ${cls}">${v2Esc(req.status)}</span>`;
+  }
+  function v2RequestMessage(studentId, quizId){
+    const req = v2LatestRequest(studentId, quizId);
+    if(!req) return "";
+    if(req.status === "Pending") return `<div class="rrMiniStatus pending"><b>Reset request pending.</b> Sent: ${v2Esc(v2Time(req.createdAt))}. Wait for admin decision.</div>`;
+    if(req.status === "Granted" && !v2Submission(studentId, quizId)) return `<div class="rrMiniStatus granted"><b>Reset granted.</b> This exercise has been reopened. Start only when you are ready.</div>`;
+    if(req.status === "Denied") return `<div class="rrMiniStatus denied"><b>Reset request denied.</b> ${v2Esc(req.adminNote || "Admin did not grant a new attempt.")}</div>`;
+    return "";
+  }
+  function v2ResetActionHTML(studentId, quizId){
+    const sub = v2Submission(studentId, quizId);
+    const pending = v2PendingRequest(studentId, quizId);
+    const latest = v2LatestRequest(studentId, quizId);
+    if(!sub && latest?.status === "Granted") return v2RequestMessage(studentId, quizId);
+    if(!sub) return "";
+    if(pending) return v2RequestMessage(studentId, quizId);
+    if(latest?.status === "Denied") return `${v2RequestMessage(studentId, quizId)}<button class="rrStudentBtn" onclick="requestQuizReset('${v2Esc(quizId)}',true)">Send New Reset Request</button>`;
+    return `<button class="rrStudentBtn" onclick="requestQuizReset('${v2Esc(quizId)}')">Request Reset / Resubmission</button>`;
+  }
+  function v2AssignedQuizzesForStudent(studentId){
+    v2Ensure();
+    const s = v2Student(studentId);
+    if(!s) return [];
+    const subj = v2SubjectForClass(s.className);
+    const submittedIds = new Set((state.submissions||[]).filter(x => String(x.studentId) === String(studentId)).map(x => String(x.quizId)));
+    const resetIds = new Set((state.quizResets||[]).filter(x => String(x.studentId) === String(studentId) && x.active).map(x => String(x.quizId)));
+    const list = (state.quizzes||[]).filter(q => {
+      const assigned = String(q.subject) === String(subj) && (q.classNames||[]).map(String).includes(String(s.className));
+      const isPublishedAssigned = assigned && q.status === "Published";
+      const wasSubmitted = assigned && submittedIds.has(String(q.id));
+      const resetVisible = assigned && (resetIds.has(String(q.id)) || (q.resetAvailableFor||[]).map(String).includes(String(s.id)));
+      return isPublishedAssigned || wasSubmitted || resetVisible;
+    });
+    const seen = new Set();
+    return list.filter(q => { const id=String(q.id); if(seen.has(id)) return false; seen.add(id); return true; });
+  }
+
+  function v2InstallStyle(){
+    if(document.getElementById("resetRequestV2Style")) return;
+    const style = document.createElement("style");
+    style.id = "resetRequestV2Style";
+    style.textContent = `
+      .duplicateCleanupPanel{border:2px solid #d9e7f3;border-left:8px solid #d92d20;background:#fff;border-radius:20px;padding:14px;margin:0 0 14px;box-shadow:0 8px 22px rgba(7,31,61,.07)}
+      .duplicateCleanupPanel h2{margin:0 0 6px;color:#071f3d}.duplicateCleanupPanel p{margin:0 0 10px;color:#667085;font-weight:750;line-height:1.45}.duplicateCleanupPanel button{background:#d92d20;color:#fff;border:0;border-radius:12px;min-height:40px;padding:9px 12px;font-weight:900;cursor:pointer}
+      .rrTable .rrStatusCell{min-width:150px}.rrTable .rrRequestCell{min-width:190px}.studentResetTableBtn{background:#f4c430;color:#071f3d;border:0;border-radius:10px;min-height:34px;padding:7px 9px;font-weight:900;cursor:pointer}
+    `;
+    document.head.appendChild(style);
+  }
+
+  const oldStudentQuizzesV2 = window.studentQuizzes;
+  window.studentQuizzes = function(){
+    v2Ensure(); v2InstallStyle(); v2CleanDuplicateQuizSubmissions(true);
+    const s = v2Student(currentStudentId);
+    if(!s){ try{ if(typeof setRoute === "function") setRoute("studentLogin"); }catch(e){} return; }
+    const assigned = v2AssignedQuizzesForStudent(s.id);
+    const openQs = assigned.filter(q => v2CanAttempt(s.id, q.id));
+    const closedQs = assigned.filter(q => !v2CanAttempt(s.id, q.id));
+    const docs = (typeof availableDocAssignments === "function") ? availableDocAssignments() : [];
+    const notice = (typeof qaNoticeHTML === "function") ? qaNoticeHTML(s.id) : "";
+    const view = document.getElementById("view");
+    if(!view) return oldStudentQuizzesV2 ? oldStudentQuizzesV2.apply(this, arguments) : undefined;
+    view.innerHTML = `${notice}<div class="card"><h2>Available Exercises and Document Upload Work</h2><p>Every exercise is one attempt only. Once you start, your attempt is recorded and locked unless the admin grants a reset.</p></div>
+      <div>${openQs.map(q => `<div class="quizCard"><h3>${v2Esc(q.title)}</h3><p>${v2Esc((q.questions||[]).length)} question(s) • ${Number(q.durationMinutes)||30} minutes</p><button class="btn green" onclick="takeQuiz('${v2Esc(q.id)}')">Start Exercise</button>${v2RequestMessage(s.id, q.id)}</div>`).join("") || `<div class="empty">No new timed exercise available now.</div>`}</div>
+      <div class="card"><h2>Locked / Submitted Exercises</h2><p>All exercises you have already attempted or submitted appear here. You may request resubmission, but only the admin can grant access.</p>${closedQs.map(q => { const sub = v2Submission(s.id, q.id)||{}; return `<div class="quizClosedCard"><h3>${v2Esc(q.title)}</h3><p>${v2Esc(sub.startedOnly ? "You started/opened this exercise, so your one attempt has been consumed." : "You have submitted or attempted this exercise.")}</p><p>Recorded: ${v2Esc(sub.submittedAt || sub.startedAt || "")}</p><span class="quizClosedBadge">Locked — admin reset required</span><div class="rrClosedCardActions">${v2ResetActionHTML(s.id, q.id)}</div></div>`; }).join("") || `<div class="empty">No locked exercise yet.</div>`}</div>
+      <div class="card"><h2>Scan and Upload Written Work</h2>${docs.map(a => `<div class="docAssignmentCard"><h3>${v2Esc(a.title)}</h3><p>${v2Esc(a.instructions||"Scan your work and upload the pages here.")}</p><p>Maximum score: ${v2Esc(a.maxScore)}</p><button class="btn green" onclick="openDocSubmit('${v2Esc(a.id)}')">Upload Scanned Pages</button></div>`).join("") || `<div class="empty">No document-upload assignment available now.</div>`}</div>`;
+  };
+
+  const oldStudentResultsV2 = window.studentResults;
+  window.studentResults = function(){
+    v2Ensure(); v2InstallStyle(); v2CleanDuplicateQuizSubmissions(true);
+    const result = oldStudentResultsV2 ? oldStudentResultsV2.apply(this, arguments) : undefined;
+    const view = document.getElementById("view");
+    if(view && currentStudentId){
+      const panel = v2StudentResetCentreHTML(currentStudentId);
+      const old = document.getElementById("studentResetRequestCentre");
+      if(old) old.remove();
+      view.insertAdjacentHTML("beforeend", panel);
+    }
+    return result;
+  };
+
+  function v2StudentResetCentreHTML(studentId){
+    const s = v2Student(studentId);
+    if(!s) return "";
+    const locked = v2AssignedQuizzesForStudent(studentId).filter(q => !!v2Submission(studentId, q.id));
+    return `<div class="card rrStudentResetCentre" id="studentResetRequestCentre">
+      <h2>Request Exercise Reset / Resubmission</h2>
+      <p>Every exercise you have already submitted is listed below. You can request redo access, but you cannot redo it unless the admin grants it.</p>
+      ${locked.map(q => { const sub = v2Submission(studentId, q.id) || {}; const req = v2LatestRequest(studentId, q.id); return `<div class="quizClosedCard"><h3>${v2Esc(q.title || "Exercise")}</h3><p>Recorded: ${v2Esc(sub.submittedAt || sub.startedAt || "")}</p>${v2StatusBadge(req)}<div class="rrClosedCardActions">${v2ResetActionHTML(studentId, q.id)}</div></div>`; }).join("") || `<div class="empty">No submitted or locked exercise is available for reset request.</div>`}
+    </div>`;
+  }
+
+  const oldOpenStudentSubmittedWorkV2 = window.openStudentSubmittedWork;
+  window.openStudentSubmittedWork = function(){
+    v2Ensure(); v2InstallStyle(); v2CleanDuplicateQuizSubmissions(true);
+    const view = document.getElementById("view");
+    if(!view || !currentStudentId) return oldOpenStudentSubmittedWorkV2 ? oldOpenStudentSubmittedWorkV2.apply(this, arguments) : undefined;
+    const qs = (state.submissions||[]).filter(s => String(s.studentId) === String(currentStudentId)).sort((a,b)=>String(b.submittedAt||b.startedAt||"").localeCompare(String(a.submittedAt||a.startedAt||"")));
+    const docs = (state.docSubmissions||[]).filter(s => String(s.studentId) === String(currentStudentId)).sort((a,b)=>String(b.submittedAt||"").localeCompare(String(a.submittedAt||"")));
+    const mf = (typeof markedFilesHTML === "function") ? markedFilesHTML : function(){ return "Marked script not published yet"; };
+    view.innerHTML = `<div class="studentAssignmentHero"><h2>Submitted Work and Marked Scripts</h2><p>All work you have submitted will appear here. For any timed exercise, you may request reset/resubmission access from this page.</p></div>
+      <div class="submittedWorkSection"><h3>Timed Exercises / Quizzes</h3>
+        <table class="submittedWorkTable"><thead><tr><th>Quiz</th><th>Submitted</th><th>Score</th><th>Status</th><th>Reset / Resubmission</th></tr></thead><tbody>
+          ${qs.map(sub => { const q = v2Quiz(sub.quizId)||{}; const req = v2LatestRequest(currentStudentId, sub.quizId); return `<tr><td>${v2Esc(q.title||"Quiz")}</td><td>${v2Esc(sub.submittedAt||sub.startedAt||"")}</td><td>${sub.published ? `${v2Esc(sub.teacherScore ?? sub.autoScore)} / ${v2Esc(sub.maxScore)}` : "Not published yet"}</td><td>${sub.published?"Published":"Waiting for teacher"}<br>${v2StatusBadge(req)}</td><td>${v2ResetActionHTML(currentStudentId, sub.quizId)}</td></tr>`; }).join("") || `<tr><td colspan="5">No quiz submitted yet.</td></tr>`}
+        </tbody></table>
+      </div>
+      <div class="submittedWorkSection"><h3>Scanned / Written Work</h3>
+        <table class="submittedWorkTable"><thead><tr><th>Assignment</th><th>Submitted</th><th>Score</th><th>Teacher Comment</th><th>Marked Script</th></tr></thead><tbody>
+          ${docs.map(ds => { const a = (state.docAssignments||[]).find(x => String(x.id) === String(ds.assignmentId)) || {}; return `<tr><td>${v2Esc(a.title||"Assignment")}</td><td>${v2Esc(ds.submittedAt||"")}</td><td>${ds.published ? `${v2Esc(ds.score ?? "-")} / ${v2Esc(a.maxScore ?? "-")}` : "Not published yet"}</td><td>${ds.published ? v2Esc(ds.feedback||"") : "Waiting for teacher"}</td><td>${ds.published ? mf(ds) : "Marked script not published yet"}</td></tr>`; }).join("") || `<tr><td colspan="5">No scanned work submitted yet.</td></tr>`}
+        </tbody></table>
+      </div>`;
+  };
+
+  const oldReviewV2 = window.review;
+  window.review = function(){
+    v2Ensure(); v2InstallStyle(); v2CleanDuplicateQuizSubmissions(true);
+    const result = oldReviewV2 ? oldReviewV2.apply(this, arguments) : undefined;
+    const view = document.getElementById("view");
+    if(view && !document.getElementById("duplicateCleanupPanel")){
+      view.insertAdjacentHTML("afterbegin", `<div class="duplicateCleanupPanel" id="duplicateCleanupPanel"><h2>Duplicate Submission Cleanup</h2><p>The app now keeps only one valid quiz submission per student per exercise. Use this button anytime you suspect old duplicate records are still showing.</p><button onclick="cleanDuplicateQuizSubmissionsNow()">Clean Duplicate Quiz Submissions Now</button></div>`);
+    }
+    return result;
+  };
+
+  // Improve the public/submitted-students list: count only one submission per student and show reset request status against the name.
+  if(typeof window.studentSubmittedList === "function"){
+    window.studentSubmittedList = function(){
+      v2Ensure(); v2InstallStyle(); v2CleanDuplicateQuizSubmissions(true);
+      const key = window.publicWorkSelected || (typeof publicWorkSelected !== "undefined" ? publicWorkSelected : "");
+      const parts = String(key||"").split(":");
+      const type = parts[0], id = parts.slice(1).join(":");
+      const view = document.getElementById("view");
+      if(!view) return;
+      let title = "Submitted Work List", label = "Submission", rows = [];
+      if(type === "quiz"){
+        const q = v2Quiz(id) || (state.quizzes||[])[0] || {};
+        title = q.title || "Quiz / Exercise"; label = "Timed Quiz / MCQ";
+        (state.submissions||[]).filter(s => String(s.quizId) === String(q.id)).forEach(sub => {
+          const st = v2Student(sub.studentId); if(!st) return;
+          const req = v2LatestRequest(st.id, q.id);
+          rows.push({student:st,submittedAt:sub.submittedAt||sub.startedAt||"",status:sub.published?"Published":"Submitted",request:req,quizId:q.id});
+        });
+      }else{
+        const a = (state.docAssignments||[]).find(x => String(x.id) === String(id)) || (state.docAssignments||[])[0] || {};
+        title = a.title || "Scanned Work"; label = "Scanned / Theory Work";
+        (state.docSubmissions||[]).filter(s => String(s.assignmentId) === String(a.id)).forEach(sub => { const st = v2Student(sub.studentId); if(st) rows.push({student:st,submittedAt:sub.submittedAt||"",status:sub.published?"Published":"Submitted",request:null}); });
+      }
+      rows.sort((a,b)=>String(a.student.className||"").localeCompare(String(b.student.className||""), undefined, {numeric:true,sensitivity:"base"}) || String(a.student.name||"").localeCompare(String(b.student.name||""), undefined, {sensitivity:"base"}));
+      const isQuiz = type === "quiz";
+      view.innerHTML = `<div class="studentPublicHeader"><h2>${v2Esc(title)}</h2><p>${v2Esc(label)} • ${rows.length} submitted record(s)</p></div><div class="studentViewToolbar"><button class="navy" onclick="openStudentSubmissionOptions()">Back to Assignment Options</button><button class="gold" onclick="window.print()">Print List</button></div><div class="studentSubmissionTableWrap"><table class="studentSubmissionTable rrTable"><thead><tr><th>No.</th><th>Name</th><th>Class</th><th>Submission Status</th><th>Submitted At</th>${isQuiz?"<th>Reset Request</th>":""}</tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${v2Esc(r.student.name)}</b></td><td>${v2Esc(r.student.className)}</td><td>${v2Esc(r.status)}</td><td>${v2Esc(r.submittedAt)}</td>${isQuiz?`<td class="rrStatusCell">${v2StatusBadge(r.request)}${r.request?.reason?`<small>${v2Esc(r.request.reason)}</small>`:""}</td>`:""}</tr>`).join("") || `<tr><td colspan="${isQuiz?6:5}">No submission has been captured for this work yet.</td></tr>`}</tbody></table></div>`;
+    };
+  }
+
+  const oldRenderShellV2 = window.renderShell;
+  if(typeof oldRenderShellV2 === "function"){
+    window.renderShell = function(){
+      v2CleanDuplicateQuizSubmissions(true);
+      return oldRenderShellV2.apply(this, arguments);
+    };
+  }
+  const oldStablePullRemoteV2 = window.stablePullRemote;
+  if(typeof oldStablePullRemoteV2 === "function"){
+    window.stablePullRemote = async function(){
+      const result = await oldStablePullRemoteV2.apply(this, arguments);
+      v2CleanDuplicateQuizSubmissions(true);
+      return result;
+    };
+  }
+  const oldPullRemoteV2 = window.pullRemote;
+  if(typeof oldPullRemoteV2 === "function"){
+    window.pullRemote = async function(){
+      const result = await oldPullRemoteV2.apply(this, arguments);
+      v2CleanDuplicateQuizSubmissions(true);
+      return result;
+    };
+  }
+
+  try{
+    eval("cleanDuplicateQuizSubmissionsNow=window.cleanDuplicateQuizSubmissionsNow; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; openStudentSubmittedWork=window.openStudentSubmittedWork; review=window.review; studentSubmittedList=window.studentSubmittedList; renderShell=window.renderShell; stablePullRemote=window.stablePullRemote; pullRemote=window.pullRemote;");
+  }catch(e){}
+
+  // Run once after local/imported data is available. It is also called before rendering and after sync.
+  setTimeout(function(){ try{ v2CleanDuplicateQuizSubmissions(true); }catch(e){} }, 0);
+})();
+
+
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(render);
