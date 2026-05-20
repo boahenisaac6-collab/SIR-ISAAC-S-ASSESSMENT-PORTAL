@@ -8901,6 +8901,495 @@ html,body{
   .passwordSettingsActions button{width:100%}
 }
 
+
+/* ===== ONE ATTEMPT SUBMISSION LOCK FINAL ===== */
+.oneAttemptClosedCard,
+.quizClosedCard.oneAttemptClosedCard,
+.docAssignmentCard.oneAttemptClosedCard{
+  border:2px solid #bce8ce!important;
+  background:linear-gradient(135deg,#ecfdf3,#ffffff)!important;
+  border-radius:18px!important;
+  padding:14px!important;
+  margin:10px 0!important;
+  box-shadow:0 8px 22px rgba(7,31,61,.06)!important;
+}
+.oneAttemptClosedBadge,
+.quizClosedBadge{
+  display:inline-flex!important;
+  align-items:center!important;
+  border-radius:999px!important;
+  padding:6px 10px!important;
+  background:#0f7b4f!important;
+  color:#fff!important;
+  font-weight:950!important;
+  font-size:12px!important;
+  margin-top:8px!important;
+}
+.oneAttemptDisabledBtn{
+  opacity:.72!important;
+  cursor:not-allowed!important;
+  background:#d0d5dd!important;
+  color:#475467!important;
+}
+.oneAttemptNotice{
+  border:2px solid #bce8ce;
+  border-left:10px solid #0f7b4f;
+  background:#ecfdf3;
+  color:#071f3d;
+  border-radius:18px;
+  padding:12px 14px;
+  margin:10px 0;
+  font-weight:850;
+}
+
+
+/* ===== ONE ATTEMPT WITH ADMIN RESET FINAL ===== */
+.resetControlPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:22px;
+  padding:16px;
+  margin:0 0 14px;
+  box-shadow:0 10px 26px rgba(7,31,61,.10);
+}
+.resetControlPanel h2{
+  margin:0 0 6px;
+  color:#071f3d;
+}
+.resetControlPanel p{
+  margin:0 0 10px;
+  color:#475467;
+  font-weight:850;
+  line-height:1.45;
+}
+.resetControlGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  align-items:end;
+}
+.resetControlGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:5px;
+}
+.resetControlGrid select,
+.resetControlGrid input{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  color:#071f3d;
+  font-weight:850;
+  background:#fff;
+}
+.resetActionRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.resetActionRow button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.resetActionRow .green{border:0;background:#0f7b4f;color:#fff}
+.resetActionRow .red{border:1px solid #ffd4d0;background:#fff1f0;color:#b42318}
+.resetActionRow .navy{border:0;background:#071f3d;color:#fff}
+.resetMiniSummary{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.resetMiniSummary span{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+  font-size:12px;
+  font-weight:950;
+}
+.archivedAttemptsPanel{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  color:#071f3d;
+  border-radius:18px;
+  padding:12px;
+  margin:14px 0;
+  box-shadow:0 6px 18px rgba(7,31,61,.06);
+}
+.archivedAttemptsPanel summary{
+  cursor:pointer;
+  font-weight:950;
+  color:#071f3d;
+}
+.archivedAttemptItem{
+  border:1px solid #edf2f7;
+  border-radius:14px;
+  padding:9px;
+  margin:8px 0;
+  background:#f8fbff;
+}
+.archivedAttemptItem b{color:#071f3d}
+.archivedAttemptItem small{
+  display:block;
+  color:#667085;
+  font-weight:800;
+  margin-top:3px;
+}
+.oneAttemptClosedCard,
+.quizClosedCard.oneAttemptClosedCard,
+.docAssignmentCard.oneAttemptClosedCard{
+  border:2px solid #bce8ce!important;
+  background:linear-gradient(135deg,#ecfdf3,#ffffff)!important;
+  border-radius:18px!important;
+  padding:14px!important;
+  margin:10px 0!important;
+  box-shadow:0 8px 22px rgba(7,31,61,.06)!important;
+}
+.oneAttemptClosedBadge,
+.quizClosedBadge{
+  display:inline-flex!important;
+  align-items:center!important;
+  border-radius:999px!important;
+  padding:6px 10px!important;
+  background:#0f7b4f!important;
+  color:#fff!important;
+  font-weight:950!important;
+  font-size:12px!important;
+  margin-top:8px!important;
+}
+.oneAttemptNotice{
+  border:2px solid #bce8ce;
+  border-left:10px solid #0f7b4f;
+  background:#ecfdf3;
+  color:#071f3d;
+  border-radius:18px;
+  padding:12px 14px;
+  margin:10px 0;
+  font-weight:850;
+}
+@media(max-width:760px){
+  .resetControlGrid{grid-template-columns:1fr}
+  .resetActionRow button{width:100%}
+}
+
+
+/* ===== RESET REATTEMPT TRUE FIX ===== */
+.resetFixedNotice{
+  border:2px solid #bce8ce;
+  border-left:10px solid #0f7b4f;
+  background:#ecfdf3;
+  color:#071f3d;
+  border-radius:18px;
+  padding:12px 14px;
+  margin:10px 0;
+  font-weight:850;
+}
+.resetFixedOpenBadge{
+  display:inline-flex;
+  border-radius:999px;
+  background:#f4c430;
+  color:#071f3d;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:950;
+  margin:6px 0;
+}
+.resetFixedClosedBadge{
+  display:inline-flex;
+  border-radius:999px;
+  background:#0f7b4f;
+  color:#fff;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:950;
+  margin:6px 0;
+}
+.resetFixedPanelMini{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  color:#071f3d;
+  border-radius:16px;
+  padding:10px;
+  margin:8px 0;
+}
+
+
+/* ===== RESTORE SUBMISSIONS + AVAILABLE WORK FINAL ===== */
+.restoreWorkPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:20px;
+  padding:14px;
+  margin:0 0 14px;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.restoreWorkPanel h2{margin:0 0 6px;color:#071f3d}
+.restoreWorkPanel p{margin:0 0 10px;color:#475467;font-weight:850;line-height:1.45}
+.restoreWorkActions{display:flex;flex-wrap:wrap;gap:8px}
+.restoreWorkActions button{
+  min-height:42px;
+  border-radius:12px;
+  padding:9px 12px;
+  font-weight:950;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+.restoreAssignmentCentre{display:grid;gap:14px}
+.restoreAssignmentHero{
+  border:2px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fff,#eef5fc);
+  color:#071f3d;
+  border-radius:22px;
+  padding:16px;
+}
+.restoreAssignmentHero h2{margin:0 0 6px;color:#071f3d}
+.restoreAssignmentHero p{margin:0;color:#475467;font-weight:850;line-height:1.45}
+.restoreWorkCards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px;
+}
+.restoreWorkCard{
+  background:#fff;
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 6px 18px rgba(7,31,61,.06);
+}
+.restoreWorkCard h3{margin:0 0 8px;color:#071f3d}
+.restoreWorkCard p{margin:0 0 10px;color:#475467;font-weight:800;line-height:1.45}
+.restoreWorkCard button{
+  width:100%;
+  min-height:42px;
+  border-radius:12px;
+  font-weight:950;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+.restoreOpenBadge,.restoreClosedBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:950;
+  margin:2px 0 8px;
+}
+.restoreOpenBadge{background:#f4c430;color:#071f3d}
+.restoreClosedBadge{background:#0f7b4f;color:#fff}
+.restoreAdminPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fff,#fffdf0);
+  border-radius:22px;
+  padding:16px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 26px rgba(7,31,61,.10);
+}
+.restoreAdminPanel h2{margin:0 0 6px;color:#071f3d}
+.restoreAdminPanel p{margin:0 0 12px;color:#475467;font-weight:850;line-height:1.45}
+.restoreAdminGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  align-items:end;
+}
+.restoreAdminGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:5px;
+}
+.restoreAdminGrid select,.restoreAdminGrid input{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  color:#071f3d;
+  font-weight:850;
+  background:#fff;
+}
+.restoreAdminActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.restoreAdminActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer!important;
+}
+.restoreMiniBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+  font-size:12px;
+  font-weight:950;
+  margin:6px 6px 0 0;
+}
+.restoreArchivePanel{
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  background:#fff;
+  padding:12px;
+  margin:14px 0;
+}
+.restoreArchivePanel summary{font-weight:950;cursor:pointer;color:#071f3d}
+@media(max-width:760px){
+  .restoreAdminGrid{grid-template-columns:1fr}
+  .restoreAdminActions button,.restoreWorkActions button{width:100%}
+}
+
+
+/* ===== INSTANT AVAILABLE WORK NO-WAIT FIX ===== */
+.instantOpenWorkPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:20px;
+  padding:14px;
+  margin:0 0 14px;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.instantOpenWorkPanel h2{margin:0 0 6px;color:#071f3d}
+.instantOpenWorkPanel p{margin:0 0 10px;color:#475467;font-weight:850;line-height:1.45}
+.instantOpenWorkPanel button{
+  min-height:44px!important;
+  border-radius:12px!important;
+  padding:9px 12px!important;
+  font-weight:950!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  position:relative!important;
+  z-index:50!important;
+}
+.instantAvailableCentre{display:grid;gap:14px}
+.instantAvailableHero{
+  border:2px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fff,#eef5fc);
+  color:#071f3d;
+  border-radius:22px;
+  padding:16px;
+}
+.instantAvailableHero h2{margin:0 0 6px;color:#071f3d}
+.instantAvailableHero p{margin:0;color:#475467;font-weight:850;line-height:1.45}
+.instantWorkCards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px;
+}
+.instantWorkCard{
+  background:#fff;
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 6px 18px rgba(7,31,61,.06);
+}
+.instantWorkCard h3{margin:0 0 8px;color:#071f3d}
+.instantWorkCard p{margin:0 0 10px;color:#475467;font-weight:800;line-height:1.45}
+.instantWorkCard button{
+  width:100%;
+  min-height:42px;
+  border-radius:12px;
+  font-weight:950;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+.instantOpenBadge,.instantClosedBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:950;
+  margin:2px 0 8px;
+}
+.instantOpenBadge{background:#f4c430;color:#071f3d}
+.instantClosedBadge{background:#0f7b4f;color:#fff}
+
+
+/* ===== SUPABASE LIVE RECONNECT SAFE MERGE ===== */
+.liveReconnectPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:22px;
+  padding:16px;
+  margin:0 0 14px;
+  box-shadow:0 10px 28px rgba(7,31,61,.10);
+}
+.liveReconnectPanel h2{
+  margin:0 0 6px;
+  color:#071f3d;
+}
+.liveReconnectPanel p{
+  margin:0 0 10px;
+  color:#475467;
+  font-weight:850;
+  line-height:1.45;
+}
+.liveReconnectActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.liveReconnectActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer!important;
+}
+.liveReconnectStats{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.liveReconnectStats span{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+  font-size:12px;
+  font-weight:950;
+}
+.liveReconnectGood{
+  background:#ecfdf3!important;
+  color:#0f6b47!important;
+  border-color:#bce8ce!important;
+}
+.liveReconnectWarn{
+  background:#fff8db!important;
+  color:#8a6100!important;
+  border-color:#f4c430!important;
+}
+
 </style>
 </head>
 <body>
@@ -28063,6 +28552,2957 @@ async function initSupabase(){
 
   try{
     eval("settings=window.settings; navItems=window.navItems; selectStudentLogin=window.selectStudentLogin; openClassMemberPortal=window.openClassMemberPortal; injectPasswordFreeNotice=window.injectPasswordFreeNotice; renderShell=window.renderShell; studentLogin=window.studentLogin; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; studentClassMembers=window.studentClassMembers; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList; psSettingsSaveAndRefresh=window.psSettingsSaveAndRefresh; turnStudentPasswordOff=window.turnStudentPasswordOff; turnStudentPasswordOn=window.turnStudentPasswordOn; startPasswordFreeWindow=window.startPasswordFreeWindow; stopPasswordFreeWindow=window.stopPasswordFreeWindow; setDefaultPasswordForAll=window.setDefaultPasswordForAll; resetAllPasswordsToCodes=window.resetAllPasswordsToCodes; setDefaultPasswordForClass=window.setDefaultPasswordForClass; resetClassPasswordsToCodes=window.resetClassPasswordsToCodes;");
+  }catch(e){}
+})();
+
+
+
+/* ===== ONE ATTEMPT SUBMISSION LOCK FINAL V1 =====
+   This makes every quiz/exercise/document assignment one-attempt only.
+   Once a student has submitted a particular work, that same work is closed for that student.
+   Existing duplicate submissions are cleaned: the first submission is kept and later duplicates are removed.
+*/
+(function(){
+  const MARK = "ONE_ATTEMPT_SUBMISSION_LOCK_FINAL_V1";
+  if(window.__oneAttemptLockFinalV1) return;
+  window.__oneAttemptLockFinalV1 = true;
+
+  function oaEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function oaUid(prefix){
+    try{ if(typeof uid === "function") return uid(prefix); }catch(e){}
+    try{ if(typeof exUid === "function") return exUid(prefix); }catch(e){}
+    try{ if(typeof sqUid === "function") return sqUid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function oaNow(){
+    try{ if(typeof now === "function") return now(); }catch(e){}
+    try{ if(typeof exNow === "function") return exNow(); }catch(e){}
+    try{ if(typeof sqNow === "function") return sqNow(); }catch(e){}
+    return new Date().toLocaleString();
+  }
+  function oaSave(){
+    try{ if(typeof safeSaveAll === "function") return safeSaveAll(); }catch(e){}
+    try{ if(typeof save === "function") return save(); }catch(e){}
+    try{ if(typeof saveLocal === "function") return saveLocal(); }catch(e){}
+  }
+  function oaStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function oaQuiz(id){
+    try{ if(typeof quiz === "function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>String(q.id)===String(id));
+  }
+  function oaSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
+    return "";
+  }
+  function oaComponentLabel(key){
+    try{
+      if(typeof reportComponents==="function"){
+        const c=reportComponents().find(x=>x.key===key);
+        if(c) return c.label;
+      }
+    }catch(e){}
+    return key || "Assessment";
+  }
+  function oaSubmittedQuiz(studentId, quizId){
+    return (state.submissions||[]).some(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId));
+  }
+  function oaSubmittedDoc(studentId, assignmentId){
+    return (state.docSubmissions||[]).some(s=>String(s.studentId)===String(studentId) && String(s.assignmentId)===String(assignmentId));
+  }
+  function oaTimeVal(x, fallback){
+    const t = new Date(x?.submittedAt || x?.createdAt || x?._stableRemoteUpdatedAt || "").getTime();
+    return Number.isFinite(t) ? t : fallback;
+  }
+  function oaMergeKeep(first, other, bucket){
+    const keep = first;
+    if(bucket==="submissions"){
+      ["teacherScore","feedback","published","autoSubmitted"].forEach(k=>{
+        if((keep[k]===undefined || keep[k]===null || keep[k]==="" || keep[k]===false) && other[k]!==undefined && other[k]!==null && other[k]!=="") keep[k]=other[k];
+      });
+    }else{
+      ["score","feedback","published"].forEach(k=>{
+        if((keep[k]===undefined || keep[k]===null || keep[k]==="" || keep[k]===false) && other[k]!==undefined && other[k]!==null && other[k]!=="") keep[k]=other[k];
+      });
+      if((!keep.markedFiles || !keep.markedFiles.length) && other.markedFiles && other.markedFiles.length) keep.markedFiles=other.markedFiles;
+    }
+    return keep;
+  }
+
+  window.__oneAttemptRemovedRows = window.__oneAttemptRemovedRows || {submissions:[], docSubmissions:[]};
+
+  function oaDedupeBucket(bucket, idField){
+    const arr = Array.isArray(state[bucket]) ? state[bucket] : [];
+    const map = new Map();
+    const invalid = [];
+    const removed = [];
+    arr.forEach((item, index)=>{
+      if(!item || !item.studentId || !item[idField]){ invalid.push(item); return; }
+      const key = String(item.studentId)+"|"+String(item[idField]);
+      if(!map.has(key)){
+        map.set(key, {...item, __oaIndex:index});
+        return;
+      }
+      const current = map.get(key);
+      const curT = oaTimeVal(current, current.__oaIndex || 0);
+      const newT = oaTimeVal(item, index);
+      let keep, drop;
+      if(newT < curT){
+        keep = {...item, __oaIndex:index};
+        drop = current;
+        keep = oaMergeKeep(keep, current, bucket);
+      }else{
+        keep = current;
+        drop = item;
+        keep = oaMergeKeep(keep, item, bucket);
+      }
+      map.set(key, keep);
+      if(drop && drop.id) removed.push(String(drop.id));
+    });
+    const next = invalid.filter(Boolean).concat([...map.values()].map(x=>{ const y={...x}; delete y.__oaIndex; return y; }));
+    const changed = next.length !== arr.length || removed.length>0;
+    if(changed){
+      state[bucket] = next;
+      window.__oneAttemptRemovedRows[bucket] = [...new Set([...(window.__oneAttemptRemovedRows[bucket]||[]), ...removed])];
+    }
+    return changed;
+  }
+
+  window.oneAttemptCleanup = function(){
+    if(!state) return false;
+    if(!Array.isArray(state.submissions)) state.submissions = [];
+    if(!Array.isArray(state.docSubmissions)) state.docSubmissions = [];
+    const a = oaDedupeBucket("submissions","quizId");
+    const b = oaDedupeBucket("docSubmissions","assignmentId");
+    return a || b;
+  };
+
+  async function oaDeleteRemoteDuplicates(){
+    if(!window.sb || !window.__oneAttemptRemovedRows) return;
+    const buckets = ["submissions","docSubmissions"];
+    for(const bucket of buckets){
+      const ids = [...new Set(window.__oneAttemptRemovedRows[bucket] || [])].filter(Boolean);
+      if(!ids.length) continue;
+      for(let i=0;i<ids.length;i+=80){
+        const batch = ids.slice(i,i+80);
+        try{
+          const {error} = await sb.from("stable_items").delete().eq("bucket",bucket).in("item_id",batch);
+          if(error) console.warn("One-attempt duplicate remote delete error:", error);
+        }catch(e){ console.warn("One-attempt duplicate remote delete skipped:", e); }
+      }
+      window.__oneAttemptRemovedRows[bucket] = [];
+    }
+  }
+  window.oneAttemptDeleteRemoteDuplicates = oaDeleteRemoteDuplicates;
+
+  // Wrap saving/syncing so duplicates already in the live database are removed.
+  if(typeof window.save === "function"){
+    const oldSave = window.save;
+    window.save = function(){
+      oneAttemptCleanup();
+      return oldSave.apply(this, arguments);
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+  if(typeof window.saveLocal === "function"){
+    const oldSaveLocal = window.saveLocal;
+    window.saveLocal = function(){
+      oneAttemptCleanup();
+      return oldSaveLocal.apply(this, arguments);
+    };
+    try{ eval("saveLocal=window.saveLocal;"); }catch(e){}
+  }
+  if(typeof window.stablePullRemote === "function"){
+    const oldStablePullRemote = window.stablePullRemote;
+    window.stablePullRemote = async function(){
+      const r = await oldStablePullRemote.apply(this, arguments);
+      if(oneAttemptCleanup()){
+        try{ saveLocal(); }catch(e){}
+        setTimeout(()=>{ try{ if(typeof pushRemote==="function") pushRemote(); }catch(e){} }, 600);
+      }
+      return r;
+    };
+    try{ eval("stablePullRemote=window.stablePullRemote;"); }catch(e){}
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const oldStableWriteRemoteItems = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      oneAttemptCleanup();
+      const r = await oldStableWriteRemoteItems.apply(this, arguments);
+      await oaDeleteRemoteDuplicates();
+      return r;
+    };
+    try{ eval("stableWriteRemoteItems=window.stableWriteRemoteItems;"); }catch(e){}
+  }
+  if(typeof window.pushRemote === "function"){
+    const oldPushRemote = window.pushRemote;
+    window.pushRemote = async function(){
+      oneAttemptCleanup();
+      const r = await oldPushRemote.apply(this, arguments);
+      await oaDeleteRemoteDuplicates();
+      return r;
+    };
+    try{ eval("pushRemote=window.pushRemote;"); }catch(e){}
+  }
+
+  function oaCanSeeWork(item, s){
+    if(!item || !s) return false;
+    const statusOk = String(item.status||"").toLowerCase() === "published";
+    const subj = oaSubjectForClass(s.className);
+    const subjectOk = !item.subject || !subj || item.subject === subj;
+    const classOk = !Array.isArray(item.classNames) || !item.classNames.length || item.classNames.includes(s.className);
+    return statusOk && subjectOk && classOk;
+  }
+  function oaAvailableQuizzesForStudent(){
+    const s = oaStudent(currentStudentId);
+    if(!s) return [];
+    return (state.quizzes||[]).filter(q=>oaCanSeeWork(q,s));
+  }
+  function oaAvailableDocsForStudent(){
+    const s = oaStudent(currentStudentId);
+    if(!s) return [];
+    return (state.docAssignments||[]).filter(a=>oaCanSeeWork(a,s));
+  }
+  function oaSubmittedText(sub){
+    return sub?.submittedAt ? `Submitted on ${oaEsc(sub.submittedAt)}` : "Already submitted";
+  }
+  function oaQuizSubmission(studentId, quizId){
+    return (state.submissions||[]).find(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId));
+  }
+  function oaDocSubmission(studentId, assignmentId){
+    return (state.docSubmissions||[]).find(s=>String(s.studentId)===String(studentId) && String(s.assignmentId)===String(assignmentId));
+  }
+
+  // Final student work page: submitted work is visible but closed.
+  window.studentQuizzes = function(){
+    oneAttemptCleanup();
+    const s = oaStudent(currentStudentId);
+    if(!s){ role="guest"; route="studentLogin"; return renderShell(); }
+    const qs = oaAvailableQuizzesForStudent();
+    const docs = oaAvailableDocsForStudent();
+    const qOpen = qs.filter(q=>!oaSubmittedQuiz(s.id,q.id)).length;
+    const dOpen = docs.filter(a=>!oaSubmittedDoc(s.id,a.id)).length;
+    const qHTML = qs.map(q=>{
+      const sub = oaQuizSubmission(s.id,q.id);
+      const done = !!sub;
+      return `<div class="${done?'oneAttemptClosedCard':'quizCard'}">
+        <h3>${oaEsc(q.title)}</h3>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${oaEsc(oaComponentLabel(q.assessmentComponent||"ex1"))}</p>
+        ${done ? `<span class="oneAttemptClosedBadge">Submitted / Closed</span><div class="oneAttemptNotice">${oaSubmittedText(sub)}. You cannot submit this exercise again.</div>` : `<button class="btn green" onclick="takeQuiz('${oaEsc(q.id)}')">Start Exercise</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No multiple-choice exercise available now.</div>`;
+    const dHTML = docs.map(a=>{
+      const sub = oaDocSubmission(s.id,a.id);
+      const done = !!sub;
+      const qFile = a.questionFile ? `<div class="scannedQuestionView"><b>Question Paper:</b> ${oaEsc(a.questionFile.name||"Question paper")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a class="btn light" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}</div>` : "";
+      return `<div class="${done?'oneAttemptClosedCard':'docAssignmentCard'}">
+        <h3>${oaEsc(a.title)}</h3>
+        <p>${oaEsc(a.instructions||"Open the question, solve it, scan and submit.")}</p>
+        <p>Maximum score: ${oaEsc(a.maxScore ?? "")} • Component: ${oaEsc(oaComponentLabel(a.assessmentComponent||"ex1"))}</p>
+        ${qFile}
+        ${done ? `<span class="oneAttemptClosedBadge">Submitted / Closed</span><div class="oneAttemptNotice">${oaSubmittedText(sub)}. You cannot submit this work again.</div>` : `<button class="btn green" onclick="openDocSubmitSimple('${oaEsc(a.id)}')">Submit My Answer Script</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory work available now.</div>`;
+    document.getElementById("view").innerHTML = `<div class="studentSimpleNotice">
+      <h2>My Assignments</h2>
+      <ol>
+        <li>Each exercise or assignment can be submitted <b>only once</b>.</li>
+        <li>After you submit, that work will be marked as <b>Submitted / Closed</b>.</li>
+        <li>Wait for Sir Isaac Boahen to publish your result or marked script.</li>
+      </ol>
+      <div class="toolbar"><span class="oneAttemptClosedBadge">${qOpen+dOpen} open work(s)</span><span class="oneAttemptClosedBadge">${(qs.length+docs.length)-(qOpen+dOpen)} submitted / closed</span></div>
+    </div>
+    <div class="card"><h2>Multiple-Choice Exercises</h2>${qHTML}</div>
+    <div class="card"><h2>Theory / Scanned Work</h2>${dHTML}</div>`;
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  };
+
+  // Hard lock: even if a student opens an old page or double-clicks, submission is blocked.
+  const oldTakeQuiz = window.takeQuiz;
+  window.takeQuiz = function(id){
+    oneAttemptCleanup();
+    if(oaSubmittedQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. It is now closed for you.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldTakeQuiz ? oldTakeQuiz.apply(this, arguments) : undefined;
+  };
+
+  window.submitQuiz = function(id, auto){
+    oneAttemptCleanup();
+    if(oaSubmittedQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. It is now closed for you.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const q=oaQuiz(id); 
+    const form=document.getElementById("quizForm");
+    if(!q || !form) return alert("This exercise is not open.");
+    let answers={}, score=0, max=0; 
+    const fileReads=[];
+    (q.questions||[]).forEach(qq=>{
+      max+=Number(qq.marks)||1;
+      const name="ans_"+qq.id;
+      if(qq.type==="mcq"){
+        const v=form.querySelector(`[name="${name}"]:checked`)?.value||"";
+        answers[qq.id]=v;
+        if(v.toUpperCase()===String(qq.answer||"").toUpperCase()) score+=Number(qq.marks)||1;
+      }else if(qq.type==="upload"){
+        const files=[...(form.querySelector(`[name="${name}"]`)?.files||[])];
+        if(files.length){
+          answers[qq.id]=[];
+          files.forEach(f=>fileReads.push(new Promise(res=>{
+            const r=new FileReader();
+            r.onload=()=>{answers[qq.id].push({name:f.name,type:f.type,data:r.result});res();};
+            r.readAsDataURL(f);
+          })));
+        }else answers[qq.id]="";
+      }else{
+        const v=form.querySelector(`[name="${name}"]`)?.value||"";
+        answers[qq.id]=v;
+        if(qq.type==="fill" && v.trim().toLowerCase()===String(qq.answer||"").trim().toLowerCase()) score+=Number(qq.marks)||1;
+      }
+    });
+    const btn = event?.target;
+    if(btn){ btn.disabled=true; btn.textContent="Submitting..."; }
+    Promise.all(fileReads).then(()=>{
+      oneAttemptCleanup();
+      if(oaSubmittedQuiz(currentStudentId,id)){
+        alert("This exercise has already been submitted. A second submission is not allowed.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      state.submissions.push({id:oaUid("sub"),quizId:id,studentId:currentStudentId,answers,autoScore:score,teacherScore:null,maxScore:max,published:false,submittedAt:oaNow(),feedback:"",autoSubmitted:!!auto});
+      oneAttemptCleanup();
+      oaSave();
+      alert(auto ? "Time is up. Your exercise has been submitted automatically. This exercise is now closed for you." : "Submitted successfully. This exercise is now closed for you.");
+      setRoute("studentResults");
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+    }).finally(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="Submit Quiz"; }
+    });
+  };
+
+  const oldOpenDocSubmitSimple = window.openDocSubmitSimple;
+  window.openDocSubmitSimple = function(id){
+    oneAttemptCleanup();
+    if(oaSubmittedDoc(currentStudentId,id)){
+      alert("You have already submitted this scanned/theory work. It is now closed for you.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldOpenDocSubmitSimple ? oldOpenDocSubmitSimple.apply(this, arguments) : undefined;
+  };
+  const oldOpenDocSubmit = window.openDocSubmit;
+  if(typeof oldOpenDocSubmit === "function"){
+    window.openDocSubmit = function(id){
+      oneAttemptCleanup();
+      if(oaSubmittedDoc(currentStudentId,id)){
+        alert("You have already submitted this scanned/theory work. It is now closed for you.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      return oldOpenDocSubmit.apply(this, arguments);
+    };
+  }
+
+  function oaSubmitDoc(id, inputId){
+    oneAttemptCleanup();
+    if(oaSubmittedDoc(currentStudentId,id)){
+      alert("You have already submitted this scanned/theory work. It is now closed for you.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const files=[...(document.getElementById(inputId||"docFiles")?.files||[])];
+    if(!files.length) return alert("Select at least one scanned page or PDF.");
+    const btn = event?.target;
+    if(btn){ btn.disabled=true; btn.textContent="Submitting..."; }
+    const reads=files.map(f=>new Promise(res=>{
+      const r=new FileReader();
+      r.onload=()=>res({name:f.name,type:f.type,data:r.result});
+      r.readAsDataURL(f);
+    }));
+    Promise.all(reads).then(fileObjs=>{
+      oneAttemptCleanup();
+      if(oaSubmittedDoc(currentStudentId,id)){
+        alert("This work has already been submitted. A second submission is not allowed.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      state.docSubmissions.push({id:oaUid("docsub"),assignmentId:id,studentId:currentStudentId,files:fileObjs,score:null,feedback:"",published:false,submittedAt:oaNow(),markedFiles:[]});
+      oneAttemptCleanup();
+      oaSave();
+      alert("Your scanned work has been submitted. This work is now closed for you.");
+      document.getElementById("docSubmitOverlay")?.remove();
+      setRoute("studentResults");
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+    }).finally(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="Submit Scanned Work"; }
+    });
+  }
+  window.submitDocAssignmentSimple = function(id){ return oaSubmitDoc(id,"docFiles"); };
+  window.submitDocAssignment = function(id){ return oaSubmitDoc(id,"docFiles"); };
+
+  // Admin pages should show only one record per student per work.
+  const oldReview = window.review;
+  if(typeof oldReview === "function"){
+    window.review = function(){
+      const changed = oneAttemptCleanup();
+      if(changed) oaSave();
+      return oldReview.apply(this, arguments);
+    };
+  }
+
+  const oldStudentResults = window.studentResults;
+  if(typeof oldStudentResults === "function"){
+    window.studentResults = function(){
+      const changed = oneAttemptCleanup();
+      if(changed) oaSave();
+      return oldStudentResults.apply(this, arguments);
+    };
+  }
+
+  const oldRenderShell = window.renderShell;
+  if(typeof oldRenderShell === "function"){
+    window.renderShell = function(){
+      const changed = oneAttemptCleanup();
+      if(changed){
+        try{ saveLocal(); }catch(e){}
+      }
+      const r = oldRenderShell.apply(this, arguments);
+      return r;
+    };
+  }
+
+  // Initial cleanup after loading, and a delayed remote cleanup after sync becomes ready.
+  setTimeout(()=>{
+    try{
+      if(oneAttemptCleanup()){
+        saveLocal();
+        if(typeof pushRemote==="function") pushRemote();
+      }
+    }catch(e){}
+  }, 1200);
+  setTimeout(()=>{ try{ oaDeleteRemoteDuplicates(); }catch(e){} }, 6000);
+
+  try{
+    eval("studentQuizzes=window.studentQuizzes; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; submitDocAssignmentSimple=window.submitDocAssignmentSimple; submitDocAssignment=window.submitDocAssignment; renderShell=window.renderShell; review=window.review; studentResults=window.studentResults; oneAttemptCleanup=window.oneAttemptCleanup;");
+  }catch(e){}
+})();
+
+
+
+/* ===== ONE ATTEMPT WITH ADMIN RESET FINAL V2 =====
+   Professional final behaviour:
+   - All exercises/quizzes and scanned/theory assignments are one-attempt only.
+   - Existing submissions are preserved.
+   - Duplicate existing submissions are archived, not deleted.
+   - Admin can reset one student for one work.
+   - Admin can reset all students for one work.
+   - Reset does not delete old submissions; it archives/release-locks them and allows a new attempt.
+*/
+(function(){
+  if(window.__oneAttemptAdminResetFinalV2) return;
+  window.__oneAttemptAdminResetFinalV2 = true;
+
+  // Stop the previous duplicate-removal script from deleting stable rows.
+  window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+  window.oneAttemptDeleteRemoteDuplicates = async function(){ window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]}; return false; };
+
+  function arEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function arUid(prefix){
+    try{ if(typeof uid === "function") return uid(prefix); }catch(e){}
+    try{ if(typeof exUid === "function") return exUid(prefix); }catch(e){}
+    try{ if(typeof sqUid === "function") return sqUid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function arNow(){
+    try{ if(typeof now === "function") return now(); }catch(e){}
+    try{ if(typeof exNow === "function") return exNow(); }catch(e){}
+    try{ if(typeof sqNow === "function") return sqNow(); }catch(e){}
+    return new Date().toLocaleString();
+  }
+  function arSave(){
+    try{ if(typeof safeSaveAll === "function") return safeSaveAll(); }catch(e){}
+    try{ if(typeof save === "function") return save(); }catch(e){}
+    try{ if(typeof saveLocal === "function") return saveLocal(); }catch(e){}
+  }
+  function arStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function arQuiz(id){
+    try{ if(typeof quiz === "function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>String(q.id)===String(id));
+  }
+  function arSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
+    return "";
+  }
+  function arComponentLabel(key){
+    try{
+      if(typeof reportComponents==="function"){
+        const c=reportComponents().find(x=>x.key===key);
+        if(c) return c.label;
+      }
+    }catch(e){}
+    return key || "Assessment";
+  }
+  function arIsArchived(item){
+    return !!(item && (item.adminReset || item._adminReset || item.resetReleased || item._resetArchived || item._oaArchivedDuplicate || item.archivedAttempt));
+  }
+  function arSubmittedQuiz(studentId, quizId){
+    return (state.submissions||[]).some(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId) && !arIsArchived(s));
+  }
+  function arSubmittedDoc(studentId, assignmentId){
+    return (state.docSubmissions||[]).some(s=>String(s.studentId)===String(studentId) && String(s.assignmentId)===String(assignmentId) && !arIsArchived(s));
+  }
+  function arQuizSubmission(studentId, quizId){
+    return (state.submissions||[]).find(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId) && !arIsArchived(s));
+  }
+  function arDocSubmission(studentId, assignmentId){
+    return (state.docSubmissions||[]).find(s=>String(s.studentId)===String(studentId) && String(s.assignmentId)===String(assignmentId) && !arIsArchived(s));
+  }
+  function arTimeVal(x, fallback){
+    const t = new Date(x?.submittedAt || x?.createdAt || x?._stableRemoteUpdatedAt || "").getTime();
+    return Number.isFinite(t) ? t : fallback;
+  }
+  function arMarkArchived(item, reason){
+    item._oaArchivedDuplicate = reason === "duplicate";
+    item._resetArchived = reason === "reset";
+    item.archivedAttempt = true;
+    item.archivedReason = reason;
+    item.archivedAt = item.archivedAt || arNow();
+    return item;
+  }
+
+  function arArchiveDuplicateBucket(bucket, idField){
+    const arr = Array.isArray(state[bucket]) ? state[bucket] : [];
+    const groups = new Map();
+    arr.forEach((item,index)=>{
+      if(!item || !item.studentId || !item[idField] || arIsArchived(item)) return;
+      const key = String(item.studentId)+"|"+String(item[idField]);
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push({item,index});
+    });
+    let changed = false;
+    groups.forEach(list=>{
+      if(list.length <= 1) return;
+      list.sort((a,b)=>arTimeVal(a.item,a.index)-arTimeVal(b.item,b.index));
+      list.slice(1).forEach(x=>{
+        arMarkArchived(x.item, "duplicate");
+        x.item.duplicateArchivedAt = arNow();
+        changed = true;
+      });
+    });
+    return changed;
+  }
+
+  window.oneAttemptCleanup = function(){
+    if(!state) return false;
+    if(!Array.isArray(state.submissions)) state.submissions = [];
+    if(!Array.isArray(state.docSubmissions)) state.docSubmissions = [];
+    const a = arArchiveDuplicateBucket("submissions","quizId");
+    const b = arArchiveDuplicateBucket("docSubmissions","assignmentId");
+    // Important: never delete old submissions here. They are preserved as archived attempts.
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return a || b;
+  };
+
+  function arCanSeeWork(item, st){
+    if(!item || !st) return false;
+    const statusOk = String(item.status||"").toLowerCase() === "published";
+    const subj = arSubjectForClass(st.className);
+    const subjectOk = !item.subject || !subj || item.subject === subj;
+    const classOk = !Array.isArray(item.classNames) || !item.classNames.length || item.classNames.includes(st.className);
+    return statusOk && subjectOk && classOk;
+  }
+  function arAvailableQuizzes(){
+    const st = arStudent(currentStudentId);
+    if(!st) return [];
+    return (state.quizzes||[]).filter(q=>arCanSeeWork(q,st));
+  }
+  function arAvailableDocs(){
+    const st = arStudent(currentStudentId);
+    if(!st) return [];
+    return (state.docAssignments||[]).filter(a=>arCanSeeWork(a,st));
+  }
+
+  window.studentQuizzes = function(){
+    oneAttemptCleanup();
+    const st = arStudent(currentStudentId);
+    if(!st){ role="guest"; route="studentLogin"; return renderShell(); }
+    const qs = arAvailableQuizzes();
+    const docs = arAvailableDocs();
+    const qOpen = qs.filter(q=>!arSubmittedQuiz(st.id,q.id)).length;
+    const dOpen = docs.filter(a=>!arSubmittedDoc(st.id,a.id)).length;
+
+    const qHTML = qs.map(q=>{
+      const sub = arQuizSubmission(st.id,q.id);
+      const done = !!sub;
+      return `<div class="${done?'oneAttemptClosedCard':'quizCard'}">
+        <h3>${arEsc(q.title)}</h3>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${arEsc(arComponentLabel(q.assessmentComponent||"ex1"))}</p>
+        ${done ? `<span class="oneAttemptClosedBadge">Submitted / Closed</span><div class="oneAttemptNotice">Submitted on ${arEsc(sub.submittedAt||"")}. You cannot submit this exercise again unless the admin resets it for you.</div>` : `<button class="btn green" onclick="takeQuiz('${arEsc(q.id)}')">Start Exercise</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No multiple-choice exercise available now.</div>`;
+
+    const dHTML = docs.map(a=>{
+      const sub = arDocSubmission(st.id,a.id);
+      const done = !!sub;
+      const qFile = a.questionFile ? `<div class="scannedQuestionView"><b>Question Paper:</b> ${arEsc(a.questionFile.name||"Question paper")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a class="btn light" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}</div>` : "";
+      return `<div class="${done?'oneAttemptClosedCard':'docAssignmentCard'}">
+        <h3>${arEsc(a.title)}</h3>
+        <p>${arEsc(a.instructions||"Open the question, solve it, scan and submit.")}</p>
+        <p>Maximum score: ${arEsc(a.maxScore ?? "")} • Component: ${arEsc(arComponentLabel(a.assessmentComponent||"ex1"))}</p>
+        ${qFile}
+        ${done ? `<span class="oneAttemptClosedBadge">Submitted / Closed</span><div class="oneAttemptNotice">Submitted on ${arEsc(sub.submittedAt||"")}. You cannot submit this work again unless the admin resets it for you.</div>` : `<button class="btn green" onclick="openDocSubmitSimple('${arEsc(a.id)}')">Submit My Answer Script</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory work available now.</div>`;
+
+    document.getElementById("view").innerHTML = `<div class="studentSimpleNotice">
+      <h2>My Assignments</h2>
+      <ol>
+        <li>Each work can be submitted <b>only once</b>.</li>
+        <li>After submission, the work will show as <b>Submitted / Closed</b>.</li>
+        <li>Only the admin can reset a submitted work for another attempt.</li>
+      </ol>
+      <div class="toolbar"><span class="oneAttemptClosedBadge">${qOpen+dOpen} open work(s)</span><span class="oneAttemptClosedBadge">${(qs.length+docs.length)-(qOpen+dOpen)} submitted / closed</span></div>
+    </div>
+    <div class="card"><h2>Multiple-Choice Exercises</h2>${qHTML}</div>
+    <div class="card"><h2>Theory / Scanned Work</h2>${dHTML}</div>`;
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  };
+
+  const oldTakeQuizV2 = window.takeQuiz;
+  window.takeQuiz = function(id){
+    oneAttemptCleanup();
+    if(arSubmittedQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. It is closed for you. Only the admin can reset it.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldTakeQuizV2 ? oldTakeQuizV2.apply(this, arguments) : undefined;
+  };
+
+  window.submitQuiz = function(id, auto){
+    oneAttemptCleanup();
+    if(arSubmittedQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. A second submission is not allowed.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const q = arQuiz(id);
+    const form = document.getElementById("quizForm");
+    if(!q || !form) return alert("This exercise is not open.");
+    let answers={}, score=0, max=0;
+    const fileReads=[];
+    (q.questions||[]).forEach(qq=>{
+      max += Number(qq.marks)||1;
+      const name = "ans_"+qq.id;
+      if(qq.type==="mcq"){
+        const v = form.querySelector(`[name="${name}"]:checked`)?.value || "";
+        answers[qq.id]=v;
+        if(v.toUpperCase()===String(qq.answer||"").toUpperCase()) score += Number(qq.marks)||1;
+      }else if(qq.type==="upload"){
+        const files=[...(form.querySelector(`[name="${name}"]`)?.files||[])];
+        if(files.length){
+          answers[qq.id]=[];
+          files.forEach(f=>fileReads.push(new Promise(res=>{
+            const r=new FileReader();
+            r.onload=()=>{answers[qq.id].push({name:f.name,type:f.type,data:r.result});res();};
+            r.readAsDataURL(f);
+          })));
+        }else answers[qq.id]="";
+      }else{
+        const v = form.querySelector(`[name="${name}"]`)?.value || "";
+        answers[qq.id]=v;
+        if(qq.type==="fill" && v.trim().toLowerCase()===String(qq.answer||"").trim().toLowerCase()) score += Number(qq.marks)||1;
+      }
+    });
+    const btn = event?.target;
+    if(btn){ btn.disabled=true; btn.textContent="Submitting..."; }
+    Promise.all(fileReads).then(()=>{
+      oneAttemptCleanup();
+      if(arSubmittedQuiz(currentStudentId,id)){
+        alert("This exercise has already been submitted. A second submission is not allowed.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      state.submissions.push({id:arUid("sub"),quizId:id,studentId:currentStudentId,answers,autoScore:score,teacherScore:null,maxScore:max,published:false,submittedAt:arNow(),feedback:"",autoSubmitted:!!auto});
+      oneAttemptCleanup();
+      arSave();
+      alert(auto ? "Time is up. Your exercise has been submitted automatically. This exercise is now closed for you." : "Submitted successfully. This exercise is now closed for you.");
+      setRoute("studentResults");
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+    }).finally(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="Submit Quiz"; }
+    });
+  };
+
+  function arSubmitDoc(id){
+    oneAttemptCleanup();
+    if(arSubmittedDoc(currentStudentId,id)){
+      alert("You have already submitted this scanned/theory work. A second submission is not allowed.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const files=[...(document.getElementById("docFiles")?.files||[])];
+    if(!files.length) return alert("Select at least one scanned page or PDF.");
+    const btn = event?.target;
+    if(btn){ btn.disabled=true; btn.textContent="Submitting..."; }
+    const reads=files.map(f=>new Promise(res=>{
+      const r=new FileReader();
+      r.onload=()=>res({name:f.name,type:f.type,data:r.result});
+      r.readAsDataURL(f);
+    }));
+    Promise.all(reads).then(fileObjs=>{
+      oneAttemptCleanup();
+      if(arSubmittedDoc(currentStudentId,id)){
+        alert("This work has already been submitted. A second submission is not allowed.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      state.docSubmissions.push({id:arUid("docsub"),assignmentId:id,studentId:currentStudentId,files:fileObjs,score:null,feedback:"",published:false,submittedAt:arNow(),markedFiles:[]});
+      oneAttemptCleanup();
+      arSave();
+      alert("Your scanned work has been submitted. This work is now closed for you.");
+      document.getElementById("docSubmitOverlay")?.remove();
+      setRoute("studentResults");
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+    }).finally(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="Submit Scanned Work"; }
+    });
+  }
+
+  const oldOpenDocSubmitSimpleV2 = window.openDocSubmitSimple;
+  window.openDocSubmitSimple = function(id){
+    oneAttemptCleanup();
+    if(arSubmittedDoc(currentStudentId,id)){
+      alert("You have already submitted this work. It is closed for you. Only the admin can reset it.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldOpenDocSubmitSimpleV2 ? oldOpenDocSubmitSimpleV2.apply(this, arguments) : undefined;
+  };
+  const oldOpenDocSubmitV2 = window.openDocSubmit;
+  if(typeof oldOpenDocSubmitV2 === "function"){
+    window.openDocSubmit = function(id){
+      oneAttemptCleanup();
+      if(arSubmittedDoc(currentStudentId,id)){
+        alert("You have already submitted this work. It is closed for you. Only the admin can reset it.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      return oldOpenDocSubmitV2.apply(this, arguments);
+    };
+  }
+  window.submitDocAssignmentSimple = function(id){ return arSubmitDoc(id); };
+  window.submitDocAssignment = function(id){ return arSubmitDoc(id); };
+
+  function arWorks(){
+    const quizzes = (state.quizzes||[]).map(q=>({type:"quiz", id:q.id, title:q.title||"Untitled Exercise", status:q.status||"", key:"quiz:"+q.id}));
+    const docs = (state.docAssignments||[]).map(a=>({type:"doc", id:a.id, title:a.title||"Untitled Scanned Work", status:a.status||"", key:"doc:"+a.id}));
+    return quizzes.concat(docs).sort((a,b)=>String(a.title).localeCompare(String(b.title), undefined, {sensitivity:"base"}));
+  }
+  function arWorkByKey(key){
+    return arWorks().find(w=>w.key===String(key)) || arWorks()[0] || null;
+  }
+  function arActiveSubsForWork(work){
+    if(!work) return [];
+    if(work.type==="quiz") return (state.submissions||[]).filter(s=>String(s.quizId)===String(work.id) && !arIsArchived(s));
+    return (state.docSubmissions||[]).filter(s=>String(s.assignmentId)===String(work.id) && !arIsArchived(s));
+  }
+  function arArchivedSubs(){
+    const qs = (state.submissions||[]).filter(arIsArchived).map(s=>({kind:"Exercise", item:s, title:(arQuiz(s.quizId)||{}).title||"Exercise", student:(arStudent(s.studentId)||{}).name||"Student"}));
+    const ds = (state.docSubmissions||[]).filter(arIsArchived).map(s=>({kind:"Scanned/Theory", item:s, title:((state.docAssignments||[]).find(a=>a.id===s.assignmentId)||{}).title||"Scanned Work", student:(arStudent(s.studentId)||{}).name||"Student"}));
+    return qs.concat(ds).sort((a,b)=>String(b.item.archivedAt||b.item.resetAt||b.item.submittedAt||"").localeCompare(String(a.item.archivedAt||a.item.resetAt||a.item.submittedAt||"")));
+  }
+  function arResetStudentOptions(workKey){
+    const work = arWorkByKey(workKey);
+    const active = arActiveSubsForWork(work);
+    const ids = [...new Set(active.map(s=>s.studentId).filter(Boolean))];
+    return ids.map(id=>{
+      const st = arStudent(id) || {};
+      return `<option value="${arEsc(id)}">${arEsc(st.name||id)} ${st.className?`— ${arEsc(st.className)}`:""}</option>`;
+    }).join("");
+  }
+
+  window.adminResetSubmissionPanelHTML = function(){
+    const works = arWorks();
+    const selected = document.getElementById("resetWorkSelect")?.value || works[0]?.key || "";
+    const work = arWorkByKey(selected);
+    const activeCount = arActiveSubsForWork(work).length;
+    const archivedCount = arArchivedSubs().length;
+    return `<div class="resetControlPanel">
+      <h2>Admin Submission Reset Control</h2>
+      <p>Use this only when you want to allow a student, or a whole assignment, to be attempted again. Old submissions are preserved as archived history; they are not deleted.</p>
+      <div class="resetControlGrid">
+        <div>
+          <label>Select Assignment / Exercise</label>
+          <select id="resetWorkSelect" onchange="refreshAdminResetPanel()">
+            ${works.map(w=>`<option value="${arEsc(w.key)}" ${w.key===selected?"selected":""}>${arEsc(w.title)} — ${w.type==="quiz"?"Exercise/Quiz":"Scanned/Theory"} ${w.status?`(${arEsc(w.status)})`:""}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label>Select Submitted Student</label>
+          <select id="resetStudentSelect">
+            ${arResetStudentOptions(selected) || `<option value="">No active submission for this work</option>`}
+          </select>
+        </div>
+        <div>
+          <label>Reason / Note</label>
+          <input id="resetReasonInput" placeholder="Example: wrong upload, network issue">
+        </div>
+      </div>
+      <div class="resetActionRow">
+        <button class="green" onclick="adminResetSelectedStudentAttempt()">Reset Selected Student</button>
+        <button class="red" onclick="adminResetWholeWorkAttempt()">Reset This Assignment for All Submitted Students</button>
+        <button class="navy" onclick="review()">Refresh Review Page</button>
+      </div>
+      <div class="resetMiniSummary">
+        <span>Active submissions for selected work: ${activeCount}</span>
+        <span>Archived preserved attempts: ${archivedCount}</span>
+      </div>
+    </div>`;
+  };
+
+  window.refreshAdminResetPanel = function(){
+    const holder = document.getElementById("adminResetSubmissionPanelHolder");
+    if(holder) holder.innerHTML = adminResetSubmissionPanelHTML();
+  };
+
+  function arArchiveSubmissionForReset(sub, scope, reason){
+    sub.adminReset = true;
+    sub._resetArchived = true;
+    sub.archivedAttempt = true;
+    sub.archivedReason = "reset";
+    sub.resetScope = scope;
+    sub.resetReason = reason || "";
+    sub.resetAt = arNow();
+    sub.archivedAt = sub.archivedAt || sub.resetAt;
+    sub.resetBy = "Admin";
+    return sub;
+  }
+
+  window.adminResetSelectedStudentAttempt = function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const studentId = document.getElementById("resetStudentSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const work = arWorkByKey(key);
+    if(!work || !studentId) return alert("Select an assignment and a student first.");
+    const active = arActiveSubsForWork(work).filter(s=>String(s.studentId)===String(studentId));
+    if(!active.length) return alert("This student has no active submission for the selected work.");
+    const st = arStudent(studentId) || {};
+    if(!confirm(`Reset ${st.name || "this student"} for "${work.title}"? The old submission will be preserved as archived history.`)) return;
+    active.forEach(s=>arArchiveSubmissionForReset(s, "single-student", reason));
+    arSave();
+    alert("Reset completed. The student can now attempt this work again. The previous submission was preserved.");
+    review();
+  };
+
+  window.adminResetWholeWorkAttempt = function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const work = arWorkByKey(key);
+    if(!work) return alert("Select an assignment first.");
+    const active = arActiveSubsForWork(work);
+    if(!active.length) return alert("There is no active submission for the selected work.");
+    if(!confirm(`Reset "${work.title}" for all ${active.length} submitted student(s)? Old submissions will be preserved as archived history.`)) return;
+    active.forEach(s=>arArchiveSubmissionForReset(s, "whole-assignment", reason));
+    arSave();
+    alert("General reset completed. All submitted students can now attempt this work again. Previous submissions were preserved.");
+    review();
+  };
+
+  function arArchivedPanelHTML(){
+    const rows = arArchivedSubs();
+    if(!rows.length) return "";
+    return `<details class="archivedAttemptsPanel">
+      <summary>Preserved Archived / Reset Attempts (${rows.length})</summary>
+      <p style="color:#667085;font-weight:850">These records are kept for evidence but do not lock students from attempting again after admin reset.</p>
+      ${rows.slice(0,120).map(r=>`<div class="archivedAttemptItem">
+        <b>${arEsc(r.student)}</b> — ${arEsc(r.title)}
+        <small>${arEsc(r.kind)} • Submitted: ${arEsc(r.item.submittedAt||"")} • Archived: ${arEsc(r.item.archivedAt||r.item.resetAt||"")} • Reason: ${arEsc(r.item.resetReason||r.item.archivedReason||"")}</small>
+      </div>`).join("")}
+      ${rows.length>120?`<p><b>${rows.length-120} more archived records preserved.</b></p>`:""}
+    </details>`;
+  }
+
+  function arOnlyActiveTemporarily(fn){
+    const fullSub = state.submissions;
+    const fullDoc = state.docSubmissions;
+    state.submissions = (fullSub||[]).filter(x=>!arIsArchived(x));
+    state.docSubmissions = (fullDoc||[]).filter(x=>!arIsArchived(x));
+    try{ return fn(); }
+    finally{ state.submissions = fullSub; state.docSubmissions = fullDoc; }
+  }
+
+  const previousReviewV2 = window.review;
+  window.review = function(){
+    oneAttemptCleanup();
+    const result = previousReviewV2 ? arOnlyActiveTemporarily(()=>previousReviewV2.apply(this, arguments)) : undefined;
+    const view = document.getElementById("view");
+    if(view){
+      if(!document.getElementById("adminResetSubmissionPanelHolder")){
+        view.insertAdjacentHTML("afterbegin", `<div id="adminResetSubmissionPanelHolder">${adminResetSubmissionPanelHTML()}</div>`);
+      }else{
+        refreshAdminResetPanel();
+      }
+      if(!document.getElementById("archivedAttemptsPanelInjected")){
+        view.insertAdjacentHTML("beforeend", `<div id="archivedAttemptsPanelInjected">${arArchivedPanelHTML()}</div>`);
+      }
+    }
+    return result;
+  };
+
+  const previousStudentResultsV2 = window.studentResults;
+  if(typeof previousStudentResultsV2 === "function"){
+    window.studentResults = function(){
+      oneAttemptCleanup();
+      return arOnlyActiveTemporarily(()=>previousStudentResultsV2.apply(this, arguments));
+    };
+  }
+
+  // Save and sync wrappers that preserve archived attempts.
+  if(typeof window.save === "function"){
+    const prevSaveV2 = window.save;
+    window.save = function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return prevSaveV2.apply(this, arguments);
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+  if(typeof window.saveLocal === "function"){
+    const prevSaveLocalV2 = window.saveLocal;
+    window.saveLocal = function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return prevSaveLocalV2.apply(this, arguments);
+    };
+    try{ eval("saveLocal=window.saveLocal;"); }catch(e){}
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const prevStableWriteV2 = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await prevStableWriteV2.apply(this, arguments);
+    };
+    try{ eval("stableWriteRemoteItems=window.stableWriteRemoteItems;"); }catch(e){}
+  }
+  if(typeof window.pushRemote === "function"){
+    const prevPushV2 = window.pushRemote;
+    window.pushRemote = async function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await prevPushV2.apply(this, arguments);
+    };
+    try{ eval("pushRemote=window.pushRemote;"); }catch(e){}
+  }
+
+  setTimeout(()=>{
+    try{
+      if(oneAttemptCleanup()){
+        if(typeof saveLocal==="function") saveLocal();
+        if(typeof pushRemote==="function") pushRemote();
+      }
+    }catch(e){}
+  }, 1200);
+
+  try{
+    eval("oneAttemptCleanup=window.oneAttemptCleanup; studentQuizzes=window.studentQuizzes; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; submitDocAssignmentSimple=window.submitDocAssignmentSimple; submitDocAssignment=window.submitDocAssignment; review=window.review; studentResults=window.studentResults; adminResetSubmissionPanelHTML=window.adminResetSubmissionPanelHTML; refreshAdminResetPanel=window.refreshAdminResetPanel; adminResetSelectedStudentAttempt=window.adminResetSelectedStudentAttempt; adminResetWholeWorkAttempt=window.adminResetWholeWorkAttempt; oneAttemptDeleteRemoteDuplicates=window.oneAttemptDeleteRemoteDuplicates;");
+  }catch(e){}
+})();
+
+
+
+/* ===== RESET REATTEMPT TRUE FIX V3 =====
+   Final correction:
+   - Reset really releases the student's lock.
+   - Reset student is removed from the active submitted-students list.
+   - Student portal shows the work as open again after reset.
+   - Old submissions are preserved as archived history, not deleted.
+   - Works for quizzes/exercises and scanned/theory assignments.
+*/
+(function(){
+  if(window.__resetReattemptTrueFixV3) return;
+  window.__resetReattemptTrueFixV3 = true;
+
+  function rfEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function rfUid(prefix){
+    try{ if(typeof uid === "function") return uid(prefix); }catch(e){}
+    try{ if(typeof exUid === "function") return exUid(prefix); }catch(e){}
+    try{ if(typeof sqUid === "function") return sqUid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function rfNow(){
+    try{ if(typeof now === "function") return now(); }catch(e){}
+    try{ if(typeof exNow === "function") return exNow(); }catch(e){}
+    try{ if(typeof sqNow === "function") return sqNow(); }catch(e){}
+    return new Date().toLocaleString();
+  }
+  function rfStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function rfQuiz(id){
+    try{ if(typeof quiz === "function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>String(q.id)===String(id));
+  }
+  function rfDoc(id){
+    return (state.docAssignments||[]).find(a=>String(a.id)===String(id));
+  }
+  function rfSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
+    return "";
+  }
+  function rfComponentLabel(key){
+    try{
+      if(typeof reportComponents==="function"){
+        const c=reportComponents().find(x=>x.key===key);
+        if(c) return c.label;
+      }
+    }catch(e){}
+    return key || "Assessment";
+  }
+  function rfIsArchived(x){
+    return !!(x && (
+      x.adminReset === true ||
+      x._adminReset === true ||
+      x.resetReleased === true ||
+      x._resetArchived === true ||
+      x._oaArchivedDuplicate === true ||
+      x.archivedAttempt === true ||
+      x.archivedReason === "reset" ||
+      x.archivedReason === "duplicate" ||
+      x.resetAt
+    ));
+  }
+  function rfActiveSubmissions(){
+    return (state.submissions||[]).filter(s=>!rfIsArchived(s));
+  }
+  function rfActiveDocSubmissions(){
+    return (state.docSubmissions||[]).filter(s=>!rfIsArchived(s));
+  }
+  function rfSubmittedQuiz(studentId, quizId){
+    return rfActiveSubmissions().some(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId));
+  }
+  function rfSubmittedDoc(studentId, assignmentId){
+    return rfActiveDocSubmissions().some(s=>String(s.studentId)===String(studentId) && String(s.assignmentId)===String(assignmentId));
+  }
+  function rfQuizSub(studentId, quizId){
+    return rfActiveSubmissions().find(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId));
+  }
+  function rfDocSub(studentId, assignmentId){
+    return rfActiveDocSubmissions().find(s=>String(s.studentId)===String(studentId) && String(s.assignmentId)===String(assignmentId));
+  }
+  function rfTimeVal(x, fallback){
+    const t = new Date(x?.submittedAt || x?.createdAt || x?._stableRemoteUpdatedAt || "").getTime();
+    return Number.isFinite(t) ? t : fallback;
+  }
+  function rfMarkArchived(item, reason, scope, note){
+    item.adminReset = reason === "reset";
+    item._resetArchived = reason === "reset";
+    item._oaArchivedDuplicate = reason === "duplicate";
+    item.archivedAttempt = true;
+    item.archivedReason = reason;
+    item.resetReleased = reason === "reset";
+    item.resetScope = scope || item.resetScope || "";
+    item.resetReason = note || item.resetReason || "";
+    item.resetBy = reason === "reset" ? "Admin" : item.resetBy || "";
+    item.resetAt = reason === "reset" ? rfNow() : item.resetAt;
+    item.archivedAt = item.archivedAt || rfNow();
+    return item;
+  }
+
+  // Clean duplicates by archiving later duplicates. Do not remove any submission data.
+  window.oneAttemptCleanup = function(){
+    if(!state) return false;
+    if(!Array.isArray(state.submissions)) state.submissions = [];
+    if(!Array.isArray(state.docSubmissions)) state.docSubmissions = [];
+    let changed = false;
+
+    [["submissions","quizId"],["docSubmissions","assignmentId"]].forEach(([bucket,idField])=>{
+      const groups = new Map();
+      (state[bucket]||[]).forEach((item,index)=>{
+        if(!item || !item.studentId || !item[idField] || rfIsArchived(item)) return;
+        const key = String(item.studentId)+"|"+String(item[idField]);
+        if(!groups.has(key)) groups.set(key,[]);
+        groups.get(key).push({item,index});
+      });
+      groups.forEach(list=>{
+        if(list.length <= 1) return;
+        list.sort((a,b)=>rfTimeVal(a.item,a.index)-rfTimeVal(b.item,b.index));
+        list.slice(1).forEach(x=>{
+          rfMarkArchived(x.item,"duplicate","duplicate-cleanup","Duplicate attempt archived automatically.");
+          changed = true;
+        });
+      });
+    });
+
+    // Critical: never delete remote rows.
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return changed;
+  };
+  window.oneAttemptDeleteRemoteDuplicates = async function(){ window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]}; return false; };
+
+  async function rfPullFresh(){
+    try{
+      if(typeof stablePullRemote === "function"){
+        await stablePullRemote(true);
+        oneAttemptCleanup();
+      }
+    }catch(e){ console.warn("Fresh pull skipped", e); }
+  }
+  async function rfSaveNow(){
+    oneAttemptCleanup();
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+    try{
+      if(typeof pushRemote === "function"){
+        await pushRemote();
+      }else if(typeof save === "function"){
+        save();
+      }
+    }catch(e){
+      console.warn("Immediate online save skipped; normal autosave may continue.", e);
+      try{ if(typeof save === "function") save(); }catch(err){}
+    }
+  }
+
+  function rfWorkVisible(item, st){
+    if(!item || !st) return false;
+    const statusOk = String(item.status||"").toLowerCase() === "published";
+    const subj = rfSubjectForClass(st.className);
+    const subjectOk = !item.subject || !subj || item.subject === subj;
+    const classOk = !Array.isArray(item.classNames) || !item.classNames.length || item.classNames.includes(st.className);
+    return statusOk && subjectOk && classOk;
+  }
+  function rfAvailableQuizzes(){
+    const st = rfStudent(currentStudentId);
+    if(!st) return [];
+    return (state.quizzes||[]).filter(q=>rfWorkVisible(q,st));
+  }
+  function rfAvailableDocs(){
+    const st = rfStudent(currentStudentId);
+    if(!st) return [];
+    return (state.docAssignments||[]).filter(a=>rfWorkVisible(a,st));
+  }
+
+  window.studentQuizzes = function(){
+    oneAttemptCleanup();
+    const st = rfStudent(currentStudentId);
+    if(!st){ role="guest"; route="studentLogin"; return renderShell(); }
+
+    const qs = rfAvailableQuizzes();
+    const docs = rfAvailableDocs();
+    const openCount = qs.filter(q=>!rfSubmittedQuiz(st.id,q.id)).length + docs.filter(a=>!rfSubmittedDoc(st.id,a.id)).length;
+    const closedCount = (qs.length + docs.length) - openCount;
+
+    const quizHTML = qs.map(q=>{
+      const sub = rfQuizSub(st.id,q.id);
+      const closed = !!sub;
+      return `<div class="${closed?'oneAttemptClosedCard':'quizCard'}">
+        <h3>${rfEsc(q.title)}</h3>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${rfEsc(rfComponentLabel(q.assessmentComponent||"ex1"))}</p>
+        ${closed ? `<span class="resetFixedClosedBadge">Submitted / Closed</span><div class="oneAttemptNotice">Submitted on ${rfEsc(sub.submittedAt||"")}. Only the admin can reset this work for another attempt.</div>` : `<span class="resetFixedOpenBadge">Open for Attempt</span><button class="btn green" onclick="takeQuiz('${rfEsc(q.id)}')">Start Exercise</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No multiple-choice exercise available now.</div>`;
+
+    const docHTML = docs.map(a=>{
+      const sub = rfDocSub(st.id,a.id);
+      const closed = !!sub;
+      const qFile = a.questionFile ? `<div class="scannedQuestionView"><b>Question Paper:</b> ${rfEsc(a.questionFile.name||"Question paper")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a class="btn light" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}</div>` : "";
+      return `<div class="${closed?'oneAttemptClosedCard':'docAssignmentCard'}">
+        <h3>${rfEsc(a.title)}</h3>
+        <p>${rfEsc(a.instructions||"Open the question, solve it, scan and submit.")}</p>
+        <p>Maximum score: ${rfEsc(a.maxScore ?? "")} • Component: ${rfEsc(rfComponentLabel(a.assessmentComponent||"ex1"))}</p>
+        ${qFile}
+        ${closed ? `<span class="resetFixedClosedBadge">Submitted / Closed</span><div class="oneAttemptNotice">Submitted on ${rfEsc(sub.submittedAt||"")}. Only the admin can reset this work for another attempt.</div>` : `<span class="resetFixedOpenBadge">Open for Attempt</span><button class="btn green" onclick="openDocSubmitSimple('${rfEsc(a.id)}')">Submit My Answer Script</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory work available now.</div>`;
+
+    document.getElementById("view").innerHTML = `<div class="studentSimpleNotice">
+      <h2>My Assignments</h2>
+      <ol>
+        <li>Each work can be submitted <b>only once</b>.</li>
+        <li>After admin reset, the work becomes open again for the affected student(s).</li>
+        <li>After resubmission, the work will close again.</li>
+      </ol>
+      <div class="toolbar"><span class="resetFixedOpenBadge">${openCount} open work(s)</span><span class="resetFixedClosedBadge">${closedCount} submitted / closed</span><button class="btn light" onclick="refreshStudentWorkAfterReset()">Refresh Work Status</button></div>
+    </div>
+    <div class="card"><h2>Multiple-Choice Exercises</h2>${quizHTML}</div>
+    <div class="card"><h2>Theory / Scanned Work</h2>${docHTML}</div>`;
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  };
+
+  window.refreshStudentWorkAfterReset = async function(){
+    await rfPullFresh();
+    studentQuizzes();
+  };
+
+  window.openStudentAssignmentsAndQuizzes = async function(){
+    route="studentQuizzes";
+    await rfPullFresh();
+    studentQuizzes();
+    try{ if(typeof comm2InjectSide==="function") comm2InjectSide(); }catch(e){}
+  };
+
+  function rfAnswerHTML(q,i){
+    return `<div class="questionBox"><h3>Question ${i+1} (${q.marks||1} mark${(q.marks||1)>1?"s":""})</h3><div class="mathPreview">${rfEsc(q.prompt||"")}</div>
+      ${q.type==="mcq"?(q.choices||[]).map((c,j)=>`<label class="notice" style="display:block;margin:6px 0"><input type="radio" name="ans_${q.id}" value="${"ABCD"[j]}"> ${"ABCD"[j]}. ${rfEsc(c)}</label>`).join(""):q.type==="upload"?`<input type="file" name="ans_${q.id}" accept="image/*,.pdf">`:`<textarea name="ans_${q.id}" placeholder="Type your answer here"></textarea>`}
+    </div>`;
+  }
+
+  window.takeQuiz = async function(id){
+    await rfPullFresh();
+    oneAttemptCleanup();
+    if(rfSubmittedQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. It is closed for you. Ask the admin to reset it if you must attempt again.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const q = rfQuiz(id);
+    if(!q) return alert("This exercise is not available.");
+    document.getElementById("view").innerHTML = `<div class="card">
+      <h2>${rfEsc(q.title)}</h2>
+      <p>${rfEsc(q.subject||"")} • ${rfEsc((q.classNames||[]).join(", "))}</p>
+      <div class="resetFixedNotice">This work allows one submission only. After you submit, it will close for you.</div>
+      <form id="quizForm">${(q.questions||[]).map((qq,i)=>{ try{return typeof answerHTML==="function"?answerHTML(qq,i):rfAnswerHTML(qq,i);}catch(e){return rfAnswerHTML(qq,i);} }).join("")}</form>
+      <button class="btn green full" onclick="submitQuiz('${rfEsc(q.id)}')">Submit Quiz</button>
+    </div>`;
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  };
+
+  window.submitQuiz = function(id, auto){
+    oneAttemptCleanup();
+    if(rfSubmittedQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. A second submission is not allowed.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const q = rfQuiz(id);
+    const form = document.getElementById("quizForm");
+    if(!q || !form) return alert("This exercise is not open.");
+    let answers={}, score=0, max=0;
+    const fileReads=[];
+    (q.questions||[]).forEach(qq=>{
+      max += Number(qq.marks)||1;
+      const name = "ans_"+qq.id;
+      if(qq.type==="mcq"){
+        const v = form.querySelector(`[name="${name}"]:checked`)?.value || "";
+        answers[qq.id]=v;
+        if(v.toUpperCase()===String(qq.answer||"").toUpperCase()) score += Number(qq.marks)||1;
+      }else if(qq.type==="upload"){
+        const files=[...(form.querySelector(`[name="${name}"]`)?.files||[])];
+        if(files.length){
+          answers[qq.id]=[];
+          files.forEach(f=>fileReads.push(new Promise(res=>{
+            const r=new FileReader();
+            r.onload=()=>{answers[qq.id].push({name:f.name,type:f.type,data:r.result});res();};
+            r.readAsDataURL(f);
+          })));
+        }else answers[qq.id]="";
+      }else{
+        const v = form.querySelector(`[name="${name}"]`)?.value || "";
+        answers[qq.id]=v;
+        if(qq.type==="fill" && v.trim().toLowerCase()===String(qq.answer||"").trim().toLowerCase()) score += Number(qq.marks)||1;
+      }
+    });
+    const btn = event?.target;
+    if(btn){ btn.disabled=true; btn.textContent="Submitting..."; }
+    Promise.all(fileReads).then(async ()=>{
+      await rfPullFresh();
+      if(rfSubmittedQuiz(currentStudentId,id)){
+        alert("This exercise has already been submitted. A second submission is not allowed.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      state.submissions.push({id:rfUid("sub"),quizId:id,studentId:currentStudentId,answers,autoScore:score,teacherScore:null,maxScore:max,published:false,submittedAt:rfNow(),feedback:"",autoSubmitted:!!auto});
+      oneAttemptCleanup();
+      await rfSaveNow();
+      alert(auto ? "Time is up. Your exercise has been submitted automatically. This exercise is now closed for you." : "Submitted successfully. This exercise is now closed for you.");
+      setRoute("studentResults");
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+    }).finally(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="Submit Quiz"; }
+    });
+  };
+
+  window.openDocSubmitSimple = async function(id){
+    await rfPullFresh();
+    oneAttemptCleanup();
+    if(rfSubmittedDoc(currentStudentId,id)){
+      alert("You have already submitted this work. It is closed for you. Ask the admin to reset it if you must attempt again.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const a = rfDoc(id);
+    if(!a) return;
+    const old=document.getElementById("docSubmitOverlay");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="docSubmitOverlay" class="previewModal2">
+      <div class="previewBox2">
+        <div class="previewHead2"><h2>${rfEsc(a.title)}</h2><button onclick="document.getElementById('docSubmitOverlay').remove()">Close</button></div>
+        <div class="previewBody2">
+          <div class="studentSimpleNotice"><h2>Instructions</h2><ol><li>Open the question paper.</li><li>Solve the work in your exercise book.</li><li>Scan your answer pages as PDF or images.</li><li>Upload the scanned pages below and click Submit.</li></ol></div>
+          <div class="resetFixedNotice">This work allows one submission only. After you submit, it will close for you.</div>
+          ${a.questionFile?`<div class="scannedQuestionView"><b>Question Paper:</b> ${rfEsc(a.questionFile.name||"Question paper")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a class="btn light" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}</div>`:""}
+          <div class="docUploadBox"><input id="docFiles" type="file" multiple accept="image/*,.pdf"><p>Upload your scanned answer pages here. Images are best for digital marking.</p></div>
+          <button class="btn green full" onclick="submitDocAssignmentSimple('${rfEsc(a.id)}')">Submit Scanned Work</button>
+        </div>
+      </div>
+    </div>`);
+  };
+  window.openDocSubmit = window.openDocSubmitSimple;
+
+  function rfSubmitDoc(id){
+    oneAttemptCleanup();
+    if(rfSubmittedDoc(currentStudentId,id)){
+      alert("You have already submitted this work. A second submission is not allowed.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const files=[...(document.getElementById("docFiles")?.files||[])];
+    if(!files.length) return alert("Select at least one scanned page or PDF.");
+    const btn = event?.target;
+    if(btn){ btn.disabled=true; btn.textContent="Submitting..."; }
+    const reads=files.map(f=>new Promise(res=>{
+      const r=new FileReader();
+      r.onload=()=>res({name:f.name,type:f.type,data:r.result});
+      r.readAsDataURL(f);
+    }));
+    Promise.all(reads).then(async fileObjs=>{
+      await rfPullFresh();
+      if(rfSubmittedDoc(currentStudentId,id)){
+        alert("This work has already been submitted. A second submission is not allowed.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      state.docSubmissions.push({id:rfUid("docsub"),assignmentId:id,studentId:currentStudentId,files:fileObjs,score:null,feedback:"",published:false,submittedAt:rfNow(),markedFiles:[]});
+      oneAttemptCleanup();
+      await rfSaveNow();
+      alert("Your scanned work has been submitted. This work is now closed for you.");
+      document.getElementById("docSubmitOverlay")?.remove();
+      setRoute("studentResults");
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+    }).finally(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="Submit Scanned Work"; }
+    });
+  }
+  window.submitDocAssignmentSimple = function(id){ return rfSubmitDoc(id); };
+  window.submitDocAssignment = function(id){ return rfSubmitDoc(id); };
+
+  function rfWorks(){
+    const qs = (state.quizzes||[]).filter(q=>String(q.status||"").toLowerCase()==="published").map(q=>({type:"quiz",id:q.id,title:q.title||"Untitled Exercise",label:"Exercise / Quiz",subject:q.subject||"",classes:q.classNames||[],key:"quiz:"+q.id}));
+    const ds = (state.docAssignments||[]).filter(a=>String(a.status||"").toLowerCase()==="published").map(a=>({type:"doc",id:a.id,title:a.title||"Untitled Scanned Work",label:"Scanned / Theory Work",subject:a.subject||"",classes:a.classNames||[],key:"doc:"+a.id}));
+    return qs.concat(ds).sort((a,b)=>String(a.title).localeCompare(String(b.title), undefined, {sensitivity:"base"}));
+  }
+  function rfWorkByKey(key){
+    return rfWorks().find(w=>w.key===String(key)) || rfWorks()[0] || null;
+  }
+  function rfRowsForWork(key){
+    const w = rfWorkByKey(key);
+    if(!w) return [];
+    const source = w.type==="quiz" ? rfActiveSubmissions().filter(s=>String(s.quizId)===String(w.id)) : rfActiveDocSubmissions().filter(s=>String(s.assignmentId)===String(w.id));
+    const rows = source.map(s=>{
+      const st = rfStudent(s.studentId) || {};
+      return {student:st, submittedAt:s.submittedAt || "", score:w.type==="quiz"?(s.teacherScore ?? s.autoScore ?? ""):(s.score ?? ""), status:s.published ? "Published" : "Submitted"};
+    }).filter(r=>r.student && r.student.id);
+    return rows.sort((a,b)=>String(a.student.className||"").localeCompare(String(b.student.className||""), undefined, {numeric:true,sensitivity:"base"}) || String(a.student.name||"").localeCompare(String(b.student.name||""), undefined, {sensitivity:"base"}));
+  }
+
+  window.studentSubmissionOptions = function(){
+    oneAttemptCleanup();
+    const works = rfWorks().map(w=>({...w,count:rfRowsForWork(w.key).length}));
+    document.getElementById("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>Submitted Work Lists</h2>
+      <p>Select a work to view only students whose active submissions are currently captured. Students reset by admin are removed from the active submitted list until they submit again.</p>
+    </div>
+    <div class="submissionWorkGrid">
+      ${works.map(w=>`<div class="submissionWorkCard">
+        <span class="submissionBadge">${w.count} submitted</span>
+        <h3>${rfEsc(w.title)}</h3>
+        <p>${rfEsc(w.label)}<br>${rfEsc(w.subject)}<br>Classes: ${rfEsc((w.classes||[]).join(", ") || "All assigned classes")}</p>
+        <button class="btn green full" onclick="openStudentSubmittedList('${rfEsc(w.key)}')">View Submitted Students</button>
+      </div>`).join("") || `<div class="empty">No published assignment or quiz is available now.</div>`}
+    </div>`;
+  };
+
+  window.studentSubmittedList = function(){
+    oneAttemptCleanup();
+    const w = rfWorkByKey(window.publicWorkSelected || publicWorkSelected);
+    if(!w){
+      document.getElementById("view").innerHTML = `<div class="studentPublicHeader"><h2>Submitted Work List</h2><p>No published assignment or quiz is available now.</p></div>`;
+      return;
+    }
+    window.publicWorkSelected = w.key;
+    try{ publicWorkSelected = w.key; }catch(e){}
+    const rows = rfRowsForWork(w.key);
+    document.getElementById("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>${rfEsc(w.title)}</h2>
+      <p>${rfEsc(w.label)} • ${rows.length} active submitted record(s)</p>
+    </div>
+    <div class="studentViewToolbar">
+      <button class="navy" onclick="openStudentSubmissionOptions()">Back to Assignment Options</button>
+      <button class="gold" onclick="window.print()">Print List</button>
+    </div>
+    <div class="studentSubmissionTableWrap">
+      <table class="studentSubmissionTable">
+        <thead><tr><th>No.</th><th>Name</th><th>Class</th><th>Submission Status</th><th>Submitted At</th></tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${rfEsc(r.student.name)}</b></td><td>${rfEsc(r.student.className)}</td><td>${rfEsc(r.status)}</td><td>${rfEsc(r.submittedAt)}</td></tr>`).join("") || `<tr><td colspan="5">No active submission has been captured for this work yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  function rfArchiveForReset(sub, scope, reason){
+    rfMarkArchived(sub,"reset",scope,reason||"");
+    sub.resetAt = rfNow();
+    sub.archivedAt = sub.archivedAt || sub.resetAt;
+    return sub;
+  }
+
+  function rfResetPanelHTML(){
+    const works = rfWorks();
+    const selected = document.getElementById("resetWorkSelect")?.value || works[0]?.key || "";
+    const w = rfWorkByKey(selected);
+    const rows = rfRowsForWork(w?.key || selected);
+    return `<div class="resetControlPanel">
+      <h2>Admin Submission Reset Control</h2>
+      <p>Reset releases the lock. The selected student is removed from the active submitted list and the assignment appears again in the student's portal. Old submissions are preserved as archived history.</p>
+      <div class="resetControlGrid">
+        <div><label>Select Assignment / Exercise</label><select id="resetWorkSelect" onchange="refreshAdminResetPanel()">${works.map(x=>`<option value="${rfEsc(x.key)}" ${x.key===(w?.key||"")?"selected":""}>${rfEsc(x.title)} — ${rfEsc(x.label)}</option>`).join("")}</select></div>
+        <div><label>Select Submitted Student</label><select id="resetStudentSelect">${rows.map(r=>`<option value="${rfEsc(r.student.id)}">${rfEsc(r.student.name)} — ${rfEsc(r.student.className||"")}</option>`).join("") || `<option value="">No active submission for this work</option>`}</select></div>
+        <div><label>Reason / Note</label><input id="resetReasonInput" placeholder="Example: wrong upload, network issue"></div>
+      </div>
+      <div class="resetActionRow">
+        <button class="green" onclick="adminResetSelectedStudentAttempt()">Reset Selected Student</button>
+        <button class="red" onclick="adminResetWholeWorkAttempt()">Reset This Assignment for All Submitted Students</button>
+        <button class="navy" onclick="review()">Refresh Review Page</button>
+      </div>
+      <div class="resetMiniSummary">
+        <span>Active submitted students for selected work: ${rows.length}</span>
+        <span>Reset students will disappear from the submitted list until they submit again.</span>
+      </div>
+    </div>`;
+  }
+  window.adminResetSubmissionPanelHTML = rfResetPanelHTML;
+  window.refreshAdminResetPanel = function(){
+    const holder = document.getElementById("adminResetSubmissionPanelHolder");
+    if(holder) holder.innerHTML = rfResetPanelHTML();
+  };
+
+  window.adminResetSelectedStudentAttempt = async function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    oneAttemptCleanup();
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const studentId = document.getElementById("resetStudentSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const w = rfWorkByKey(key);
+    if(!w || !studentId) return alert("Select an assignment and a submitted student first.");
+    const source = w.type==="quiz" ? rfActiveSubmissions().filter(s=>String(s.quizId)===String(w.id) && String(s.studentId)===String(studentId)) : rfActiveDocSubmissions().filter(s=>String(s.assignmentId)===String(w.id) && String(s.studentId)===String(studentId));
+    if(!source.length) return alert("This student is not currently in the active submitted list for the selected work.");
+    const st = rfStudent(studentId) || {};
+    if(!confirm(`Reset ${st.name || "this student"} for "${w.title}"? The student will be removed from the submitted list and can attempt again. The old submission will be preserved.`)) return;
+    source.forEach(s=>rfArchiveForReset(s,"single-student",reason));
+    await rfSaveNow();
+    alert("Reset completed. The student has been removed from the active submitted list and can now attempt the work again.");
+    review();
+  };
+
+  window.adminResetWholeWorkAttempt = async function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    oneAttemptCleanup();
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const w = rfWorkByKey(key);
+    if(!w) return alert("Select an assignment first.");
+    const source = w.type==="quiz" ? rfActiveSubmissions().filter(s=>String(s.quizId)===String(w.id)) : rfActiveDocSubmissions().filter(s=>String(s.assignmentId)===String(w.id));
+    if(!source.length) return alert("There is no active submitted student for the selected work.");
+    if(!confirm(`Reset "${w.title}" for all ${source.length} submitted student(s)? They will be removed from the submitted list and can attempt again. Old submissions will be preserved.`)) return;
+    source.forEach(s=>rfArchiveForReset(s,"whole-assignment",reason));
+    await rfSaveNow();
+    alert("General reset completed. All selected submitted students have been removed from the active submitted list and can now attempt again.");
+    review();
+  };
+
+  function rfArchivedPanelHTML(){
+    const rows = []
+      .concat((state.submissions||[]).filter(rfIsArchived).map(s=>({student:rfStudent(s.studentId)||{}, title:(rfQuiz(s.quizId)||{}).title||"Exercise", submittedAt:s.submittedAt, archivedAt:s.archivedAt||s.resetAt, reason:s.resetReason||s.archivedReason||"", type:"Exercise / Quiz"})))
+      .concat((state.docSubmissions||[]).filter(rfIsArchived).map(s=>({student:rfStudent(s.studentId)||{}, title:(rfDoc(s.assignmentId)||{}).title||"Scanned Work", submittedAt:s.submittedAt, archivedAt:s.archivedAt||s.resetAt, reason:s.resetReason||s.archivedReason||"", type:"Scanned / Theory"})));
+    if(!rows.length) return "";
+    return `<details class="archivedAttemptsPanel">
+      <summary>Preserved Archived / Reset Attempts (${rows.length})</summary>
+      <p style="color:#667085;font-weight:850">These are preserved records. They do not count as active submitted students after reset.</p>
+      ${rows.slice(0,120).map(r=>`<div class="archivedAttemptItem"><b>${rfEsc(r.student.name||"Student")}</b> — ${rfEsc(r.title)}<small>${rfEsc(r.type)} • Submitted: ${rfEsc(r.submittedAt||"")} • Archived: ${rfEsc(r.archivedAt||"")} • Reason: ${rfEsc(r.reason||"")}</small></div>`).join("")}
+      ${rows.length>120?`<p><b>${rows.length-120} more archived records preserved.</b></p>`:""}
+    </details>`;
+  }
+
+  function rfWithActiveOnly(fn){
+    const a = state.submissions;
+    const b = state.docSubmissions;
+    state.submissions = rfActiveSubmissions();
+    state.docSubmissions = rfActiveDocSubmissions();
+    try{ return fn(); }
+    finally{ state.submissions = a; state.docSubmissions = b; }
+  }
+
+  const prevReview = window.review;
+  window.review = function(){
+    oneAttemptCleanup();
+    const result = prevReview ? rfWithActiveOnly(()=>prevReview.apply(this, arguments)) : undefined;
+    const view = document.getElementById("view");
+    if(view){
+      let holder = document.getElementById("adminResetSubmissionPanelHolder");
+      if(!holder){
+        view.insertAdjacentHTML("afterbegin", `<div id="adminResetSubmissionPanelHolder">${rfResetPanelHTML()}</div>`);
+      }else{
+        holder.innerHTML = rfResetPanelHTML();
+      }
+      let archived = document.getElementById("archivedAttemptsPanelInjected");
+      if(archived) archived.remove();
+      view.insertAdjacentHTML("beforeend", `<div id="archivedAttemptsPanelInjected">${rfArchivedPanelHTML()}</div>`);
+    }
+    return result;
+  };
+
+  const prevStudentResults = window.studentResults;
+  if(typeof prevStudentResults === "function"){
+    window.studentResults = function(){
+      oneAttemptCleanup();
+      return rfWithActiveOnly(()=>prevStudentResults.apply(this, arguments));
+    };
+  }
+
+  window.rpSubmittedRows = function(){
+    const rows = [];
+    rfActiveDocSubmissions().forEach(ds=>{
+      const st = rfStudent(ds.studentId)||{};
+      const a = rfDoc(ds.assignmentId)||{};
+      rows.push({type:"Scanned / Written Work", typeKey:"scanned", studentId:ds.studentId, studentName:st.name||"Student", className:st.className||"", subject:a.subject||rfSubjectForClass(st.className)||"", workId:ds.assignmentId||"", workTitle:a.title||"Scanned/Theory Assignment", submittedAt:ds.submittedAt||"", score:ds.score ?? "", maxScore:a.maxScore ?? "", published:!!ds.published, status:ds.published?"Marked / Published":"Submitted / Not Published", feedback:ds.feedback||""});
+    });
+    rfActiveSubmissions().forEach(s=>{
+      const st = rfStudent(s.studentId)||{};
+      const q = rfQuiz(s.quizId)||{};
+      rows.push({type:"Timed MCQ Exercise", typeKey:"timed", studentId:s.studentId, studentName:st.name||"Student", className:st.className||"", subject:q.subject||rfSubjectForClass(st.className)||"", workId:s.quizId||"", workTitle:q.title||"Quiz / Exercise", submittedAt:s.submittedAt||"", score:s.teacherScore ?? s.autoScore ?? "", maxScore:s.maxScore ?? "", published:!!s.published, status:s.published?"Result Published":"Submitted / Result Not Published", feedback:s.feedback||""});
+    });
+    return rows.sort((a,b)=>String(a.className).localeCompare(String(b.className),undefined,{numeric:true,sensitivity:"base"}) || String(a.studentName).localeCompare(String(b.studentName),undefined,{sensitivity:"base"}) || String(a.workTitle).localeCompare(String(b.workTitle),undefined,{sensitivity:"base"}));
+  };
+
+  // Wrappers for saving/syncing: preserve archived records and never remote-delete submissions.
+  if(typeof window.save === "function"){
+    const prevSave = window.save;
+    window.save = function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return prevSave.apply(this, arguments);
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+  if(typeof window.saveLocal === "function"){
+    const prevSaveLocal = window.saveLocal;
+    window.saveLocal = function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return prevSaveLocal.apply(this, arguments);
+    };
+    try{ eval("saveLocal=window.saveLocal;"); }catch(e){}
+  }
+  if(typeof window.pushRemote === "function"){
+    const prevPush = window.pushRemote;
+    window.pushRemote = async function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await prevPush.apply(this, arguments);
+    };
+    try{ eval("pushRemote=window.pushRemote;"); }catch(e){}
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const prevWrite = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await prevWrite.apply(this, arguments);
+    };
+    try{ eval("stableWriteRemoteItems=window.stableWriteRemoteItems;"); }catch(e){}
+  }
+
+  setTimeout(()=>{
+    try{
+      if(oneAttemptCleanup()){
+        if(typeof saveLocal==="function") saveLocal();
+        if(typeof pushRemote==="function") pushRemote();
+      }
+    }catch(e){}
+  }, 1200);
+
+  try{
+    eval("oneAttemptCleanup=window.oneAttemptCleanup; oneAttemptDeleteRemoteDuplicates=window.oneAttemptDeleteRemoteDuplicates; studentQuizzes=window.studentQuizzes; refreshStudentWorkAfterReset=window.refreshStudentWorkAfterReset; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; openDocSubmitSimple=window.openDocSubmitSimple; openDocSubmit=window.openDocSubmit; submitDocAssignmentSimple=window.submitDocAssignmentSimple; submitDocAssignment=window.submitDocAssignment; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList; adminResetSubmissionPanelHTML=window.adminResetSubmissionPanelHTML; refreshAdminResetPanel=window.refreshAdminResetPanel; adminResetSelectedStudentAttempt=window.adminResetSelectedStudentAttempt; adminResetWholeWorkAttempt=window.adminResetWholeWorkAttempt; review=window.review; studentResults=window.studentResults; rpSubmittedRows=window.rpSubmittedRows;");
+  }catch(e){}
+})();
+
+
+
+/* ===== RESTORE SUBMISSIONS + AVAILABLE WORK FINAL V4 =====
+   Clean fix from the stable pre-guest version:
+   - Removes the guest-mode/button-repair changes by using this pre-guest base.
+   - Restores all submissions hidden by previous archive flags.
+   - Does not delete any submission.
+   - Uses a separate admin reset log instead of changing old submissions.
+   - View Available Assignments / Quizzes opens directly.
+   - Submitted-students list shows all active submitted students again.
+*/
+(function(){
+  if(window.__restoreSubmissionsAvailableWorkFinalV4) return;
+  window.__restoreSubmissionsAvailableWorkFinalV4 = true;
+
+  function rxEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function rxUid(prefix){
+    try{ if(typeof uid === "function") return uid(prefix); }catch(e){}
+    try{ if(typeof exUid === "function") return exUid(prefix); }catch(e){}
+    try{ if(typeof sqUid === "function") return sqUid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function rxNowText(){
+    try{ if(typeof now === "function") return now(); }catch(e){}
+    return new Date().toLocaleString();
+  }
+  function rxNowMs(){ return Date.now(); }
+  function rxTime(x){
+    if(!x) return 0;
+    if(typeof x === "number") return x;
+    const t = new Date(x).getTime();
+    return Number.isFinite(t) ? t : 0;
+  }
+  function rxStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function rxQuiz(id){
+    try{ if(typeof quiz === "function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>String(q.id)===String(id));
+  }
+  function rxDoc(id){
+    return (state.docAssignments||[]).find(a=>String(a.id)===String(id));
+  }
+  function rxSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
+    const subj = (state.subjects||[]).find(x=>(x.classes||[]).includes(cls));
+    return subj ? subj.name : "";
+  }
+  function rxComponentLabel(key){
+    try{
+      if(typeof reportComponents==="function"){
+        const c=reportComponents().find(x=>x.key===key);
+        if(c) return c.label;
+      }
+    }catch(e){}
+    return key || "Assessment";
+  }
+  function rxEnsure(){
+    state.attemptResets = Array.isArray(state.attemptResets) ? state.attemptResets : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.docSubmissions = Array.isArray(state.docSubmissions) ? state.docSubmissions : [];
+  }
+
+  function rxClearBadArchiveFlags(item){
+    if(!item) return false;
+    const keys = ["adminReset","_adminReset","resetReleased","_resetArchived","_oaArchivedDuplicate","archivedAttempt","archivedReason","resetAt","archivedAt","resetScope","resetReason","resetBy","duplicateArchivedAt"];
+    let changed = false;
+    keys.forEach(k=>{
+      if(Object.prototype.hasOwnProperty.call(item,k)){
+        delete item[k];
+        changed = true;
+      }
+    });
+    return changed;
+  }
+
+  window.restoreAllHiddenSubmissions = function(){
+    rxEnsure();
+    let changed = false;
+    state.submissions.forEach(s=>{ if(rxClearBadArchiveFlags(s)) changed = true; });
+    state.docSubmissions.forEach(s=>{ if(rxClearBadArchiveFlags(s)) changed = true; });
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return changed;
+  };
+
+  // Disable previous scripts that hid/deleted rows. Nothing is deleted.
+  window.oneAttemptDeleteRemoteDuplicates = async function(){
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return false;
+  };
+  window.oneAttemptCleanup = function(){
+    rxEnsure();
+    restoreAllHiddenSubmissions();
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return false;
+  };
+
+  function rxSave(){
+    rxEnsure();
+    restoreAllHiddenSubmissions();
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+    try{ if(typeof pushRemote === "function") return pushRemote(); }catch(e){}
+    try{ if(typeof save === "function") return save(); }catch(e){}
+  }
+  async function rxFresh(){
+    try{
+      if(typeof stablePullRemote === "function") await stablePullRemote(true);
+    }catch(e){ console.warn("Remote refresh skipped", e); }
+    restoreAllHiddenSubmissions();
+  }
+
+  function rxWorkType(type){ return type === "doc" ? "doc" : "quiz"; }
+  function rxLatestReset(type, workId, studentId){
+    rxEnsure();
+    type = rxWorkType(type);
+    let t = 0;
+    (state.attemptResets||[]).forEach(r=>{
+      if(!r || String(r.type)!==String(type) || String(r.workId)!==String(workId)) return;
+      if(String(r.studentId)===String(studentId) || r.studentId === "ALL"){
+        t = Math.max(t, Number(r.resetMs || 0), rxTime(r.resetAt));
+      }
+    });
+    return t;
+  }
+  function rxSubmissionTime(s){ return rxTime(s?.submittedAt) || 1; }
+  function rxActiveQuizSubmissions(qid, studentId){
+    rxEnsure();
+    return state.submissions
+      .filter(s=>String(s.quizId)===String(qid) && (!studentId || String(s.studentId)===String(studentId)))
+      .filter(s=>rxSubmissionTime(s) > rxLatestReset("quiz", qid, s.studentId))
+      .sort((a,b)=>rxSubmissionTime(a)-rxSubmissionTime(b));
+  }
+  function rxActiveDocSubmissions(aid, studentId){
+    rxEnsure();
+    return state.docSubmissions
+      .filter(s=>String(s.assignmentId)===String(aid) && (!studentId || String(s.studentId)===String(studentId)))
+      .filter(s=>rxSubmissionTime(s) > rxLatestReset("doc", aid, s.studentId))
+      .sort((a,b)=>rxSubmissionTime(a)-rxSubmissionTime(b));
+  }
+  function rxOfficialFirstPerStudent(rows, type){
+    const seen = new Map();
+    rows.forEach(s=>{
+      const sid = String(s.studentId||"");
+      if(!sid) return;
+      if(!seen.has(sid)) seen.set(sid, s);
+    });
+    return [...seen.values()];
+  }
+  function rxHasQuiz(studentId, qid){ return rxActiveQuizSubmissions(qid, studentId).length > 0; }
+  function rxHasDoc(studentId, aid){ return rxActiveDocSubmissions(aid, studentId).length > 0; }
+  function rxQuizSub(studentId, qid){ return rxActiveQuizSubmissions(qid, studentId)[0]; }
+  function rxDocSub(studentId, aid){ return rxActiveDocSubmissions(aid, studentId)[0]; }
+
+  window.hasSubmittedQuiz = function(studentId,qid){ return rxHasQuiz(studentId,qid); };
+  window.swQuizSubmitted = function(qid){ return rxHasQuiz(currentStudentId,qid); };
+  window.swDocSubmitted = function(aid){ return rxHasDoc(currentStudentId,aid); };
+
+  function rxVisibleWork(item, st){
+    if(!item || !st) return false;
+    const statusOk = String(item.status||"").toLowerCase() === "published";
+    const subj = rxSubjectForClass(st.className);
+    const subjectOk = !item.subject || !subj || item.subject === subj;
+    const classOk = !Array.isArray(item.classNames) || !item.classNames.length || item.classNames.includes(st.className);
+    return statusOk && subjectOk && classOk;
+  }
+  function rxQuizzes(){
+    const st = rxStudent(currentStudentId);
+    if(!st) return [];
+    return (state.quizzes||[]).filter(q=>rxVisibleWork(q,st));
+  }
+  function rxDocs(){
+    const st = rxStudent(currentStudentId);
+    if(!st) return [];
+    return (state.docAssignments||[]).filter(a=>rxVisibleWork(a,st));
+  }
+
+  window.fixedStudentQuickPanelHTML = function(){
+    const qOpen = rxQuizzes().filter(q=>!rxHasQuiz(currentStudentId,q.id)).length;
+    const dOpen = rxDocs().filter(a=>!rxHasDoc(currentStudentId,a.id)).length;
+    return `<div class="restoreWorkPanel" id="fixedAvailableWorkPanel">
+      <h2>Assignments and Quizzes</h2>
+      <p>Click below to view all available assignments, quizzes, exercises, and scanned/theory work assigned to your class.</p>
+      <div class="restoreWorkActions">
+        <button type="button" class="btn green" onclick="forceOpenAvailableAssignments(); return false;">📚 View Available Assignments / Quizzes ${qOpen+dOpen?`(${qOpen+dOpen} open)`:""}</button>
+        <button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">✅ View Submitted Work / Marked Scripts</button>
+        <button type="button" class="btn gold" onclick="studentHome(); return false;">🔄 Refresh My Portal</button>
+      </div>
+    </div>`;
+  };
+
+  window.forceRenderAvailableAssignments = function(){
+    rxEnsure();
+    restoreAllHiddenSubmissions();
+    const st = rxStudent(currentStudentId);
+    if(!st){
+      role = "guest";
+      route = "studentLogin";
+      return renderShell();
+    }
+    route = "studentQuizzes";
+    const qs = rxQuizzes();
+    const docs = rxDocs();
+    const openCount = qs.filter(q=>!rxHasQuiz(st.id,q.id)).length + docs.filter(a=>!rxHasDoc(st.id,a.id)).length;
+    const closedCount = (qs.length + docs.length) - openCount;
+
+    const qHTML = qs.map(q=>{
+      const sub = rxQuizSub(st.id,q.id);
+      const closed = !!sub;
+      return `<div class="restoreWorkCard ${closed?'oneAttemptClosedCard':''}">
+        <h3>${rxEsc(q.title || "Exercise")}</h3>
+        <span class="${closed?'restoreClosedBadge':'restoreOpenBadge'}">${closed?'Submitted / Closed':'Available Now'}</span>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${rxEsc(rxComponentLabel(q.assessmentComponent||""))}</p>
+        ${closed ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Result</button>` : `<button type="button" class="btn green" onclick="takeQuiz('${rxEsc(q.id)}'); return false;">Start Exercise</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No multiple-choice quiz or exercise is available now.</div>`;
+
+    const dHTML = docs.map(a=>{
+      const sub = rxDocSub(st.id,a.id);
+      const closed = !!sub;
+      const qFile = a.questionFile ? `<div class="studentQuestionPreview"><b>Question Paper:</b> ${rxEsc(a.questionFile.name||"Question paper")}
+        ${String(a.questionFile.type||"").startsWith("image/") || String(a.questionFile.data||"").startsWith("data:image") ? `<img src="${a.questionFile.data}" alt="Question paper">` : `<p><a class="studentDownloadBtn" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}
+      </div>` : "";
+      return `<div class="restoreWorkCard ${closed?'oneAttemptClosedCard':''}">
+        <h3>${rxEsc(a.title || "Scanned / Theory Work")}</h3>
+        <span class="${closed?'restoreClosedBadge':'restoreOpenBadge'}">${closed?'Submitted / Closed':'Available Now'}</span>
+        <p>${rxEsc(a.instructions || "Open the question paper, solve, scan and submit.")}</p>
+        <p>Maximum score: ${rxEsc(a.maxScore ?? "")} • ${rxEsc(rxComponentLabel(a.assessmentComponent||""))}</p>
+        ${qFile}
+        ${closed ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Work</button>` : `<button type="button" class="btn green" onclick="openDocSubmitSimple('${rxEsc(a.id)}'); return false;">Submit My Answer Script</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory work is available now.</div>`;
+
+    const view = document.getElementById("view");
+    if(!view) return;
+    view.innerHTML = `<div class="restoreAssignmentCentre">
+      <div class="restoreAssignmentHero">
+        <h2>Available Assignments and Quizzes</h2>
+        <p>${rxEsc(st.name || "Student")} • ${rxEsc(st.className || "")}. Select the work assigned to you. After you submit, that work closes for you unless the admin resets it.</p>
+        <div class="toolbar"><span class="restoreOpenBadge">${openCount} open</span><span class="restoreClosedBadge">${closedCount} submitted / closed</span><button type="button" class="btn light" onclick="forceOpenAvailableAssignments(); return false;">Refresh Available Work</button></div>
+      </div>
+      <div class="card"><h2>Multiple-Choice Exercises / Quizzes</h2><div class="restoreWorkCards">${qHTML}</div></div>
+      <div class="card"><h2>Theory / Scanned Work</h2><div class="restoreWorkCards">${dHTML}</div></div>
+    </div>`;
+    try{ if(typeof typeset === "function") typeset(); }catch(e){}
+  };
+
+  window.forceOpenAvailableAssignments = async function(){
+    route = "studentQuizzes";
+    await rxFresh();
+    forceRenderAvailableAssignments();
+    try{ if(typeof comm2InjectSide === "function") comm2InjectSide(); }catch(e){}
+  };
+  window.openStudentAssignmentsAndQuizzes = function(){ return forceOpenAvailableAssignments(); };
+  window.studentQuizzes = function(){ return forceRenderAvailableAssignments(); };
+
+  const oldStudentHomeRestore = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHomeRestore ? oldStudentHomeRestore.apply(this, arguments) : undefined;
+    restoreAllHiddenSubmissions();
+    const view = document.getElementById("view");
+    if(view){
+      const oldFixed = document.getElementById("fixedAvailableWorkPanel");
+      if(oldFixed) oldFixed.remove();
+      view.insertAdjacentHTML("afterbegin", fixedStudentQuickPanelHTML());
+    }
+    return result;
+  };
+
+  const oldTakeQuizRestore = window.takeQuiz;
+  window.takeQuiz = async function(id){
+    await rxFresh();
+    if(rxHasQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. It is closed for you. Ask the admin to reset it if you must attempt again.");
+      route = "studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldTakeQuizRestore ? oldTakeQuizRestore.apply(this, arguments) : undefined;
+  };
+
+  const oldSubmitQuizRestore = window.submitQuiz;
+  window.submitQuiz = function(id, auto){
+    restoreAllHiddenSubmissions();
+    if(rxHasQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. A second submission is not allowed.");
+      route = "studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldSubmitQuizRestore ? oldSubmitQuizRestore.apply(this, arguments) : undefined;
+  };
+
+  const oldOpenDocSubmitRestore = window.openDocSubmitSimple || window.openDocSubmit;
+  window.openDocSubmitSimple = async function(id){
+    await rxFresh();
+    if(rxHasDoc(currentStudentId,id)){
+      alert("You have already submitted this work. It is closed for you. Ask the admin to reset it if you must attempt again.");
+      route = "studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldOpenDocSubmitRestore ? oldOpenDocSubmitRestore.apply(this, arguments) : undefined;
+  };
+  window.openDocSubmit = window.openDocSubmitSimple;
+
+  const oldSubmitDocRestore = window.submitDocAssignmentSimple || window.submitDocAssignment;
+  window.submitDocAssignmentSimple = function(id){
+    restoreAllHiddenSubmissions();
+    if(rxHasDoc(currentStudentId,id)){
+      alert("You have already submitted this work. A second submission is not allowed.");
+      route = "studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldSubmitDocRestore ? oldSubmitDocRestore.apply(this, arguments) : undefined;
+  };
+  window.submitDocAssignment = window.submitDocAssignmentSimple;
+
+  function rxWorks(){
+    const qs = (state.quizzes||[]).filter(q=>String(q.status||"").toLowerCase()==="published").map(q=>({type:"quiz",id:q.id,title:q.title||"Untitled Exercise",label:"Exercise / Quiz",subject:q.subject||"",classes:q.classNames||[],key:"quiz:"+q.id}));
+    const ds = (state.docAssignments||[]).filter(a=>String(a.status||"").toLowerCase()==="published").map(a=>({type:"doc",id:a.id,title:a.title||"Untitled Scanned Work",label:"Scanned / Theory Work",subject:a.subject||"",classes:a.classNames||[],key:"doc:"+a.id}));
+    return qs.concat(ds).sort((a,b)=>String(a.title).localeCompare(String(b.title), undefined, {sensitivity:"base"}));
+  }
+  function rxWorkByKey(key){
+    return rxWorks().find(w=>w.key===String(key)) || rxWorks()[0] || null;
+  }
+  function rxRowsForWork(key){
+    const w = rxWorkByKey(key);
+    if(!w) return [];
+    const raw = w.type === "quiz" ? rxActiveQuizSubmissions(w.id) : rxActiveDocSubmissions(w.id);
+    const official = rxOfficialFirstPerStudent(raw, w.type);
+    return official.map(s=>{
+      const st = rxStudent(s.studentId) || {};
+      return {student:st, sub:s, submittedAt:s.submittedAt||"", score:w.type==="quiz"?(s.teacherScore ?? s.autoScore ?? ""):(s.score ?? ""), status:s.published?"Published":"Submitted"};
+    }).filter(r=>r.student && r.student.id).sort((a,b)=>
+      String(a.student.className||"").localeCompare(String(b.student.className||""), undefined, {numeric:true,sensitivity:"base"}) ||
+      String(a.student.name||"").localeCompare(String(b.student.name||""), undefined, {sensitivity:"base"})
+    );
+  }
+
+  window.studentSubmissionOptions = function(){
+    restoreAllHiddenSubmissions();
+    const works = rxWorks().map(w=>({...w,count:rxRowsForWork(w.key).length}));
+    document.getElementById("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>Submitted Work Lists</h2>
+      <p>Select an assignment, exercise, quiz, or scanned work to view the students whose active submissions have been captured.</p>
+    </div>
+    <div class="submissionWorkGrid">
+      ${works.map(w=>`<div class="submissionWorkCard">
+        <span class="submissionBadge">${w.count} submitted</span>
+        <h3>${rxEsc(w.title)}</h3>
+        <p>${rxEsc(w.label)}<br>${rxEsc(w.subject)}<br>Classes: ${rxEsc((w.classes||[]).join(", ") || "All assigned classes")}</p>
+        <button class="btn green full" onclick="openStudentSubmittedList('${rxEsc(w.key)}')">View Submitted Students</button>
+      </div>`).join("") || `<div class="empty">No published assignment or quiz is available now.</div>`}
+    </div>`;
+  };
+
+  window.studentSubmittedList = function(){
+    restoreAllHiddenSubmissions();
+    const w = rxWorkByKey(window.publicWorkSelected || (typeof publicWorkSelected!=="undefined"?publicWorkSelected:""));
+    if(!w){
+      document.getElementById("view").innerHTML = `<div class="studentPublicHeader"><h2>Submitted Work List</h2><p>No published assignment or quiz is available now.</p></div>`;
+      return;
+    }
+    window.publicWorkSelected = w.key;
+    try{ publicWorkSelected = w.key; }catch(e){}
+    const rows = rxRowsForWork(w.key);
+    document.getElementById("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>${rxEsc(w.title)}</h2>
+      <p>${rxEsc(w.label)} • ${rows.length} submitted record(s)</p>
+    </div>
+    <div class="studentViewToolbar">
+      <button class="navy" onclick="openStudentSubmissionOptions()">Back to Assignment Options</button>
+      <button class="gold" onclick="window.print()">Print List</button>
+    </div>
+    <div class="studentSubmissionTableWrap">
+      <table class="studentSubmissionTable">
+        <thead><tr><th>No.</th><th>Name</th><th>Class</th><th>Submission Status</th><th>Submitted At</th></tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${rxEsc(r.student.name)}</b></td><td>${rxEsc(r.student.className)}</td><td>${rxEsc(r.status)}</td><td>${rxEsc(r.submittedAt)}</td></tr>`).join("") || `<tr><td colspan="5">No submission has been captured for this work yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  window.openStudentSubmissionOptions = function(){
+    route = "studentSubmissionOptions";
+    renderShell();
+  };
+  window.openStudentSubmittedList = function(key){
+    window.publicWorkSelected = key;
+    try{ publicWorkSelected = key; }catch(e){}
+    route = "studentSubmittedList";
+    renderShell();
+  };
+
+  function rxResetPanelHTML(){
+    const works = rxWorks();
+    const selected = document.getElementById("resetWorkSelect")?.value || works[0]?.key || "";
+    const w = rxWorkByKey(selected);
+    const rows = rxRowsForWork(w?.key || selected);
+    return `<div class="restoreAdminPanel">
+      <h2>Admin Submission Reset Control</h2>
+      <p>Reset now works without touching or hiding old submissions. It simply records permission for the selected student(s) to attempt again.</p>
+      <div class="restoreAdminGrid">
+        <div><label>Select Assignment / Exercise</label><select id="resetWorkSelect" onchange="refreshAdminResetPanel()">${works.map(x=>`<option value="${rxEsc(x.key)}" ${x.key===(w?.key||"")?"selected":""}>${rxEsc(x.title)} — ${rxEsc(x.label)}</option>`).join("")}</select></div>
+        <div><label>Select Submitted Student</label><select id="resetStudentSelect">${rows.map(r=>`<option value="${rxEsc(r.student.id)}">${rxEsc(r.student.name)} — ${rxEsc(r.student.className||"")}</option>`).join("") || `<option value="">No active submission for this work</option>`}</select></div>
+        <div><label>Reason / Note</label><input id="resetReasonInput" placeholder="Example: wrong upload, network issue"></div>
+      </div>
+      <div class="restoreAdminActions">
+        <button class="green" onclick="adminResetSelectedStudentAttempt()">Reset Selected Student</button>
+        <button class="red" onclick="adminResetWholeWorkAttempt()">Reset This Assignment for All Submitted Students</button>
+        <button class="navy" onclick="review()">Refresh Review Page</button>
+        <button class="gold" onclick="adminRestoreAllSubmittedRecords()">Restore All Submitted Records</button>
+      </div>
+      <span class="restoreMiniBadge">Submitted students for selected work: ${rows.length}</span>
+      <span class="restoreMiniBadge">No submission is deleted</span>
+    </div>`;
+  }
+  window.adminResetSubmissionPanelHTML = rxResetPanelHTML;
+  window.refreshAdminResetPanel = function(){
+    const h = document.getElementById("adminResetSubmissionPanelHolder");
+    if(h) h.innerHTML = rxResetPanelHTML();
+  };
+
+  function rxAddReset(type, workId, studentId, reason, scope){
+    rxEnsure();
+    state.attemptResets.push({id:rxUid("reset"), type, workId, studentId, reason:reason||"", scope:scope||"", resetAt:new Date().toISOString(), resetMs:rxNowMs(), resetBy:"Admin"});
+  }
+
+  window.adminResetSelectedStudentAttempt = function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const sid = document.getElementById("resetStudentSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const w = rxWorkByKey(key);
+    if(!w || !sid) return alert("Select an assignment and a submitted student first.");
+    if(!confirm(`Reset ${rxStudent(sid)?.name || "this student"} for "${w.title}"? Old submissions will remain saved.`)) return;
+    rxAddReset(w.type,w.id,sid,reason,"single-student");
+    rxSave();
+    alert("Reset completed. The student can now attempt the work again. Old submissions are still saved.");
+    review();
+  };
+
+  window.adminResetWholeWorkAttempt = function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const w = rxWorkByKey(key);
+    if(!w) return alert("Select an assignment first.");
+    const rows = rxRowsForWork(w.key);
+    if(!rows.length) return alert("There is no submitted student for the selected work.");
+    if(!confirm(`Reset "${w.title}" for all ${rows.length} submitted student(s)? Old submissions will remain saved.`)) return;
+    rxAddReset(w.type,w.id,"ALL",reason,"whole-assignment");
+    rxSave();
+    alert("General reset completed. Students can now attempt the work again. Old submissions are still saved.");
+    review();
+  };
+
+  window.adminRestoreAllSubmittedRecords = function(){
+    if(role !== "admin") return alert("Only admin can restore submitted records.");
+    if(!confirm("Restore all hidden submitted records and remove old archive flags? This will not delete anything.")) return;
+    restoreAllHiddenSubmissions();
+    rxSave();
+    alert("All submitted records have been restored.");
+    review();
+  };
+
+  function rxWithActiveOnly(fn){
+    const fullQ = state.submissions;
+    const fullD = state.docSubmissions;
+    // For review pages, show one official active submission per student/work.
+    const qs = [];
+    (state.quizzes||[]).forEach(q=>{ qs.push(...rxOfficialFirstPerStudent(rxActiveQuizSubmissions(q.id), "quiz")); });
+    const ds = [];
+    (state.docAssignments||[]).forEach(a=>{ ds.push(...rxOfficialFirstPerStudent(rxActiveDocSubmissions(a.id), "doc")); });
+    state.submissions = qs;
+    state.docSubmissions = ds;
+    try{ return fn(); }
+    finally{ state.submissions = fullQ; state.docSubmissions = fullD; }
+  }
+
+  const prevReviewRX = window.review;
+  window.review = function(){
+    restoreAllHiddenSubmissions();
+    const result = prevReviewRX ? rxWithActiveOnly(()=>prevReviewRX.apply(this, arguments)) : undefined;
+    const view = document.getElementById("view");
+    if(view){
+      let holder = document.getElementById("adminResetSubmissionPanelHolder");
+      if(holder) holder.innerHTML = rxResetPanelHTML();
+      else view.insertAdjacentHTML("afterbegin", `<div id="adminResetSubmissionPanelHolder">${rxResetPanelHTML()}</div>`);
+    }
+    return result;
+  };
+
+  const prevStudentResultsRX = window.studentResults;
+  if(typeof prevStudentResultsRX === "function"){
+    window.studentResults = function(){
+      restoreAllHiddenSubmissions();
+      return rxWithActiveOnly(()=>prevStudentResultsRX.apply(this, arguments));
+    };
+  }
+
+  window.rpSubmittedRows = function(){
+    const rows = [];
+    (state.docAssignments||[]).forEach(a=>{
+      rxOfficialFirstPerStudent(rxActiveDocSubmissions(a.id),"doc").forEach(ds=>{
+        const st = rxStudent(ds.studentId)||{};
+        rows.push({type:"Scanned / Written Work", typeKey:"scanned", studentId:ds.studentId, studentName:st.name||"Student", className:st.className||"", subject:a.subject||rxSubjectForClass(st.className)||"", workId:ds.assignmentId||"", workTitle:a.title||"Scanned/Theory Assignment", submittedAt:ds.submittedAt||"", score:ds.score ?? "", maxScore:a.maxScore ?? "", published:!!ds.published, status:ds.published?"Marked / Published":"Submitted / Not Published", feedback:ds.feedback||""});
+      });
+    });
+    (state.quizzes||[]).forEach(q=>{
+      rxOfficialFirstPerStudent(rxActiveQuizSubmissions(q.id),"quiz").forEach(s=>{
+        const st = rxStudent(s.studentId)||{};
+        rows.push({type:"Timed MCQ Exercise", typeKey:"timed", studentId:s.studentId, studentName:st.name||"Student", className:st.className||"", subject:q.subject||rxSubjectForClass(st.className)||"", workId:s.quizId||"", workTitle:q.title||"Quiz / Exercise", submittedAt:s.submittedAt||"", score:s.teacherScore ?? s.autoScore ?? "", maxScore:s.maxScore ?? "", published:!!s.published, status:s.published?"Result Published":"Submitted / Result Not Published", feedback:s.feedback||""});
+      });
+    });
+    return rows.sort((a,b)=>String(a.className).localeCompare(String(b.className),undefined,{numeric:true,sensitivity:"base"}) || String(a.studentName).localeCompare(String(b.studentName),undefined,{sensitivity:"base"}) || String(a.workTitle).localeCompare(String(b.workTitle),undefined,{sensitivity:"base"}));
+  };
+
+  // Save wrappers: restore hidden data and prevent deletion markers.
+  if(typeof window.save === "function"){
+    const oldSaveRX = window.save;
+    window.save = function(){
+      restoreAllHiddenSubmissions();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return oldSaveRX.apply(this, arguments);
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+  if(typeof window.saveLocal === "function"){
+    const oldSaveLocalRX = window.saveLocal;
+    window.saveLocal = function(){
+      restoreAllHiddenSubmissions();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return oldSaveLocalRX.apply(this, arguments);
+    };
+    try{ eval("saveLocal=window.saveLocal;"); }catch(e){}
+  }
+  if(typeof window.pushRemote === "function"){
+    const oldPushRX = window.pushRemote;
+    window.pushRemote = async function(){
+      restoreAllHiddenSubmissions();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await oldPushRX.apply(this, arguments);
+    };
+    try{ eval("pushRemote=window.pushRemote;"); }catch(e){}
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const oldWriteRX = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      restoreAllHiddenSubmissions();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await oldWriteRX.apply(this, arguments);
+    };
+    try{ eval("stableWriteRemoteItems=window.stableWriteRemoteItems;"); }catch(e){}
+  }
+
+  document.addEventListener("click", function(ev){
+    const btn = ev.target.closest && ev.target.closest("#fixedAvailableWorkPanel button, [data-open-available-work]");
+    if(btn){
+      const text = String(btn.textContent||"").toLowerCase();
+      if(text.includes("view available") || btn.dataset.openAvailableWork){
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        forceOpenAvailableAssignments();
+      }
+    }
+  }, true);
+
+  setTimeout(()=>{
+    try{
+      const changed = restoreAllHiddenSubmissions();
+      if(changed){
+        if(typeof saveLocal==="function") saveLocal();
+        if(typeof pushRemote==="function") pushRemote();
+      }
+    }catch(e){}
+  }, 1500);
+
+  try{
+    eval("restoreAllHiddenSubmissions=window.restoreAllHiddenSubmissions; oneAttemptCleanup=window.oneAttemptCleanup; oneAttemptDeleteRemoteDuplicates=window.oneAttemptDeleteRemoteDuplicates; hasSubmittedQuiz=window.hasSubmittedQuiz; swQuizSubmitted=window.swQuizSubmitted; swDocSubmitted=window.swDocSubmitted; fixedStudentQuickPanelHTML=window.fixedStudentQuickPanelHTML; forceRenderAvailableAssignments=window.forceRenderAvailableAssignments; forceOpenAvailableAssignments=window.forceOpenAvailableAssignments; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; studentQuizzes=window.studentQuizzes; studentHome=window.studentHome; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; openDocSubmitSimple=window.openDocSubmitSimple; openDocSubmit=window.openDocSubmit; submitDocAssignmentSimple=window.submitDocAssignmentSimple; submitDocAssignment=window.submitDocAssignment; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList; openStudentSubmissionOptions=window.openStudentSubmissionOptions; openStudentSubmittedList=window.openStudentSubmittedList; adminResetSubmissionPanelHTML=window.adminResetSubmissionPanelHTML; refreshAdminResetPanel=window.refreshAdminResetPanel; adminResetSelectedStudentAttempt=window.adminResetSelectedStudentAttempt; adminResetWholeWorkAttempt=window.adminResetWholeWorkAttempt; adminRestoreAllSubmittedRecords=window.adminRestoreAllSubmittedRecords; review=window.review; studentResults=window.studentResults; rpSubmittedRows=window.rpSubmittedRows;");
+  }catch(e){}
+})();
+
+
+
+/* ===== INSTANT AVAILABLE WORK NO-WAIT FIX V5 =====
+   Root problem fixed:
+   The "View Available Assignments / Quizzes" button was waiting on live sync first.
+   When the app showed "Saving live", that wait could prevent the page from opening.
+   This version opens the available-work page immediately from the data already loaded,
+   then refreshes live data quietly in the background.
+*/
+(function(){
+  if(window.__instantAvailableWorkNoWaitFixV5) return;
+  window.__instantAvailableWorkNoWaitFixV5 = true;
+
+  function iwEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function iwStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function iwSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
+    const subj = (state.subjects||[]).find(x=>(x.classes||[]).includes(cls));
+    return subj ? subj.name : "";
+  }
+  function iwComponentLabel(key){
+    try{
+      if(typeof reportComponents==="function"){
+        const c=reportComponents().find(x=>x.key===key);
+        if(c) return c.label;
+      }
+    }catch(e){}
+    return key || "Assessment";
+  }
+  function iwTime(x){
+    const t = new Date(x || "").getTime();
+    return Number.isFinite(t) ? t : 0;
+  }
+  function iwEnsure(){
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.docSubmissions = Array.isArray(state.docSubmissions) ? state.docSubmissions : [];
+    state.attemptResets = Array.isArray(state.attemptResets) ? state.attemptResets : [];
+  }
+  function iwRestoreFlags(){
+    iwEnsure();
+    const keys = ["adminReset","_adminReset","resetReleased","_resetArchived","_oaArchivedDuplicate","archivedAttempt","archivedReason","resetAt","archivedAt","resetScope","resetReason","resetBy","duplicateArchivedAt"];
+    let changed=false;
+    [...state.submissions, ...state.docSubmissions].forEach(item=>{
+      if(!item) return;
+      keys.forEach(k=>{
+        if(Object.prototype.hasOwnProperty.call(item,k)){
+          delete item[k];
+          changed=true;
+        }
+      });
+    });
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return changed;
+  }
+  window.restoreAllHiddenSubmissions = function(){
+    return iwRestoreFlags();
+  };
+  window.oneAttemptCleanup = function(){
+    iwRestoreFlags();
+    return false;
+  };
+  window.oneAttemptDeleteRemoteDuplicates = async function(){
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return false;
+  };
+
+  function iwLatestReset(type, workId, studentId){
+    iwEnsure();
+    let t=0;
+    (state.attemptResets||[]).forEach(r=>{
+      if(!r || String(r.type)!==String(type) || String(r.workId)!==String(workId)) return;
+      if(String(r.studentId)===String(studentId) || r.studentId==="ALL"){
+        t = Math.max(t, Number(r.resetMs||0), iwTime(r.resetAt));
+      }
+    });
+    return t;
+  }
+  function iwSubTime(s){ return iwTime(s?.submittedAt) || 1; }
+  function iwQuizSubs(qid, sid){
+    iwEnsure();
+    return state.submissions
+      .filter(s=>String(s.quizId)===String(qid) && (!sid || String(s.studentId)===String(sid)))
+      .filter(s=>iwSubTime(s) > iwLatestReset("quiz", qid, s.studentId))
+      .sort((a,b)=>iwSubTime(a)-iwSubTime(b));
+  }
+  function iwDocSubs(aid, sid){
+    iwEnsure();
+    return state.docSubmissions
+      .filter(s=>String(s.assignmentId)===String(aid) && (!sid || String(s.studentId)===String(sid)))
+      .filter(s=>iwSubTime(s) > iwLatestReset("doc", aid, s.studentId))
+      .sort((a,b)=>iwSubTime(a)-iwSubTime(b));
+  }
+  function iwHasQuiz(sid,qid){ return iwQuizSubs(qid,sid).length>0; }
+  function iwHasDoc(sid,aid){ return iwDocSubs(aid,sid).length>0; }
+  function iwCanSee(item, st){
+    if(!item || !st) return false;
+    const statusOk = String(item.status||"").toLowerCase()==="published";
+    const subj = iwSubjectForClass(st.className);
+    const subjectOk = !item.subject || !subj || item.subject===subj;
+    const classOk = !Array.isArray(item.classNames) || !item.classNames.length || item.classNames.includes(st.className);
+    return statusOk && subjectOk && classOk;
+  }
+  function iwQuizzes(){
+    const st = iwStudent(currentStudentId);
+    if(!st) return [];
+    return (state.quizzes||[]).filter(q=>iwCanSee(q,st));
+  }
+  function iwDocs(){
+    const st = iwStudent(currentStudentId);
+    if(!st) return [];
+    return (state.docAssignments||[]).filter(a=>iwCanSee(a,st));
+  }
+
+  window.hasSubmittedQuiz = function(studentId,qid){ return iwHasQuiz(studentId,qid); };
+  window.swQuizSubmitted = function(qid){ return iwHasQuiz(currentStudentId,qid); };
+  window.swDocSubmitted = function(aid){ return iwHasDoc(currentStudentId,aid); };
+
+  window.instantAvailablePanelHTML = function(){
+    const st = iwStudent(currentStudentId);
+    const qOpen = st ? iwQuizzes().filter(q=>!iwHasQuiz(st.id,q.id)).length : 0;
+    const dOpen = st ? iwDocs().filter(a=>!iwHasDoc(st.id,a.id)).length : 0;
+    return `<div class="instantOpenWorkPanel" id="instantOpenWorkPanel">
+      <h2>Assignments and Quizzes</h2>
+      <p>Click below to view all assignments, quizzes, exercises, and scanned/theory work assigned to your class.</p>
+      <div class="restoreWorkActions">
+        <button type="button" class="btn green" onclick="forceOpenAvailableAssignmentsNow(); return false;">📚 View Available Assignments / Quizzes ${qOpen+dOpen?`(${qOpen+dOpen} open)`:""}</button>
+        <button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">✅ View Submitted Work / Marked Scripts</button>
+        <button type="button" class="btn gold" onclick="studentHome(); return false;">🔄 Refresh My Portal</button>
+      </div>
+    </div>`;
+  };
+
+  window.renderAvailableAssignmentsNow = function(){
+    iwRestoreFlags();
+    const st = iwStudent(currentStudentId);
+    if(!st){
+      role="guest";
+      route="studentLogin";
+      return renderShell();
+    }
+    route = "studentQuizzes";
+
+    const qs = iwQuizzes();
+    const docs = iwDocs();
+    const openCount = qs.filter(q=>!iwHasQuiz(st.id,q.id)).length + docs.filter(a=>!iwHasDoc(st.id,a.id)).length;
+    const closedCount = (qs.length + docs.length) - openCount;
+
+    const qHTML = qs.map(q=>{
+      const done = iwHasQuiz(st.id,q.id);
+      return `<div class="instantWorkCard ${done?'oneAttemptClosedCard':''}">
+        <h3>${iwEsc(q.title || "Exercise")}</h3>
+        <span class="${done?'instantClosedBadge':'instantOpenBadge'}">${done?'Submitted / Closed':'Available Now'}</span>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${iwEsc(iwComponentLabel(q.assessmentComponent||""))}</p>
+        ${done ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Result</button>` : `<button type="button" class="btn green" onclick="takeQuiz('${iwEsc(q.id)}'); return false;">Start Exercise</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No multiple-choice quiz or exercise is available now.</div>`;
+
+    const dHTML = docs.map(a=>{
+      const done = iwHasDoc(st.id,a.id);
+      const qFile = a.questionFile ? `<div class="studentQuestionPreview"><b>Question Paper:</b> ${iwEsc(a.questionFile.name||"Question paper")}
+        ${String(a.questionFile.type||"").startsWith("image/") || String(a.questionFile.data||"").startsWith("data:image") ? `<img src="${a.questionFile.data}" alt="Question paper">` : `<p><a class="studentDownloadBtn" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}
+      </div>` : "";
+      return `<div class="instantWorkCard ${done?'oneAttemptClosedCard':''}">
+        <h3>${iwEsc(a.title || "Scanned / Theory Work")}</h3>
+        <span class="${done?'instantClosedBadge':'instantOpenBadge'}">${done?'Submitted / Closed':'Available Now'}</span>
+        <p>${iwEsc(a.instructions || "Open the question paper, solve, scan and submit.")}</p>
+        <p>Maximum score: ${iwEsc(a.maxScore ?? "")} • ${iwEsc(iwComponentLabel(a.assessmentComponent||""))}</p>
+        ${qFile}
+        ${done ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Work</button>` : `<button type="button" class="btn green" onclick="openDocSubmitSimple('${iwEsc(a.id)}'); return false;">Submit My Answer Script</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory work is available now.</div>`;
+
+    const view = document.getElementById("view");
+    if(!view) return;
+    view.innerHTML = `<div class="instantAvailableCentre">
+      <div class="instantAvailableHero">
+        <h2>Available Assignments and Quizzes</h2>
+        <p>${iwEsc(st.name || "Student")} • ${iwEsc(st.className || "")}. This page opens immediately. If the app is saving live, you can still view your assignments here.</p>
+        <div class="toolbar">
+          <span class="instantOpenBadge">${openCount} open</span>
+          <span class="instantClosedBadge">${closedCount} submitted / closed</span>
+          <button type="button" class="btn light" onclick="forceOpenAvailableAssignmentsNow(); return false;">Refresh Page</button>
+        </div>
+      </div>
+      <div class="card"><h2>Multiple-Choice Exercises / Quizzes</h2><div class="instantWorkCards">${qHTML}</div></div>
+      <div class="card"><h2>Theory / Scanned Work</h2><div class="instantWorkCards">${dHTML}</div></div>
+    </div>`;
+    try{ if(typeof typeset === "function") typeset(); }catch(e){}
+  };
+
+  window.forceOpenAvailableAssignmentsNow = function(){
+    route = "studentQuizzes";
+    renderAvailableAssignmentsNow();
+
+    // Background refresh only. It must never block opening the page.
+    setTimeout(async ()=>{
+      try{
+        if(typeof stablePullRemote === "function"){
+          await Promise.race([
+            stablePullRemote(true),
+            new Promise(resolve=>setTimeout(resolve, 2500))
+          ]);
+          iwRestoreFlags();
+          if(route === "studentQuizzes") renderAvailableAssignmentsNow();
+        }
+      }catch(e){
+        console.warn("Background assignment refresh skipped", e);
+      }
+    }, 80);
+  };
+
+  window.forceOpenAvailableAssignments = window.forceOpenAvailableAssignmentsNow;
+  window.openStudentAssignmentsAndQuizzes = window.forceOpenAvailableAssignmentsNow;
+  window.studentQuizzes = window.renderAvailableAssignmentsNow;
+
+  const previousStudentHome = window.studentHome;
+  window.studentHome = function(){
+    const result = previousStudentHome ? previousStudentHome.apply(this, arguments) : undefined;
+    const view = document.getElementById("view");
+    if(view){
+      document.getElementById("instantOpenWorkPanel")?.remove();
+      document.getElementById("fixedAvailableWorkPanel")?.remove();
+      document.getElementById("studentQuickAssignmentPanel")?.remove();
+      view.insertAdjacentHTML("afterbegin", instantAvailablePanelHTML());
+    }
+    return result;
+  };
+
+  // Capture the exact troublesome button and force it to open, without waiting on saving live.
+  document.addEventListener("click", function(ev){
+    const el = ev.target.closest && ev.target.closest("button, a, [role='button'], [onclick]");
+    if(!el) return;
+    const txt = String(el.textContent||"").toLowerCase();
+    const code = String(el.getAttribute("onclick")||"");
+    if(txt.includes("view available assignments") || code.includes("openStudentAssignmentsAndQuizzes") || code.includes("forceOpenAvailableAssignments")){
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      forceOpenAvailableAssignmentsNow();
+    }
+  }, true);
+
+  // Keep saving safe: do not hide submissions and do not delete any remote submission.
+  if(typeof window.save === "function"){
+    const oldSave = window.save;
+    window.save = function(){
+      iwRestoreFlags();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return oldSave.apply(this, arguments);
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+  if(typeof window.saveLocal === "function"){
+    const oldSaveLocal = window.saveLocal;
+    window.saveLocal = function(){
+      iwRestoreFlags();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return oldSaveLocal.apply(this, arguments);
+    };
+    try{ eval("saveLocal=window.saveLocal;"); }catch(e){}
+  }
+
+  setTimeout(()=>{
+    try{
+      const changed = iwRestoreFlags();
+      if(changed && typeof saveLocal === "function") saveLocal();
+    }catch(e){}
+  }, 1200);
+
+  try{
+    eval("restoreAllHiddenSubmissions=window.restoreAllHiddenSubmissions; oneAttemptCleanup=window.oneAttemptCleanup; oneAttemptDeleteRemoteDuplicates=window.oneAttemptDeleteRemoteDuplicates; hasSubmittedQuiz=window.hasSubmittedQuiz; swQuizSubmitted=window.swQuizSubmitted; swDocSubmitted=window.swDocSubmitted; instantAvailablePanelHTML=window.instantAvailablePanelHTML; renderAvailableAssignmentsNow=window.renderAvailableAssignmentsNow; forceOpenAvailableAssignmentsNow=window.forceOpenAvailableAssignmentsNow; forceOpenAvailableAssignments=window.forceOpenAvailableAssignments; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; studentQuizzes=window.studentQuizzes; studentHome=window.studentHome;");
+  }catch(e){}
+})();
+
+
+
+/* ===== SUPABASE LIVE RECONNECT SAFE MERGE V13 =====
+   Purpose:
+   - Return the app to a simple live connection using app_state/main.
+   - Do not rely on stable_items for ordinary live operation.
+   - Safe-merge local and online data, especially submissions and student records.
+   - Do not delete submitted work when uploading a new version.
+   - Students see published assignments after admin publishes and saves live.
+*/
+(function(){
+  if(window.__supabaseLiveReconnectSafeMergeV13) return;
+  window.__supabaseLiveReconnectSafeMergeV13 = true;
+
+  const LR_LIST_KEYS = [
+    "classes","subjects","students","quizzes","submissions","components","scores",
+    "publishedReports","reportScores","reportComments","academicYears","semesters",
+    "docAssignments","docSubmissions","announcements","studentAnnouncements",
+    "attemptResets"
+  ];
+
+  function lrClone(x){
+    try{return JSON.parse(JSON.stringify(x || {}));}
+    catch(e){return x;}
+  }
+  function lrStatus(text, cls="warn"){
+    try{ if(typeof stableStatus === "function") return stableStatus(text, cls); }catch(e){}
+    try{ if(typeof status === "function") return status(text, cls); }catch(e){}
+    const el = document.getElementById("liveStatus");
+    if(el){ el.textContent = text; el.className = "topStatus "+cls; }
+    console.log("LIVE:", text);
+  }
+  function lrNowISO(){ return new Date().toISOString(); }
+  function lrEnsure(){
+    if(!state || typeof state !== "object"){
+      try{ state = defaultState(); }catch(e){ state = {}; }
+    }
+    LR_LIST_KEYS.forEach(k=>{
+      if(!Array.isArray(state[k])) state[k] = [];
+    });
+    state.settings = state.settings || {};
+    return state;
+  }
+  function lrLocalSave(){
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+  }
+  function lrDefault(){
+    try{return defaultState();}
+    catch(e){return {};}
+  }
+  function lrItemKey(item, key, index){
+    if(!item) return key+"_blank_"+index;
+    if(item.id) return String(item.id);
+    if(key === "students") return String(item.name||"")+"|"+String(item.className||"")+"|"+String(item.code||"");
+    if(key === "submissions") return String(item.studentId||"")+"|"+String(item.quizId||"")+"|"+String(item.submittedAt||index);
+    if(key === "docSubmissions") return String(item.studentId||"")+"|"+String(item.assignmentId||"")+"|"+String(item.submittedAt||index);
+    if(key === "quizzes") return String(item.title||"")+"|"+String(item.createdAt||index);
+    if(key === "docAssignments") return String(item.title||"")+"|"+String(item.createdAt||index);
+    if(key === "scores") return String(item.studentId||"")+"|"+String(item.component||item.key||"")+"|"+String(item.subject||"")+"|"+String(item.term||"");
+    if(key === "attemptResets") return String(item.type||"")+"|"+String(item.workId||"")+"|"+String(item.studentId||"")+"|"+String(item.resetMs||item.resetAt||index);
+    return JSON.stringify(item).slice(0,180)+"|"+index;
+  }
+  function lrItemTime(item){
+    const fields = ["updated_at","updatedAt","_liveUpdatedAt","_stableSavedAt","_stableRemoteUpdatedAt","submittedAt","createdAt","publishedAt","resetAt"];
+    for(const f of fields){
+      const v = item && item[f];
+      if(v){
+        const t = new Date(v).getTime();
+        if(Number.isFinite(t)) return t;
+      }
+    }
+    return 0;
+  }
+  function lrMergeObject(remote, local){
+    const r = lrClone(remote || {});
+    const l = lrClone(local || {});
+    const rt = lrItemTime(r);
+    const lt = lrItemTime(l);
+
+    // For submissions, preserve rich marking data from both sides.
+    const merged = Object.assign({}, r, l);
+    ["files","markedFiles","answers"].forEach(k=>{
+      if((!merged[k] || (Array.isArray(merged[k]) && !merged[k].length)) && r[k]) merged[k]=r[k];
+      if((!merged[k] || (Array.isArray(merged[k]) && !merged[k].length)) && l[k]) merged[k]=l[k];
+    });
+    ["score","teacherScore","autoScore","feedback","published","maxScore"].forEach(k=>{
+      if((merged[k]===undefined || merged[k]===null || merged[k]==="" || merged[k]===false) && r[k]!==undefined) merged[k]=r[k];
+      if((merged[k]===undefined || merged[k]===null || merged[k]==="" || merged[k]===false) && l[k]!==undefined) merged[k]=l[k];
+    });
+
+    // If one side is clearly newer and has fields, keep newer scalar fields but do not remove older media/submission content.
+    if(rt > lt){
+      Object.assign(merged, r, merged);
+    }
+    merged._liveUpdatedAt = lrNowISO();
+    return merged;
+  }
+  function lrMergeArray(remoteArr, localArr, key){
+    const map = new Map();
+    (Array.isArray(remoteArr)?remoteArr:[]).forEach((item,i)=>{
+      if(!item) return;
+      const id = lrItemKey(item,key,i);
+      map.set(id, lrClone(item));
+    });
+    (Array.isArray(localArr)?localArr:[]).forEach((item,i)=>{
+      if(!item) return;
+      const id = lrItemKey(item,key,i);
+      if(map.has(id)) map.set(id, lrMergeObject(map.get(id), item));
+      else map.set(id, lrClone(item));
+    });
+    return [...map.values()];
+  }
+  function lrMergeState(remoteState, localState){
+    const base = lrClone(remoteState || {});
+    const loc = lrClone(localState || {});
+    const merged = Object.assign({}, lrDefault(), base);
+
+    Object.keys(loc).forEach(k=>{
+      if(LR_LIST_KEYS.includes(k)) return;
+      if(k === "settings"){
+        merged.settings = Object.assign({}, merged.settings||{}, loc.settings||{});
+      }else if(loc[k] !== undefined && loc[k] !== null){
+        // Keep current browser's non-list settings when publishing, but lists are always merged safely.
+        merged[k] = loc[k];
+      }
+    });
+
+    LR_LIST_KEYS.forEach(k=>{
+      merged[k] = lrMergeArray(base[k]||[], loc[k]||[], k);
+    });
+
+    // Critical: never let submitted work disappear.
+    merged.submissions = lrMergeArray(base.submissions||[], loc.submissions||[], "submissions");
+    merged.docSubmissions = lrMergeArray(base.docSubmissions||[], loc.docSubmissions||[], "docSubmissions");
+
+    return merged;
+  }
+  function lrCounts(st){
+    st = st || state || {};
+    return {
+      students:(st.students||[]).length,
+      quizzes:(st.quizzes||[]).length,
+      docAssignments:(st.docAssignments||[]).length,
+      submissions:(st.submissions||[]).length,
+      docSubmissions:(st.docSubmissions||[]).length
+    };
+  }
+  function lrHasImportantData(st){
+    const c = lrCounts(st);
+    return c.students || c.quizzes || c.docAssignments || c.submissions || c.docSubmissions;
+  }
+
+  async function lrEnsureClient(){
+    if(sb) return sb;
+    const url = window.AMEST_SUPABASE_URL;
+    const key = window.AMEST_SUPABASE_ANON_KEY;
+    if(!url || !key || String(url).includes("PASTE")){
+      lrStatus("Offline: Supabase keys missing","bad");
+      return null;
+    }
+    sb = window.supabase.createClient(url,key);
+    return sb;
+  }
+
+  async function lrFetchAppState(id="main"){
+    const client = await lrEnsureClient();
+    if(!client) return null;
+    const {data,error} = await client.from("app_state").select("data,updated_at").eq("id",id).maybeSingle();
+    if(error) throw error;
+    return data || null;
+  }
+
+  async function lrWriteAppState(data, id="main"){
+    const client = await lrEnsureClient();
+    if(!client) return false;
+    const payload = lrClone(data || {});
+    const {error} = await client.from("app_state").upsert({id, data:payload, updated_at:lrNowISO()},{onConflict:"id"});
+    if(error) throw error;
+    return true;
+  }
+
+  async function lrTryLoadStableItems(){
+    const client = await lrEnsureClient();
+    if(!client) return null;
+    try{
+      const all = [];
+      let from = 0;
+      const step = 1000;
+      while(true){
+        const {data,error} = await client.from("stable_items").select("bucket,item_id,data,updated_at").range(from, from+step-1);
+        if(error) throw error;
+        all.push(...(data||[]));
+        if(!data || data.length < step) break;
+        from += step;
+        if(from > 100000) break;
+      }
+      if(!all.length) return null;
+      const rebuilt = {};
+      LR_LIST_KEYS.forEach(k=>rebuilt[k]=[]);
+      all.forEach(row=>{
+        if(row.bucket === "core" && row.item_id === "main"){
+          Object.assign(rebuilt, row.data||{});
+        }else if(LR_LIST_KEYS.includes(row.bucket)){
+          const item = lrClone(row.data||{});
+          item._liveUpdatedAt = row.updated_at || item._liveUpdatedAt || "";
+          rebuilt[row.bucket].push(item);
+        }
+      });
+      return lrHasImportantData(rebuilt) ? rebuilt : null;
+    }catch(e){
+      console.warn("stable_items fallback not available:", e);
+      return null;
+    }
+  }
+
+  window.liveReconnectPull = async function(mergeLocal=true, renderAfter=false){
+    try{
+      lrStatus("Loading live database...","warn");
+      const local = lrClone(state || {});
+      let remoteRow = await lrFetchAppState("main");
+      let remote = remoteRow?.data || null;
+
+      // If app_state/main is empty, try main_backup, then stable_items as a recovery source.
+      if(!lrHasImportantData(remote)){
+        const backup = await lrFetchAppState("main_backup");
+        if(lrHasImportantData(backup?.data)) remote = backup.data;
+      }
+      if(!lrHasImportantData(remote)){
+        const stable = await lrTryLoadStableItems();
+        if(lrHasImportantData(stable)) remote = stable;
+      }
+
+      if(!lrHasImportantData(remote)){
+        lrStatus("Live empty - using this browser data","warn");
+        if(lrHasImportantData(local)) await lrWriteAppState(local,"main");
+        return false;
+      }
+
+      applyingRemote = true;
+      state = mergeLocal ? lrMergeState(remote, local) : lrMergeState(remote, {});
+      lrEnsure();
+      try{ if(typeof normalize === "function") normalize(); }catch(e){}
+      try{ restoreAllHiddenSubmissions && restoreAllHiddenSubmissions(); }catch(e){}
+      lrLocalSave();
+      applyingRemote = false;
+      lrStatus("Live loaded","live");
+      if(renderAfter){
+        try{ if(typeof render === "function") render(); else if(typeof renderShell === "function") renderShell(); }catch(e){}
+      }
+      return true;
+    }catch(e){
+      applyingRemote = false;
+      console.error(e);
+      lrStatus("Live load failed - run SQL setup","bad");
+      return false;
+    }
+  };
+
+  window.liveReconnectPush = async function(showAlert=false){
+    if(!sb) await lrEnsureClient();
+    if(!sb) return false;
+    if(window.__liveReconnectPushing) return false;
+    window.__liveReconnectPushing = true;
+    try{
+      lrStatus("Saving live...","warn");
+      lrEnsure();
+      try{ restoreAllHiddenSubmissions && restoreAllHiddenSubmissions(); }catch(e){}
+      const local = lrClone(state || {});
+      let remote = null;
+      try{
+        const row = await lrFetchAppState("main");
+        remote = row?.data || null;
+      }catch(e){ console.warn("Could not fetch before save; continuing safe local publish", e); }
+      const merged = lrMergeState(remote || {}, local);
+      await lrWriteAppState(merged, "main");
+      await lrWriteAppState({backupAt:lrNowISO(), counts:lrCounts(merged), ...merged}, "main_backup");
+      applyingRemote = true;
+      state = merged;
+      try{ if(typeof normalize === "function") normalize(); }catch(e){}
+      lrLocalSave();
+      applyingRemote = false;
+      lrStatus("Live connected","live");
+      if(showAlert) alert("Live database updated safely. Submissions were preserved.");
+      return true;
+    }catch(e){
+      console.error(e);
+      lrStatus("Live save failed - run SQL setup","bad");
+      if(showAlert) alert("Live save failed. Run the Supabase SQL setup, then try again.");
+      return false;
+    }finally{
+      window.__liveReconnectPushing = false;
+    }
+  };
+
+  window.pushRemote = async function(){
+    return await liveReconnectPush(false);
+  };
+  window.stablePullRemote = async function(mergeLocal=true){
+    return await liveReconnectPull(mergeLocal,false);
+  };
+  window.stableWriteRemoteItems = async function(){
+    return await liveReconnectPush(false);
+  };
+
+  window.save = function(){
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    lrLocalSave();
+    if(sb && !applyingRemote){
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(()=>liveReconnectPush(false), 650);
+    }
+  };
+
+  window.initSupabase = async function(){
+    const client = await lrEnsureClient();
+    if(!client) return;
+    try{
+      lrStatus("Connecting live...","warn");
+      await liveReconnectPull(true,false);
+
+      // If online main did not exist, safe-publish this browser.
+      try{
+        const main = await lrFetchAppState("main");
+        if(!main || !lrHasImportantData(main.data)){
+          await liveReconnectPush(false);
+        }
+      }catch(e){}
+
+      try{
+        sb.channel("isaacs-app-state-live-v13")
+          .on("postgres_changes",{event:"*",schema:"public",table:"app_state",filter:"id=eq.main"},payload=>{
+            if(!payload.new || !payload.new.data || applyingRemote) return;
+            const incoming = payload.new.data;
+            const local = lrClone(state || {});
+            applyingRemote = true;
+            state = lrMergeState(incoming, local);
+            lrEnsure();
+            try{ if(typeof normalize === "function") normalize(); }catch(e){}
+            lrLocalSave();
+            applyingRemote = false;
+            lrStatus("Live updated","live");
+            try{
+              if(role === "student" || role === "admin") renderShell();
+              else if(typeof render === "function") render();
+            }catch(e){}
+          })
+          .subscribe(s=>{ if(s==="SUBSCRIBED") lrStatus("Live connected","live"); });
+      }catch(e){ console.warn("Realtime subscription skipped", e); }
+
+      lrStatus("Live connected","live");
+    }catch(e){
+      console.error(e);
+      lrStatus("Live connection error - run SQL setup","bad");
+    }
+  };
+
+  window.liveReconnectPanelHTML = function(){
+    const c = lrCounts(state);
+    return `<div class="liveReconnectPanel" id="liveReconnectPanel">
+      <h2>Supabase Live Connection Repair</h2>
+      <p>This panel keeps the app connected through the simple live database table. It safely merges online and browser data so submitted work is not deleted.</p>
+      <div class="liveReconnectActions">
+        <button class="btn green" onclick="liveReconnectTest()">Test Supabase Live</button>
+        <button class="btn light" onclick="liveReconnectPull(true,true)">Load Live Database</button>
+        <button class="btn gold" onclick="liveReconnectPush(true)">Publish This Browser Live</button>
+        <button class="btn navy" onclick="copyLiveReconnectSQL()">Copy Supabase SQL</button>
+      </div>
+      <div class="liveReconnectStats">
+        <span class="liveReconnectGood">Students: ${c.students}</span>
+        <span>Quizzes: ${c.quizzes}</span>
+        <span>Scanned work: ${c.docAssignments}</span>
+        <span class="liveReconnectGood">Quiz submissions: ${c.submissions}</span>
+        <span class="liveReconnectGood">Scanned submissions: ${c.docSubmissions}</span>
+      </div>
+    </div>`;
+  };
+
+  window.injectLiveReconnectPanel = function(){
+    if(role !== "admin") return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("liveReconnectPanel")) return;
+    view.insertAdjacentHTML("afterbegin", liveReconnectPanelHTML());
+  };
+
+  window.liveReconnectTest = async function(){
+    try{
+      await lrEnsureClient();
+      if(!sb) return alert("Supabase keys are missing.");
+      const row = await lrFetchAppState("main");
+      const c = lrCounts(row?.data || {});
+      alert(`Supabase is connected.\nStudents online: ${c.students}\nQuiz submissions online: ${c.submissions}\nScanned submissions online: ${c.docSubmissions}`);
+    }catch(e){
+      console.error(e);
+      alert("Supabase test failed. Run the SQL setup file in Supabase, then redeploy.");
+    }
+  };
+
+  window.copyLiveReconnectSQL = async function(){
+    const sql = `create table if not exists public.app_state (
+  id text primary key,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.app_state (id, data, updated_at)
+values ('main', '{}'::jsonb, now())
+on conflict (id) do nothing;
+
+alter table public.app_state enable row level security;
+
+drop policy if exists "app_state_select_all" on public.app_state;
+drop policy if exists "app_state_insert_all" on public.app_state;
+drop policy if exists "app_state_update_all" on public.app_state;
+
+create policy "app_state_select_all"
+on public.app_state for select
+to anon, authenticated
+using (true);
+
+create policy "app_state_insert_all"
+on public.app_state for insert
+to anon, authenticated
+with check (true);
+
+create policy "app_state_update_all"
+on public.app_state for update
+to anon, authenticated
+using (true)
+with check (true);`;
+    try{
+      await navigator.clipboard.writeText(sql);
+      alert("Supabase SQL copied. Paste it in Supabase SQL Editor and run it.");
+    }catch(e){
+      alert(sql);
+    }
+  };
+
+  // Add the live panel to Dashboard and Settings without changing other features.
+  const oldDashboardLR = window.dashboard;
+  if(typeof oldDashboardLR === "function"){
+    window.dashboard = function(){
+      const result = oldDashboardLR.apply(this, arguments);
+      setTimeout(injectLiveReconnectPanel, 80);
+      return result;
+    };
+  }
+  const oldSettingsLR = window.settings;
+  if(typeof oldSettingsLR === "function"){
+    window.settings = function(){
+      const result = oldSettingsLR.apply(this, arguments);
+      setTimeout(injectLiveReconnectPanel, 80);
+      return result;
+    };
+  }
+  const oldRenderShellLR = window.renderShell;
+  if(typeof oldRenderShellLR === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellLR.apply(this, arguments);
+      setTimeout(injectLiveReconnectPanel, 100);
+      return result;
+    };
+  }
+
+  try{
+    eval("initSupabase=window.initSupabase; pushRemote=window.pushRemote; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; dashboard=window.dashboard; settings=window.settings; renderShell=window.renderShell; liveReconnectPull=window.liveReconnectPull; liveReconnectPush=window.liveReconnectPush; liveReconnectPanelHTML=window.liveReconnectPanelHTML; injectLiveReconnectPanel=window.injectLiveReconnectPanel; liveReconnectTest=window.liveReconnectTest; copyLiveReconnectSQL=window.copyLiveReconnectSQL;");
   }catch(e){}
 })();
 
