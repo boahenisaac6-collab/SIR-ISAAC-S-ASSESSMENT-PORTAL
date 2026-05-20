@@ -34923,6 +34923,182 @@ with check (true);`;
 })();
 
 
+
+/* ===== STUDENT VIEW 205 STUDENTS FORCE-FIX =====
+   This repair makes the full 205 seeded students appear in Student Portal immediately.
+   It also protects against old browser localStorage or old Firebase data replacing the class list with an empty list.
+*/
+(function(){
+  if(window.__studentView205ForceFixV2) return;
+  window.__studentView205ForceFixV2 = true;
+
+  function fxClone(x){ try{return JSON.parse(JSON.stringify(x||{}));}catch(e){return x;} }
+  function fxText(v,d=""){ return (v===undefined || v===null) ? d : String(v); }
+  function fxEsc(s){
+    return fxText(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+  }
+  function fxSeedState(){
+    try{
+      if(typeof SEEDED_DEFAULT_STATE !== "undefined" && SEEDED_DEFAULT_STATE && Array.isArray(SEEDED_DEFAULT_STATE.students)){
+        return fxClone(SEEDED_DEFAULT_STATE);
+      }
+    }catch(e){}
+    try{ if(typeof defaultState==="function") return fxClone(defaultState()); }catch(e){}
+    return {};
+  }
+  function fxKeyForStudent(s,i){
+    return fxText(s.id) || (fxText(s.name).toUpperCase()+"|"+fxText(s.className).toUpperCase()) || ("student_"+i);
+  }
+  function fxRestoreStudents(){
+    const seed = fxSeedState();
+    if(!window.state || typeof state !== "object") window.state = {};
+    if(!Array.isArray(state.students)) state.students = [];
+
+    const seedStudents = Array.isArray(seed.students) ? seed.students : [];
+    const map = new Map();
+
+    seedStudents.forEach((s,i)=>{
+      if(!s) return;
+      map.set(fxKeyForStudent(s,i), fxClone(s));
+    });
+
+    state.students.forEach((s,i)=>{
+      if(!s) return;
+      const k = fxKeyForStudent(s,i);
+      const base = map.get(k) || {};
+      map.set(k, {...base, ...fxClone(s)});
+    });
+
+    state.students = [...map.values()].map((s,i)=>({
+      id: s.id || ("stu_fix_"+String(i+1).padStart(3,"0")),
+      code: s.code || s.password || ("STU-"+String(i+1).padStart(3,"0")),
+      name: s.name || ("STUDENT "+(i+1)),
+      className: s.className || "1 G3B",
+      status: s.status || "Active",
+      guardian: s.guardian || "",
+      phone: s.phone || "",
+      password: s.password || s.code || ("STU-"+String(i+1).padStart(3,"0")),
+      photo: s.photo || "",
+      ...s
+    }));
+
+    const fixedClasses = ["1 AGRIC","1 SCIENCE","1H2A","1 G3B"];
+    state.classes = fixedClasses;
+
+    if(!Array.isArray(state.subjects) || !state.subjects.length || typeof state.subjects[0] === "string"){
+      state.subjects = [
+        {name:"Additional Mathematics", classes:["1 AGRIC","1 SCIENCE"]},
+        {name:"Mathematics", classes:["1H2A","1 G3B"]}
+      ];
+    }else{
+      let add = state.subjects.find(x=>fxText(x.name||x)==="Additional Mathematics");
+      let mat = state.subjects.find(x=>fxText(x.name||x)==="Mathematics");
+      if(!add){ add={name:"Additional Mathematics",classes:["1 AGRIC","1 SCIENCE"]}; state.subjects.unshift(add); }
+      if(!mat){ mat={name:"Mathematics",classes:["1H2A","1 G3B"]}; state.subjects.push(mat); }
+      add.classes = ["1 AGRIC","1 SCIENCE"];
+      mat.classes = ["1H2A","1 G3B"];
+    }
+
+    if(!state.settings || typeof state.settings !== "object") state.settings = {};
+    state.settings.school = state.settings.school || "AKUSE METHODIST SENIOR HIGH TECHNICAL SCHOOL";
+    state.settings.teacherName = state.settings.teacherName || "Sir Isaac Boahen";
+    state.settings.adminPass = state.settings.adminPass || "@amest";
+
+    return state.students.length;
+  }
+
+  const oldNormalize = window.normalize || (typeof normalize === "function" ? normalize : null);
+  window.normalize = function(){
+    let r;
+    try{ if(oldNormalize) r = oldNormalize.apply(this, arguments); }catch(e){ console.warn(e); }
+    fxRestoreStudents();
+    return r;
+  };
+
+  const oldLoadLocal = window.loadLocal || (typeof loadLocal === "function" ? loadLocal : null);
+  window.loadLocal = function(){
+    try{ if(oldLoadLocal) oldLoadLocal.apply(this, arguments); }catch(e){ console.warn(e); }
+    fxRestoreStudents();
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+  };
+
+  const oldSaveLocal = window.saveLocal || (typeof saveLocal === "function" ? saveLocal : null);
+  window.saveLocal = function(){
+    fxRestoreStudents();
+    try{ if(oldSaveLocal) return oldSaveLocal.apply(this, arguments); }catch(e){ console.warn(e); }
+  };
+
+  window.studentLogin = function(){
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    fxRestoreStudents();
+
+    const oldSubj = document.getElementById("loginSubj")?.value || "ALL";
+    const subj = oldSubj || "ALL";
+    const oldCls = document.getElementById("loginClass")?.value || "ALL";
+    const cls = oldCls || "ALL";
+    const q = (document.getElementById("loginSearch")?.value || "").toLowerCase();
+
+    const allSubjects = Array.isArray(state.subjects) ? state.subjects.map(s=>fxText(s.name || s)).filter(Boolean) : [];
+    let classList = state.classes || ["1 AGRIC","1 SCIENCE","1H2A","1 G3B"];
+    if(subj !== "ALL" && typeof classesForSubject === "function"){
+      classList = classesForSubject(subj);
+    }
+
+    const list = (state.students || []).filter(s=>{
+      const sSubj = typeof subjectForClass === "function" ? subjectForClass(s.className) : "";
+      const subjOk = subj === "ALL" || sSubj === subj;
+      const clsOk = cls === "ALL" || s.className === cls;
+      const hay = (fxText(s.name)+" "+fxText(s.code)+" "+fxText(s.phone)+" "+fxText(s.className)).toLowerCase();
+      const qOk = !q || hay.includes(q);
+      return subjOk && clsOk && qOk && !s.deleted;
+    });
+
+    const subjectOptionsHTML = `<option value="ALL" ${subj==="ALL"?"selected":""}>All Subjects</option>` + allSubjects.map(name=>`<option value="${fxEsc(name)}" ${subj===name?'selected':''}>${fxEsc(name)}</option>`).join("");
+    const classOptionsHTML = `<option value="ALL" ${cls==="ALL"?"selected":""}>All Classes</option>` + classList.map(c=>`<option value="${fxEsc(c)}" ${cls===c?'selected':''}>${fxEsc(c)}</option>`).join("");
+
+    const view = document.getElementById("view");
+    if(!view) return;
+
+    view.innerHTML = `<div class="card">
+      <h2>Student Portal</h2>
+      <p>All students are shown first. You may search by name, code, phone, or filter by class.</p>
+      <div class="grid three">
+        <select id="loginSubj" class="select" onchange="studentLogin()">${subjectOptionsHTML}</select>
+        <select id="loginClass" class="select" onchange="studentLogin()">${classOptionsHTML}</select>
+        <input id="loginSearch" class="input" oninput="studentLogin()" value="${fxEsc(q)}" placeholder="Search your name, code, phone, or class">
+      </div>
+      <div class="toolbar" style="margin-top:10px">
+        <span class="badge good">Students loaded: ${state.students.length}</span>
+        <span class="badge">Showing: ${list.length}</span>
+        <span class="badge">Classes: ${(state.classes||[]).join(", ")}</span>
+      </div>
+    </div>
+    <div class="studentPickGrid">${list.map(s=>`<button class="studentPick dblHint" onclick="selectStudentLogin('${fxEsc(s.id)}')" ondblclick="quickOpenStudentPortal('${fxEsc(s.id)}')">
+      ${typeof photoHTML==="function" ? photoHTML(s) : ""}
+      <span><b>${fxEsc(s.name)}</b><small>${fxEsc(s.code || "")} • ${fxEsc(s.className || "")}</small><small class="dblText">Click your name to open your portal</small></span>
+    </button>`).join("") || `<div class="empty">No student found. Try All Subjects and All Classes, or press Ctrl + Shift + R.</div>`}</div><div id="studentPassBox"></div>`;
+  };
+
+  try{
+    eval("normalize=window.normalize; loadLocal=window.loadLocal; saveLocal=window.saveLocal; studentLogin=window.studentLogin;");
+  }catch(e){}
+
+  setTimeout(function(){
+    try{
+      fxRestoreStudents();
+      if(typeof saveLocal === "function") saveLocal();
+      if(typeof role !== "undefined" && role === "guest" && typeof route !== "undefined" && route === "studentLogin" && typeof studentLogin === "function") studentLogin();
+    }catch(e){ console.warn(e); }
+  }, 100);
+  setTimeout(function(){
+    try{
+      fxRestoreStudents();
+      if(typeof save === "function") save();
+    }catch(e){ console.warn(e); }
+  }, 1800);
+})();
+
+
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(render);
