@@ -9652,6 +9652,150 @@ html,body{
   .cleanStudentHead{grid-template-columns:1fr}
 }
 
+
+/* ===== QUIZ TIMER + START PROMPT FIX ===== */
+.quizStartModalOverlay{
+  position:fixed;
+  inset:0;
+  z-index:1000000;
+  background:rgba(4,18,37,.72);
+  display:grid;
+  place-items:center;
+  padding:18px;
+}
+.quizStartModal{
+  width:min(560px,100%);
+  background:#fff;
+  color:#071f3d;
+  border-radius:26px;
+  border:2px solid #f4c430;
+  box-shadow:0 28px 70px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.quizStartModalHeader{
+  background:linear-gradient(135deg,#071f3d,#041225);
+  color:#fff;
+  padding:18px 20px;
+}
+.quizStartModalHeader h2{
+  margin:0 0 6px;
+  color:#fff;
+}
+.quizStartModalHeader p{
+  margin:0;
+  color:#eaf2ff;
+  font-weight:850;
+  line-height:1.45;
+}
+.quizStartModalBody{
+  padding:18px 20px;
+}
+.quizStartModalBody .quizStartInfo{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:18px;
+  padding:12px;
+  margin:0 0 12px;
+}
+.quizStartInfo b{
+  color:#071f3d;
+}
+.quizStartInfo p{
+  margin:6px 0 0;
+  color:#475467;
+  font-weight:820;
+  line-height:1.45;
+}
+.quizStartModalActions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:0 20px 20px;
+}
+.quizStartModalActions button{
+  min-height:46px;
+  border-radius:14px;
+  font-weight:1000;
+  cursor:pointer;
+}
+.quizTimerBar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#fff,#fffdf0);
+  color:#071f3d;
+  border-radius:20px;
+  padding:12px 14px;
+  margin:0 0 14px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:12px;
+  align-items:center;
+  box-shadow:0 10px 24px rgba(7,31,61,.10);
+}
+.quizTimerBar h3{
+  margin:0 0 4px;
+  color:#071f3d;
+}
+.quizTimerBar p{
+  margin:0;
+  color:#475467;
+  font-weight:850;
+}
+.quizTimerClock{
+  min-width:128px;
+  text-align:center;
+  border-radius:16px;
+  background:#071f3d;
+  color:#fff;
+  padding:10px 12px;
+  font-size:22px;
+  font-weight:1000;
+  letter-spacing:.04em;
+}
+.quizTimerClock.warn{
+  background:#b42318;
+  animation:pulseTimer 1s infinite;
+}
+.quizTimerProgress{
+  grid-column:1 / -1;
+  height:10px;
+  border-radius:999px;
+  background:#e7eef6;
+  overflow:hidden;
+}
+.quizTimerProgress > div{
+  height:100%;
+  width:100%;
+  background:#0f7b4f;
+  transition:width .35s linear;
+}
+.quizTimerProgress > div.warn{
+  background:#b42318;
+}
+.quizReadyNotice{
+  border:1px solid #d9e7f3;
+  border-left:8px solid #f4c430;
+  background:#f8fbff;
+  color:#071f3d;
+  border-radius:16px;
+  padding:10px 12px;
+  margin:10px 0;
+  font-weight:850;
+  line-height:1.45;
+}
+@keyframes pulseTimer{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.03)}
+}
+@media(max-width:720px){
+  .quizTimerBar{grid-template-columns:1fr}
+  .quizTimerClock{width:100%}
+  .quizStartModalActions{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -32202,6 +32346,319 @@ with check (true);`;
 
   try{
     eval("cleanText=window.cleanText; studentLogin=window.studentLogin; selectStudentLogin=window.selectStudentLogin; finishStudentLogin=window.finishStudentLogin; studentHome=window.studentHome; renderAvailableAssignmentsNow=window.renderAvailableAssignmentsNow; forceOpenAvailableAssignmentsNow=window.forceOpenAvailableAssignmentsNow; forceOpenAvailableAssignments=window.forceOpenAvailableAssignments; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults;");
+  }catch(e){}
+})();
+
+
+
+/* ===== QUIZ TIMER + START PROMPT FIX V15 =====
+   Adds:
+   - Start prompt before every quiz/exercise begins.
+   - "Start Now" or "Not Ready" choice.
+   - Countdown timer using the quiz duration set by admin.
+   - Automatic submission when time reaches zero.
+   Layout of the Student Portal is preserved.
+*/
+(function(){
+  if(window.__quizTimerStartPromptFixV15) return;
+  window.__quizTimerStartPromptFixV15 = true;
+
+  let quizTimerInterval = null;
+  let quizTimerRemaining = 0;
+  let quizTimerTotal = 0;
+  let quizTimerQuizId = null;
+  let quizTimerSubmitting = false;
+
+  function qtEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function qtText(v, fallback=""){
+    if(v === undefined || v === null) return fallback;
+    if(typeof v === "object"){
+      if(v.title) return String(v.title);
+      if(v.name) return String(v.name);
+      if(v.label) return String(v.label);
+      return fallback;
+    }
+    return String(v);
+  }
+  function qtUid(prefix){
+    try{ if(typeof uid === "function") return uid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function qtNow(){
+    try{ if(typeof now === "function") return now(); }catch(e){}
+    return new Date().toLocaleString();
+  }
+  function qtQuiz(id){
+    try{ if(typeof quiz === "function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>String(q.id)===String(id));
+  }
+  function qtStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function qtSubmitted(studentId, quizId){
+    try{
+      if(typeof hasSubmittedQuiz === "function") return hasSubmittedQuiz(studentId, quizId);
+    }catch(e){}
+    return (state.submissions||[]).some(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId));
+  }
+  function qtSave(){
+    try{ if(typeof save === "function") return save(); }catch(e){}
+    try{ if(typeof safeSaveAll === "function") return safeSaveAll(); }catch(e){}
+    try{ if(typeof saveLocal === "function") return saveLocal(); }catch(e){}
+  }
+  function qtClearTimer(){
+    if(quizTimerInterval){
+      clearInterval(quizTimerInterval);
+      quizTimerInterval = null;
+    }
+    quizTimerQuizId = null;
+    quizTimerRemaining = 0;
+    quizTimerTotal = 0;
+    quizTimerSubmitting = false;
+  }
+  function qtFormat(seconds){
+    seconds = Math.max(0, Number(seconds)||0);
+    const h = Math.floor(seconds/3600);
+    const m = Math.floor((seconds%3600)/60);
+    const s = seconds%60;
+    if(h>0) return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
+  function qtDurationMinutes(q){
+    const raw = Number(q?.durationMinutes || q?.duration || q?.timeLimit || q?.timeLimitMinutes || 30);
+    if(!Number.isFinite(raw) || raw <= 0) return 30;
+    return Math.max(1, Math.round(raw));
+  }
+  function qtQuestionCount(q){
+    return Array.isArray(q?.questions) ? q.questions.length : 0;
+  }
+
+  window.closeQuizStartPrompt = function(){
+    const el = document.getElementById("quizStartModalOverlay");
+    if(el) el.remove();
+  };
+
+  window.takeQuiz = function(id){
+    const q = qtQuiz(id);
+    if(!q) return alert("This exercise is not available.");
+    if(qtSubmitted(currentStudentId, id)){
+      alert("You have already submitted this exercise. It is closed for you unless the admin resets it.");
+      try{ setRoute("studentQuizzes"); }catch(e){}
+      return;
+    }
+    const duration = qtDurationMinutes(q);
+    const count = qtQuestionCount(q);
+    closeQuizStartPrompt();
+    document.body.insertAdjacentHTML("beforeend", `<div id="quizStartModalOverlay" class="quizStartModalOverlay">
+      <div class="quizStartModal">
+        <div class="quizStartModalHeader">
+          <h2>You are about to start an exercise</h2>
+          <p>Start only when you are ready. Once you start, the timer will begin counting down.</p>
+        </div>
+        <div class="quizStartModalBody">
+          <div class="quizStartInfo">
+            <b>${qtEsc(q.title || "Exercise")}</b>
+            <p>Questions: ${count} • Time allowed: ${duration} minute${duration>1?"s":""}</p>
+          </div>
+          <div class="quizReadyNotice">If you are not ready, click <b>Not Ready</b>. If you click <b>Start Now</b>, your time will begin immediately.</div>
+        </div>
+        <div class="quizStartModalActions">
+          <button class="btn light" onclick="closeQuizStartPrompt()">Not Ready</button>
+          <button class="btn green" onclick="startTimedQuiz('${qtEsc(id)}')">Start Now</button>
+        </div>
+      </div>
+    </div>`);
+  };
+
+  function qtAnswerHTML(q,i){
+    const marks = Number(q.marks)||1;
+    const choices = Array.isArray(q.choices) ? q.choices : [];
+    return `<div class="questionBox">
+      <h3>Question ${i+1} (${marks} mark${marks>1?"s":""})</h3>
+      <div class="mathPreview">${qtEsc(q.prompt || q.question || "")}</div>
+      ${q.type==="mcq" ? choices.map((c,j)=>`<label class="notice" style="display:block;margin:6px 0"><input type="radio" name="ans_${qtEsc(q.id)}" value="${"ABCD"[j]}"> ${"ABCD"[j]}. ${qtEsc(c)}</label>`).join("") : q.type==="upload" ? `<input type="file" name="ans_${qtEsc(q.id)}" accept="image/*,.pdf">` : `<textarea name="ans_${qtEsc(q.id)}" placeholder="Type your answer here"></textarea>`}
+    </div>`;
+  }
+
+  window.startTimedQuiz = function(id){
+    const q = qtQuiz(id);
+    if(!q) return alert("This exercise is not available.");
+    if(qtSubmitted(currentStudentId, id)){
+      closeQuizStartPrompt();
+      alert("You have already submitted this exercise. It is closed for you unless the admin resets it.");
+      try{ setRoute("studentQuizzes"); }catch(e){}
+      return;
+    }
+
+    closeQuizStartPrompt();
+    qtClearTimer();
+
+    const durationMin = qtDurationMinutes(q);
+    quizTimerTotal = durationMin * 60;
+    quizTimerRemaining = quizTimerTotal;
+    quizTimerQuizId = id;
+
+    document.getElementById("view").innerHTML = `<div class="card">
+      <div class="quizTimerBar">
+        <div>
+          <h3>${qtEsc(q.title || "Exercise")}</h3>
+          <p>${qtEsc(q.subject || "")} ${Array.isArray(q.classNames)&&q.classNames.length ? "• "+qtEsc(q.classNames.join(", ")) : ""}</p>
+        </div>
+        <div id="quizTimerClock" class="quizTimerClock">${qtFormat(quizTimerRemaining)}</div>
+        <div class="quizTimerProgress"><div id="quizTimerProgressFill"></div></div>
+      </div>
+      <div class="quizReadyNotice">The timer has started. Submit before the time ends. When time reaches zero, your work will be submitted automatically.</div>
+      <form id="quizForm">${(q.questions||[]).map((qq,i)=> {
+        try{ return typeof answerHTML === "function" ? answerHTML(qq,i) : qtAnswerHTML(qq,i); }
+        catch(e){ return qtAnswerHTML(qq,i); }
+      }).join("")}</form>
+      <button id="quizSubmitBtn" class="btn green full" onclick="submitQuiz('${qtEsc(q.id)}', false)">Submit Quiz</button>
+    </div>`;
+    try{ if(typeof typeset === "function") typeset(); }catch(e){}
+    qtStartCountdown();
+  };
+
+  function qtStartCountdown(){
+    qtUpdateTimerDisplay();
+    quizTimerInterval = setInterval(()=>{
+      quizTimerRemaining -= 1;
+      qtUpdateTimerDisplay();
+      if(quizTimerRemaining <= 0){
+        clearInterval(quizTimerInterval);
+        quizTimerInterval = null;
+        if(!quizTimerSubmitting && quizTimerQuizId){
+          quizTimerSubmitting = true;
+          alert("Time is up. Your exercise will be submitted automatically.");
+          submitQuiz(quizTimerQuizId, true);
+        }
+      }
+    },1000);
+  }
+
+  function qtUpdateTimerDisplay(){
+    const clock = document.getElementById("quizTimerClock");
+    const fill = document.getElementById("quizTimerProgressFill");
+    if(clock){
+      clock.textContent = qtFormat(quizTimerRemaining);
+      if(quizTimerRemaining <= 60) clock.classList.add("warn");
+      else clock.classList.remove("warn");
+    }
+    if(fill && quizTimerTotal){
+      const pct = Math.max(0, Math.min(100, (quizTimerRemaining/quizTimerTotal)*100));
+      fill.style.width = pct + "%";
+      if(quizTimerRemaining <= 60) fill.classList.add("warn");
+      else fill.classList.remove("warn");
+    }
+  }
+
+  window.submitQuiz = function(id, auto=false){
+    if(qtSubmitted(currentStudentId, id)){
+      qtClearTimer();
+      alert("You have already submitted this exercise. A second submission is not allowed.");
+      try{ setRoute("studentQuizzes"); }catch(e){}
+      return;
+    }
+
+    const q = qtQuiz(id);
+    const form = document.getElementById("quizForm");
+    if(!q || !form) return alert("This exercise is not open.");
+
+    const btn = document.getElementById("quizSubmitBtn");
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = auto ? "Auto-submitting..." : "Submitting...";
+    }
+
+    let answers = {};
+    let score = 0;
+    let max = 0;
+    const fileReads = [];
+
+    (q.questions||[]).forEach(qq=>{
+      const qid = qtEsc(qq.id);
+      const marks = Number(qq.marks)||1;
+      max += marks;
+      const name = "ans_"+qid;
+
+      if(qq.type === "mcq"){
+        const v = form.querySelector(`[name="${CSS.escape(name)}"]:checked`)?.value || "";
+        answers[qq.id] = v;
+        if(String(v).toUpperCase() === String(qq.answer || "").toUpperCase()) score += marks;
+      }else if(qq.type === "upload"){
+        const input = form.querySelector(`[name="${CSS.escape(name)}"]`);
+        const files = [...(input?.files || [])];
+        if(files.length){
+          answers[qq.id] = [];
+          files.forEach(f=>fileReads.push(new Promise(resolve=>{
+            const r = new FileReader();
+            r.onload = ()=>{ answers[qq.id].push({name:f.name,type:f.type,data:r.result}); resolve(); };
+            r.onerror = ()=>{ resolve(); };
+            r.readAsDataURL(f);
+          })));
+        }else{
+          answers[qq.id] = "";
+        }
+      }else{
+        const v = form.querySelector(`[name="${CSS.escape(name)}"]`)?.value || "";
+        answers[qq.id] = v;
+        if(qq.type === "fill" && String(v).trim().toLowerCase() === String(qq.answer || "").trim().toLowerCase()) score += marks;
+      }
+    });
+
+    Promise.all(fileReads).then(()=>{
+      if(qtSubmitted(currentStudentId, id)){
+        qtClearTimer();
+        alert("This exercise has already been submitted. A second submission is not allowed.");
+        try{ setRoute("studentQuizzes"); }catch(e){}
+        return;
+      }
+
+      state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+      state.submissions.push({
+        id:qtUid("sub"),
+        quizId:id,
+        studentId:currentStudentId,
+        answers,
+        autoScore:score,
+        teacherScore:null,
+        maxScore:max,
+        published:false,
+        submittedAt:qtNow(),
+        feedback:"",
+        autoSubmitted:!!auto,
+        timeUsedSeconds: quizTimerTotal ? Math.max(0, quizTimerTotal - quizTimerRemaining) : null
+      });
+
+      qtClearTimer();
+      qtSave();
+      alert(auto ? "Time is up. Your exercise has been submitted automatically." : "Submitted successfully. This exercise is now closed for you.");
+      try{ setRoute("studentResults"); }catch(e){}
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+      if(btn){
+        btn.disabled = false;
+        btn.textContent = "Submit Quiz";
+      }
+    });
+  };
+
+  // Clear running timer when leaving the quiz page intentionally.
+  const oldSetRouteQT = window.setRoute;
+  if(typeof oldSetRouteQT === "function"){
+    window.setRoute = function(r){
+      if(r !== "studentQuizzes") qtClearTimer();
+      return oldSetRouteQT.apply(this, arguments);
+    };
+    try{ eval("setRoute=window.setRoute;"); }catch(e){}
+  }
+
+  try{
+    eval("takeQuiz=window.takeQuiz; startTimedQuiz=window.startTimedQuiz; submitQuiz=window.submitQuiz; closeQuizStartPrompt=window.closeQuizStartPrompt;");
   }catch(e){}
 })();
 
