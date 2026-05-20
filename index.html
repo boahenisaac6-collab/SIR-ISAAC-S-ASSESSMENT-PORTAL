@@ -9402,6 +9402,88 @@ button[onclick], .nav button, .studentQuickAssignmentButtons button, .submission
   pointer-events:auto!important;
 }
 
+
+/* ===== STUDENT AVAILABLE WORK BUTTON REAL FIX ===== */
+.fixedAvailableWorkPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:20px;
+  padding:14px;
+  margin:0 0 14px;
+  box-shadow:0 8px 24px rgba(7,31,61,.08);
+}
+.fixedAvailableWorkPanel h2{
+  margin:0 0 6px;
+  color:#071f3d;
+}
+.fixedAvailableWorkPanel p{
+  margin:0 0 10px;
+  color:#475467;
+  font-weight:850;
+  line-height:1.45;
+}
+.fixedAvailableWorkButtons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.fixedAvailableWorkButtons button{
+  min-height:42px;
+  border-radius:12px;
+  padding:9px 12px;
+  font-weight:950;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+.fixedAssignmentCentre{
+  display:grid;
+  gap:14px;
+}
+.fixedAssignmentHero{
+  border:2px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fff,#eef5fc);
+  color:#071f3d;
+  border-radius:22px;
+  padding:16px;
+}
+.fixedAssignmentHero h2{margin:0 0 6px;color:#071f3d}
+.fixedAssignmentHero p{margin:0;color:#475467;font-weight:850;line-height:1.45}
+.fixedWorkCards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px;
+}
+.fixedWorkCard{
+  background:#fff;
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 6px 18px rgba(7,31,61,.06);
+}
+.fixedWorkCard h3{margin:0 0 8px;color:#071f3d}
+.fixedWorkCard p{margin:0 0 10px;color:#475467;font-weight:800;line-height:1.45}
+.fixedWorkCard button{
+  width:100%;
+  min-height:42px;
+  border-radius:12px;
+  font-weight:950;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+.fixedOpenBadge,.fixedClosedBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:950;
+  margin:2px 0 8px;
+}
+.fixedOpenBadge{background:#f4c430;color:#071f3d}
+.fixedClosedBadge{background:#0f7b4f;color:#fff}
+
 </style>
 </head>
 <body>
@@ -30649,6 +30731,211 @@ async function initSupabase(){
 
   try{
     eval("repairClickableActions=window.repairClickableActions;");
+  }catch(e){}
+})();
+
+
+
+/* ===== STUDENT AVAILABLE WORK BUTTON REAL FIX V2 =====
+   Directly fixes the Student Portal "View Available Assignments / Quizzes" button.
+   The button now opens a self-contained available-work page, so it does not depend on older wrappers.
+*/
+(function(){
+  if(window.__studentAvailableWorkButtonRealFixV2) return;
+  window.__studentAvailableWorkButtonRealFixV2 = true;
+
+  function fwEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function fwStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function fwSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
+    const subj = (state.subjects||[]).find(x=>(x.classes||[]).includes(cls));
+    return subj ? subj.name : "";
+  }
+  function fwComponentLabel(key){
+    try{
+      if(typeof reportComponents === "function"){
+        const c = reportComponents().find(x=>x.key===key);
+        if(c) return c.label;
+      }
+    }catch(e){}
+    return key || "Assessment";
+  }
+  function fwIsArchived(x){
+    return !!(x && (x.adminReset || x._adminReset || x.resetReleased || x._resetArchived || x._oaArchivedDuplicate || x.archivedAttempt || x.archivedReason || x.resetAt));
+  }
+  function fwQuizSubmitted(qid){
+    return (state.submissions||[]).some(s=>String(s.studentId)===String(currentStudentId) && String(s.quizId)===String(qid) && !fwIsArchived(s));
+  }
+  function fwDocSubmitted(aid){
+    return (state.docSubmissions||[]).some(s=>String(s.studentId)===String(currentStudentId) && String(s.assignmentId)===String(aid) && !fwIsArchived(s));
+  }
+  function fwCanSee(item, st){
+    if(!item || !st) return false;
+    const statusOk = String(item.status||"").toLowerCase() === "published";
+    const subj = fwSubjectForClass(st.className);
+    const subjectOk = !item.subject || !subj || item.subject === subj;
+    const classOk = !Array.isArray(item.classNames) || !item.classNames.length || item.classNames.includes(st.className);
+    return statusOk && subjectOk && classOk;
+  }
+  function fwQuizzes(){
+    const st = fwStudent(currentStudentId);
+    if(!st) return [];
+    return (state.quizzes||[]).filter(q=>fwCanSee(q,st));
+  }
+  function fwDocs(){
+    const st = fwStudent(currentStudentId);
+    if(!st) return [];
+    return (state.docAssignments||[]).filter(a=>fwCanSee(a,st));
+  }
+  async function fwFresh(){
+    try{
+      if(typeof stablePullRemote === "function") await stablePullRemote(true);
+      if(typeof oneAttemptCleanup === "function") oneAttemptCleanup();
+    }catch(e){ console.warn("Fresh assignment pull skipped", e); }
+  }
+
+  window.fixedStudentQuickPanelHTML = function(){
+    const qNew = fwQuizzes().filter(q=>!fwQuizSubmitted(q.id)).length;
+    const dNew = fwDocs().filter(a=>!fwDocSubmitted(a.id)).length;
+    return `<div class="fixedAvailableWorkPanel" id="fixedAvailableWorkPanel">
+      <h2>Assignments and Quizzes</h2>
+      <p>Click below to view all available assignments, quizzes, exercises, and scanned/theory work assigned to your class.</p>
+      <div class="fixedAvailableWorkButtons">
+        <button type="button" class="btn green" data-open-available-work="1" onclick="forceOpenAvailableAssignments(); return false;">📚 View Available Assignments / Quizzes ${qNew+dNew?`(${qNew+dNew} open)`:""}</button>
+        <button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">✅ View Submitted Work / Marked Scripts</button>
+        <button type="button" class="btn gold" onclick="studentHome(); return false;">🔄 Refresh My Portal</button>
+      </div>
+    </div>`;
+  };
+
+  window.forceRenderAvailableAssignments = function(){
+    const st = fwStudent(currentStudentId);
+    if(!st){
+      role = "guest";
+      route = "studentLogin";
+      if(typeof renderShell === "function") return renderShell();
+      return;
+    }
+
+    route = "studentQuizzes";
+    const qs = fwQuizzes();
+    const docs = fwDocs();
+    const openCount = qs.filter(q=>!fwQuizSubmitted(q.id)).length + docs.filter(a=>!fwDocSubmitted(a.id)).length;
+    const closedCount = (qs.length + docs.length) - openCount;
+
+    const qHTML = qs.map(q=>{
+      const done = fwQuizSubmitted(q.id);
+      return `<div class="fixedWorkCard ${done?'oneAttemptClosedCard':''}">
+        <h3>${fwEsc(q.title || "Exercise")}</h3>
+        <span class="${done?'fixedClosedBadge':'fixedOpenBadge'}">${done?'Submitted / Closed':'Available Now'}</span>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${fwEsc(fwComponentLabel(q.assessmentComponent||""))}</p>
+        ${done ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Result</button>` : `<button type="button" class="btn green" data-take-quiz="${fwEsc(q.id)}" onclick="takeQuiz('${fwEsc(q.id)}'); return false;">Start Exercise</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No multiple-choice quiz or exercise is available now.</div>`;
+
+    const dHTML = docs.map(a=>{
+      const done = fwDocSubmitted(a.id);
+      const qFile = a.questionFile ? `<div class="studentQuestionPreview"><b>Question Paper:</b> ${fwEsc(a.questionFile.name||"Question paper")}
+        ${String(a.questionFile.type||"").startsWith("image/") || String(a.questionFile.data||"").startsWith("data:image") ? `<img src="${a.questionFile.data}" alt="Question paper">` : `<p><a class="studentDownloadBtn" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}
+      </div>` : "";
+      return `<div class="fixedWorkCard ${done?'oneAttemptClosedCard':''}">
+        <h3>${fwEsc(a.title || "Scanned / Theory Work")}</h3>
+        <span class="${done?'fixedClosedBadge':'fixedOpenBadge'}">${done?'Submitted / Closed':'Available Now'}</span>
+        <p>${fwEsc(a.instructions || "Open the question paper, solve, scan and submit.")}</p>
+        <p>Maximum score: ${fwEsc(a.maxScore ?? "")} • ${fwEsc(fwComponentLabel(a.assessmentComponent||""))}</p>
+        ${qFile}
+        ${done ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Work</button>` : `<button type="button" class="btn green" data-open-doc-submit="${fwEsc(a.id)}" onclick="openDocSubmitSimple('${fwEsc(a.id)}'); return false;">Submit My Answer Script</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory work is available now.</div>`;
+
+    const view = document.getElementById("view");
+    if(!view) return;
+    view.innerHTML = `<div class="fixedAssignmentCentre">
+      <div class="fixedAssignmentHero">
+        <h2>Available Assignments and Quizzes</h2>
+        <p>${fwEsc(st.name || "Student")} • ${fwEsc(st.className || "")}. Select the work assigned to you. After you submit, that work closes for you unless the admin resets it.</p>
+        <div class="toolbar"><span class="fixedOpenBadge">${openCount} open</span><span class="fixedClosedBadge">${closedCount} submitted / closed</span><button type="button" class="btn light" onclick="forceOpenAvailableAssignments(); return false;">Refresh Available Work</button></div>
+      </div>
+      <div class="card">
+        <h2>Multiple-Choice Exercises / Quizzes</h2>
+        <div class="fixedWorkCards">${qHTML}</div>
+      </div>
+      <div class="card">
+        <h2>Theory / Scanned Work</h2>
+        <div class="fixedWorkCards">${dHTML}</div>
+      </div>
+    </div>`;
+    try{ if(typeof typeset === "function") typeset(); }catch(e){}
+  };
+
+  window.forceOpenAvailableAssignments = async function(){
+    route = "studentQuizzes";
+    await fwFresh();
+    forceRenderAvailableAssignments();
+    try{ if(typeof comm2InjectSide === "function") comm2InjectSide(); }catch(e){}
+  };
+
+  // Replace the previous function with the direct working one.
+  window.openStudentAssignmentsAndQuizzes = function(){
+    return forceOpenAvailableAssignments();
+  };
+
+  // Replace studentQuizzes too, so navigation also works.
+  window.studentQuizzes = function(){
+    return forceRenderAvailableAssignments();
+  };
+
+  // Strengthen studentHome: always place a direct working panel at the top.
+  const oldStudentHomeFW = window.studentHome;
+  window.studentHome = function(){
+    const result = oldStudentHomeFW ? oldStudentHomeFW.apply(this, arguments) : undefined;
+    const view = document.getElementById("view");
+    if(view){
+      const oldFixed = document.getElementById("fixedAvailableWorkPanel");
+      if(oldFixed) oldFixed.remove();
+      view.insertAdjacentHTML("afterbegin", fixedStudentQuickPanelHTML());
+    }
+    return result;
+  };
+
+  // Click delegation backup for cases where inline onclick is blocked by older code.
+  document.addEventListener("click", function(ev){
+    const openBtn = ev.target.closest && ev.target.closest("[data-open-available-work], .openWork");
+    if(openBtn){
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      forceOpenAvailableAssignments();
+      return;
+    }
+    const qBtn = ev.target.closest && ev.target.closest("[data-take-quiz]");
+    if(qBtn){
+      const id = qBtn.getAttribute("data-take-quiz");
+      if(id){
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        if(typeof takeQuiz === "function") takeQuiz(id);
+      }
+      return;
+    }
+    const dBtn = ev.target.closest && ev.target.closest("[data-open-doc-submit]");
+    if(dBtn){
+      const id = dBtn.getAttribute("data-open-doc-submit");
+      if(id){
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        if(typeof openDocSubmitSimple === "function") openDocSubmitSimple(id);
+      }
+    }
+  }, true);
+
+  try{
+    eval("fixedStudentQuickPanelHTML=window.fixedStudentQuickPanelHTML; forceRenderAvailableAssignments=window.forceRenderAvailableAssignments; forceOpenAvailableAssignments=window.forceOpenAvailableAssignments; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; studentQuizzes=window.studentQuizzes; studentHome=window.studentHome;");
   }catch(e){}
 })();
 
