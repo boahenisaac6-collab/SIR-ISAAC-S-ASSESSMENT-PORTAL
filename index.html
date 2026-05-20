@@ -9086,6 +9086,47 @@ html,body{
   .resetActionRow button{width:100%}
 }
 
+
+/* ===== RESET REATTEMPT TRUE FIX ===== */
+.resetFixedNotice{
+  border:2px solid #bce8ce;
+  border-left:10px solid #0f7b4f;
+  background:#ecfdf3;
+  color:#071f3d;
+  border-radius:18px;
+  padding:12px 14px;
+  margin:10px 0;
+  font-weight:850;
+}
+.resetFixedOpenBadge{
+  display:inline-flex;
+  border-radius:999px;
+  background:#f4c430;
+  color:#071f3d;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:950;
+  margin:6px 0;
+}
+.resetFixedClosedBadge{
+  display:inline-flex;
+  border-radius:999px;
+  background:#0f7b4f;
+  color:#fff;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:950;
+  margin:6px 0;
+}
+.resetFixedPanelMini{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  color:#071f3d;
+  border-radius:16px;
+  padding:10px;
+  margin:8px 0;
+}
+
 </style>
 </head>
 <body>
@@ -29228,6 +29269,643 @@ async function initSupabase(){
 
   try{
     eval("oneAttemptCleanup=window.oneAttemptCleanup; studentQuizzes=window.studentQuizzes; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; submitDocAssignmentSimple=window.submitDocAssignmentSimple; submitDocAssignment=window.submitDocAssignment; review=window.review; studentResults=window.studentResults; adminResetSubmissionPanelHTML=window.adminResetSubmissionPanelHTML; refreshAdminResetPanel=window.refreshAdminResetPanel; adminResetSelectedStudentAttempt=window.adminResetSelectedStudentAttempt; adminResetWholeWorkAttempt=window.adminResetWholeWorkAttempt; oneAttemptDeleteRemoteDuplicates=window.oneAttemptDeleteRemoteDuplicates;");
+  }catch(e){}
+})();
+
+
+
+/* ===== RESET REATTEMPT TRUE FIX V3 =====
+   Final correction:
+   - Reset really releases the student's lock.
+   - Reset student is removed from the active submitted-students list.
+   - Student portal shows the work as open again after reset.
+   - Old submissions are preserved as archived history, not deleted.
+   - Works for quizzes/exercises and scanned/theory assignments.
+*/
+(function(){
+  if(window.__resetReattemptTrueFixV3) return;
+  window.__resetReattemptTrueFixV3 = true;
+
+  function rfEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function rfUid(prefix){
+    try{ if(typeof uid === "function") return uid(prefix); }catch(e){}
+    try{ if(typeof exUid === "function") return exUid(prefix); }catch(e){}
+    try{ if(typeof sqUid === "function") return sqUid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function rfNow(){
+    try{ if(typeof now === "function") return now(); }catch(e){}
+    try{ if(typeof exNow === "function") return exNow(); }catch(e){}
+    try{ if(typeof sqNow === "function") return sqNow(); }catch(e){}
+    return new Date().toLocaleString();
+  }
+  function rfStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function rfQuiz(id){
+    try{ if(typeof quiz === "function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>String(q.id)===String(id));
+  }
+  function rfDoc(id){
+    return (state.docAssignments||[]).find(a=>String(a.id)===String(id));
+  }
+  function rfSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
+    return "";
+  }
+  function rfComponentLabel(key){
+    try{
+      if(typeof reportComponents==="function"){
+        const c=reportComponents().find(x=>x.key===key);
+        if(c) return c.label;
+      }
+    }catch(e){}
+    return key || "Assessment";
+  }
+  function rfIsArchived(x){
+    return !!(x && (
+      x.adminReset === true ||
+      x._adminReset === true ||
+      x.resetReleased === true ||
+      x._resetArchived === true ||
+      x._oaArchivedDuplicate === true ||
+      x.archivedAttempt === true ||
+      x.archivedReason === "reset" ||
+      x.archivedReason === "duplicate" ||
+      x.resetAt
+    ));
+  }
+  function rfActiveSubmissions(){
+    return (state.submissions||[]).filter(s=>!rfIsArchived(s));
+  }
+  function rfActiveDocSubmissions(){
+    return (state.docSubmissions||[]).filter(s=>!rfIsArchived(s));
+  }
+  function rfSubmittedQuiz(studentId, quizId){
+    return rfActiveSubmissions().some(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId));
+  }
+  function rfSubmittedDoc(studentId, assignmentId){
+    return rfActiveDocSubmissions().some(s=>String(s.studentId)===String(studentId) && String(s.assignmentId)===String(assignmentId));
+  }
+  function rfQuizSub(studentId, quizId){
+    return rfActiveSubmissions().find(s=>String(s.studentId)===String(studentId) && String(s.quizId)===String(quizId));
+  }
+  function rfDocSub(studentId, assignmentId){
+    return rfActiveDocSubmissions().find(s=>String(s.studentId)===String(studentId) && String(s.assignmentId)===String(assignmentId));
+  }
+  function rfTimeVal(x, fallback){
+    const t = new Date(x?.submittedAt || x?.createdAt || x?._stableRemoteUpdatedAt || "").getTime();
+    return Number.isFinite(t) ? t : fallback;
+  }
+  function rfMarkArchived(item, reason, scope, note){
+    item.adminReset = reason === "reset";
+    item._resetArchived = reason === "reset";
+    item._oaArchivedDuplicate = reason === "duplicate";
+    item.archivedAttempt = true;
+    item.archivedReason = reason;
+    item.resetReleased = reason === "reset";
+    item.resetScope = scope || item.resetScope || "";
+    item.resetReason = note || item.resetReason || "";
+    item.resetBy = reason === "reset" ? "Admin" : item.resetBy || "";
+    item.resetAt = reason === "reset" ? rfNow() : item.resetAt;
+    item.archivedAt = item.archivedAt || rfNow();
+    return item;
+  }
+
+  // Clean duplicates by archiving later duplicates. Do not remove any submission data.
+  window.oneAttemptCleanup = function(){
+    if(!state) return false;
+    if(!Array.isArray(state.submissions)) state.submissions = [];
+    if(!Array.isArray(state.docSubmissions)) state.docSubmissions = [];
+    let changed = false;
+
+    [["submissions","quizId"],["docSubmissions","assignmentId"]].forEach(([bucket,idField])=>{
+      const groups = new Map();
+      (state[bucket]||[]).forEach((item,index)=>{
+        if(!item || !item.studentId || !item[idField] || rfIsArchived(item)) return;
+        const key = String(item.studentId)+"|"+String(item[idField]);
+        if(!groups.has(key)) groups.set(key,[]);
+        groups.get(key).push({item,index});
+      });
+      groups.forEach(list=>{
+        if(list.length <= 1) return;
+        list.sort((a,b)=>rfTimeVal(a.item,a.index)-rfTimeVal(b.item,b.index));
+        list.slice(1).forEach(x=>{
+          rfMarkArchived(x.item,"duplicate","duplicate-cleanup","Duplicate attempt archived automatically.");
+          changed = true;
+        });
+      });
+    });
+
+    // Critical: never delete remote rows.
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return changed;
+  };
+  window.oneAttemptDeleteRemoteDuplicates = async function(){ window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]}; return false; };
+
+  async function rfPullFresh(){
+    try{
+      if(typeof stablePullRemote === "function"){
+        await stablePullRemote(true);
+        oneAttemptCleanup();
+      }
+    }catch(e){ console.warn("Fresh pull skipped", e); }
+  }
+  async function rfSaveNow(){
+    oneAttemptCleanup();
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+    try{
+      if(typeof pushRemote === "function"){
+        await pushRemote();
+      }else if(typeof save === "function"){
+        save();
+      }
+    }catch(e){
+      console.warn("Immediate online save skipped; normal autosave may continue.", e);
+      try{ if(typeof save === "function") save(); }catch(err){}
+    }
+  }
+
+  function rfWorkVisible(item, st){
+    if(!item || !st) return false;
+    const statusOk = String(item.status||"").toLowerCase() === "published";
+    const subj = rfSubjectForClass(st.className);
+    const subjectOk = !item.subject || !subj || item.subject === subj;
+    const classOk = !Array.isArray(item.classNames) || !item.classNames.length || item.classNames.includes(st.className);
+    return statusOk && subjectOk && classOk;
+  }
+  function rfAvailableQuizzes(){
+    const st = rfStudent(currentStudentId);
+    if(!st) return [];
+    return (state.quizzes||[]).filter(q=>rfWorkVisible(q,st));
+  }
+  function rfAvailableDocs(){
+    const st = rfStudent(currentStudentId);
+    if(!st) return [];
+    return (state.docAssignments||[]).filter(a=>rfWorkVisible(a,st));
+  }
+
+  window.studentQuizzes = function(){
+    oneAttemptCleanup();
+    const st = rfStudent(currentStudentId);
+    if(!st){ role="guest"; route="studentLogin"; return renderShell(); }
+
+    const qs = rfAvailableQuizzes();
+    const docs = rfAvailableDocs();
+    const openCount = qs.filter(q=>!rfSubmittedQuiz(st.id,q.id)).length + docs.filter(a=>!rfSubmittedDoc(st.id,a.id)).length;
+    const closedCount = (qs.length + docs.length) - openCount;
+
+    const quizHTML = qs.map(q=>{
+      const sub = rfQuizSub(st.id,q.id);
+      const closed = !!sub;
+      return `<div class="${closed?'oneAttemptClosedCard':'quizCard'}">
+        <h3>${rfEsc(q.title)}</h3>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${rfEsc(rfComponentLabel(q.assessmentComponent||"ex1"))}</p>
+        ${closed ? `<span class="resetFixedClosedBadge">Submitted / Closed</span><div class="oneAttemptNotice">Submitted on ${rfEsc(sub.submittedAt||"")}. Only the admin can reset this work for another attempt.</div>` : `<span class="resetFixedOpenBadge">Open for Attempt</span><button class="btn green" onclick="takeQuiz('${rfEsc(q.id)}')">Start Exercise</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No multiple-choice exercise available now.</div>`;
+
+    const docHTML = docs.map(a=>{
+      const sub = rfDocSub(st.id,a.id);
+      const closed = !!sub;
+      const qFile = a.questionFile ? `<div class="scannedQuestionView"><b>Question Paper:</b> ${rfEsc(a.questionFile.name||"Question paper")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a class="btn light" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}</div>` : "";
+      return `<div class="${closed?'oneAttemptClosedCard':'docAssignmentCard'}">
+        <h3>${rfEsc(a.title)}</h3>
+        <p>${rfEsc(a.instructions||"Open the question, solve it, scan and submit.")}</p>
+        <p>Maximum score: ${rfEsc(a.maxScore ?? "")} • Component: ${rfEsc(rfComponentLabel(a.assessmentComponent||"ex1"))}</p>
+        ${qFile}
+        ${closed ? `<span class="resetFixedClosedBadge">Submitted / Closed</span><div class="oneAttemptNotice">Submitted on ${rfEsc(sub.submittedAt||"")}. Only the admin can reset this work for another attempt.</div>` : `<span class="resetFixedOpenBadge">Open for Attempt</span><button class="btn green" onclick="openDocSubmitSimple('${rfEsc(a.id)}')">Submit My Answer Script</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory work available now.</div>`;
+
+    document.getElementById("view").innerHTML = `<div class="studentSimpleNotice">
+      <h2>My Assignments</h2>
+      <ol>
+        <li>Each work can be submitted <b>only once</b>.</li>
+        <li>After admin reset, the work becomes open again for the affected student(s).</li>
+        <li>After resubmission, the work will close again.</li>
+      </ol>
+      <div class="toolbar"><span class="resetFixedOpenBadge">${openCount} open work(s)</span><span class="resetFixedClosedBadge">${closedCount} submitted / closed</span><button class="btn light" onclick="refreshStudentWorkAfterReset()">Refresh Work Status</button></div>
+    </div>
+    <div class="card"><h2>Multiple-Choice Exercises</h2>${quizHTML}</div>
+    <div class="card"><h2>Theory / Scanned Work</h2>${docHTML}</div>`;
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  };
+
+  window.refreshStudentWorkAfterReset = async function(){
+    await rfPullFresh();
+    studentQuizzes();
+  };
+
+  window.openStudentAssignmentsAndQuizzes = async function(){
+    route="studentQuizzes";
+    await rfPullFresh();
+    studentQuizzes();
+    try{ if(typeof comm2InjectSide==="function") comm2InjectSide(); }catch(e){}
+  };
+
+  function rfAnswerHTML(q,i){
+    return `<div class="questionBox"><h3>Question ${i+1} (${q.marks||1} mark${(q.marks||1)>1?"s":""})</h3><div class="mathPreview">${rfEsc(q.prompt||"")}</div>
+      ${q.type==="mcq"?(q.choices||[]).map((c,j)=>`<label class="notice" style="display:block;margin:6px 0"><input type="radio" name="ans_${q.id}" value="${"ABCD"[j]}"> ${"ABCD"[j]}. ${rfEsc(c)}</label>`).join(""):q.type==="upload"?`<input type="file" name="ans_${q.id}" accept="image/*,.pdf">`:`<textarea name="ans_${q.id}" placeholder="Type your answer here"></textarea>`}
+    </div>`;
+  }
+
+  window.takeQuiz = async function(id){
+    await rfPullFresh();
+    oneAttemptCleanup();
+    if(rfSubmittedQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. It is closed for you. Ask the admin to reset it if you must attempt again.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const q = rfQuiz(id);
+    if(!q) return alert("This exercise is not available.");
+    document.getElementById("view").innerHTML = `<div class="card">
+      <h2>${rfEsc(q.title)}</h2>
+      <p>${rfEsc(q.subject||"")} • ${rfEsc((q.classNames||[]).join(", "))}</p>
+      <div class="resetFixedNotice">This work allows one submission only. After you submit, it will close for you.</div>
+      <form id="quizForm">${(q.questions||[]).map((qq,i)=>{ try{return typeof answerHTML==="function"?answerHTML(qq,i):rfAnswerHTML(qq,i);}catch(e){return rfAnswerHTML(qq,i);} }).join("")}</form>
+      <button class="btn green full" onclick="submitQuiz('${rfEsc(q.id)}')">Submit Quiz</button>
+    </div>`;
+    try{ if(typeof typeset==="function") typeset(); }catch(e){}
+  };
+
+  window.submitQuiz = function(id, auto){
+    oneAttemptCleanup();
+    if(rfSubmittedQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. A second submission is not allowed.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const q = rfQuiz(id);
+    const form = document.getElementById("quizForm");
+    if(!q || !form) return alert("This exercise is not open.");
+    let answers={}, score=0, max=0;
+    const fileReads=[];
+    (q.questions||[]).forEach(qq=>{
+      max += Number(qq.marks)||1;
+      const name = "ans_"+qq.id;
+      if(qq.type==="mcq"){
+        const v = form.querySelector(`[name="${name}"]:checked`)?.value || "";
+        answers[qq.id]=v;
+        if(v.toUpperCase()===String(qq.answer||"").toUpperCase()) score += Number(qq.marks)||1;
+      }else if(qq.type==="upload"){
+        const files=[...(form.querySelector(`[name="${name}"]`)?.files||[])];
+        if(files.length){
+          answers[qq.id]=[];
+          files.forEach(f=>fileReads.push(new Promise(res=>{
+            const r=new FileReader();
+            r.onload=()=>{answers[qq.id].push({name:f.name,type:f.type,data:r.result});res();};
+            r.readAsDataURL(f);
+          })));
+        }else answers[qq.id]="";
+      }else{
+        const v = form.querySelector(`[name="${name}"]`)?.value || "";
+        answers[qq.id]=v;
+        if(qq.type==="fill" && v.trim().toLowerCase()===String(qq.answer||"").trim().toLowerCase()) score += Number(qq.marks)||1;
+      }
+    });
+    const btn = event?.target;
+    if(btn){ btn.disabled=true; btn.textContent="Submitting..."; }
+    Promise.all(fileReads).then(async ()=>{
+      await rfPullFresh();
+      if(rfSubmittedQuiz(currentStudentId,id)){
+        alert("This exercise has already been submitted. A second submission is not allowed.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      state.submissions.push({id:rfUid("sub"),quizId:id,studentId:currentStudentId,answers,autoScore:score,teacherScore:null,maxScore:max,published:false,submittedAt:rfNow(),feedback:"",autoSubmitted:!!auto});
+      oneAttemptCleanup();
+      await rfSaveNow();
+      alert(auto ? "Time is up. Your exercise has been submitted automatically. This exercise is now closed for you." : "Submitted successfully. This exercise is now closed for you.");
+      setRoute("studentResults");
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+    }).finally(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="Submit Quiz"; }
+    });
+  };
+
+  window.openDocSubmitSimple = async function(id){
+    await rfPullFresh();
+    oneAttemptCleanup();
+    if(rfSubmittedDoc(currentStudentId,id)){
+      alert("You have already submitted this work. It is closed for you. Ask the admin to reset it if you must attempt again.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const a = rfDoc(id);
+    if(!a) return;
+    const old=document.getElementById("docSubmitOverlay");
+    if(old) old.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="docSubmitOverlay" class="previewModal2">
+      <div class="previewBox2">
+        <div class="previewHead2"><h2>${rfEsc(a.title)}</h2><button onclick="document.getElementById('docSubmitOverlay').remove()">Close</button></div>
+        <div class="previewBody2">
+          <div class="studentSimpleNotice"><h2>Instructions</h2><ol><li>Open the question paper.</li><li>Solve the work in your exercise book.</li><li>Scan your answer pages as PDF or images.</li><li>Upload the scanned pages below and click Submit.</li></ol></div>
+          <div class="resetFixedNotice">This work allows one submission only. After you submit, it will close for you.</div>
+          ${a.questionFile?`<div class="scannedQuestionView"><b>Question Paper:</b> ${rfEsc(a.questionFile.name||"Question paper")}${String(a.questionFile.type||"").startsWith("image/")?`<img src="${a.questionFile.data}" alt="">`:`<p><a class="btn light" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}</div>`:""}
+          <div class="docUploadBox"><input id="docFiles" type="file" multiple accept="image/*,.pdf"><p>Upload your scanned answer pages here. Images are best for digital marking.</p></div>
+          <button class="btn green full" onclick="submitDocAssignmentSimple('${rfEsc(a.id)}')">Submit Scanned Work</button>
+        </div>
+      </div>
+    </div>`);
+  };
+  window.openDocSubmit = window.openDocSubmitSimple;
+
+  function rfSubmitDoc(id){
+    oneAttemptCleanup();
+    if(rfSubmittedDoc(currentStudentId,id)){
+      alert("You have already submitted this work. A second submission is not allowed.");
+      route="studentQuizzes";
+      return studentQuizzes();
+    }
+    const files=[...(document.getElementById("docFiles")?.files||[])];
+    if(!files.length) return alert("Select at least one scanned page or PDF.");
+    const btn = event?.target;
+    if(btn){ btn.disabled=true; btn.textContent="Submitting..."; }
+    const reads=files.map(f=>new Promise(res=>{
+      const r=new FileReader();
+      r.onload=()=>res({name:f.name,type:f.type,data:r.result});
+      r.readAsDataURL(f);
+    }));
+    Promise.all(reads).then(async fileObjs=>{
+      await rfPullFresh();
+      if(rfSubmittedDoc(currentStudentId,id)){
+        alert("This work has already been submitted. A second submission is not allowed.");
+        route="studentQuizzes";
+        return studentQuizzes();
+      }
+      state.docSubmissions.push({id:rfUid("docsub"),assignmentId:id,studentId:currentStudentId,files:fileObjs,score:null,feedback:"",published:false,submittedAt:rfNow(),markedFiles:[]});
+      oneAttemptCleanup();
+      await rfSaveNow();
+      alert("Your scanned work has been submitted. This work is now closed for you.");
+      document.getElementById("docSubmitOverlay")?.remove();
+      setRoute("studentResults");
+    }).catch(e=>{
+      console.error(e);
+      alert("Submission failed. Please try again.");
+    }).finally(()=>{
+      if(btn){ btn.disabled=false; btn.textContent="Submit Scanned Work"; }
+    });
+  }
+  window.submitDocAssignmentSimple = function(id){ return rfSubmitDoc(id); };
+  window.submitDocAssignment = function(id){ return rfSubmitDoc(id); };
+
+  function rfWorks(){
+    const qs = (state.quizzes||[]).filter(q=>String(q.status||"").toLowerCase()==="published").map(q=>({type:"quiz",id:q.id,title:q.title||"Untitled Exercise",label:"Exercise / Quiz",subject:q.subject||"",classes:q.classNames||[],key:"quiz:"+q.id}));
+    const ds = (state.docAssignments||[]).filter(a=>String(a.status||"").toLowerCase()==="published").map(a=>({type:"doc",id:a.id,title:a.title||"Untitled Scanned Work",label:"Scanned / Theory Work",subject:a.subject||"",classes:a.classNames||[],key:"doc:"+a.id}));
+    return qs.concat(ds).sort((a,b)=>String(a.title).localeCompare(String(b.title), undefined, {sensitivity:"base"}));
+  }
+  function rfWorkByKey(key){
+    return rfWorks().find(w=>w.key===String(key)) || rfWorks()[0] || null;
+  }
+  function rfRowsForWork(key){
+    const w = rfWorkByKey(key);
+    if(!w) return [];
+    const source = w.type==="quiz" ? rfActiveSubmissions().filter(s=>String(s.quizId)===String(w.id)) : rfActiveDocSubmissions().filter(s=>String(s.assignmentId)===String(w.id));
+    const rows = source.map(s=>{
+      const st = rfStudent(s.studentId) || {};
+      return {student:st, submittedAt:s.submittedAt || "", score:w.type==="quiz"?(s.teacherScore ?? s.autoScore ?? ""):(s.score ?? ""), status:s.published ? "Published" : "Submitted"};
+    }).filter(r=>r.student && r.student.id);
+    return rows.sort((a,b)=>String(a.student.className||"").localeCompare(String(b.student.className||""), undefined, {numeric:true,sensitivity:"base"}) || String(a.student.name||"").localeCompare(String(b.student.name||""), undefined, {sensitivity:"base"}));
+  }
+
+  window.studentSubmissionOptions = function(){
+    oneAttemptCleanup();
+    const works = rfWorks().map(w=>({...w,count:rfRowsForWork(w.key).length}));
+    document.getElementById("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>Submitted Work Lists</h2>
+      <p>Select a work to view only students whose active submissions are currently captured. Students reset by admin are removed from the active submitted list until they submit again.</p>
+    </div>
+    <div class="submissionWorkGrid">
+      ${works.map(w=>`<div class="submissionWorkCard">
+        <span class="submissionBadge">${w.count} submitted</span>
+        <h3>${rfEsc(w.title)}</h3>
+        <p>${rfEsc(w.label)}<br>${rfEsc(w.subject)}<br>Classes: ${rfEsc((w.classes||[]).join(", ") || "All assigned classes")}</p>
+        <button class="btn green full" onclick="openStudentSubmittedList('${rfEsc(w.key)}')">View Submitted Students</button>
+      </div>`).join("") || `<div class="empty">No published assignment or quiz is available now.</div>`}
+    </div>`;
+  };
+
+  window.studentSubmittedList = function(){
+    oneAttemptCleanup();
+    const w = rfWorkByKey(window.publicWorkSelected || publicWorkSelected);
+    if(!w){
+      document.getElementById("view").innerHTML = `<div class="studentPublicHeader"><h2>Submitted Work List</h2><p>No published assignment or quiz is available now.</p></div>`;
+      return;
+    }
+    window.publicWorkSelected = w.key;
+    try{ publicWorkSelected = w.key; }catch(e){}
+    const rows = rfRowsForWork(w.key);
+    document.getElementById("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>${rfEsc(w.title)}</h2>
+      <p>${rfEsc(w.label)} • ${rows.length} active submitted record(s)</p>
+    </div>
+    <div class="studentViewToolbar">
+      <button class="navy" onclick="openStudentSubmissionOptions()">Back to Assignment Options</button>
+      <button class="gold" onclick="window.print()">Print List</button>
+    </div>
+    <div class="studentSubmissionTableWrap">
+      <table class="studentSubmissionTable">
+        <thead><tr><th>No.</th><th>Name</th><th>Class</th><th>Submission Status</th><th>Submitted At</th></tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${rfEsc(r.student.name)}</b></td><td>${rfEsc(r.student.className)}</td><td>${rfEsc(r.status)}</td><td>${rfEsc(r.submittedAt)}</td></tr>`).join("") || `<tr><td colspan="5">No active submission has been captured for this work yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  function rfArchiveForReset(sub, scope, reason){
+    rfMarkArchived(sub,"reset",scope,reason||"");
+    sub.resetAt = rfNow();
+    sub.archivedAt = sub.archivedAt || sub.resetAt;
+    return sub;
+  }
+
+  function rfResetPanelHTML(){
+    const works = rfWorks();
+    const selected = document.getElementById("resetWorkSelect")?.value || works[0]?.key || "";
+    const w = rfWorkByKey(selected);
+    const rows = rfRowsForWork(w?.key || selected);
+    return `<div class="resetControlPanel">
+      <h2>Admin Submission Reset Control</h2>
+      <p>Reset releases the lock. The selected student is removed from the active submitted list and the assignment appears again in the student's portal. Old submissions are preserved as archived history.</p>
+      <div class="resetControlGrid">
+        <div><label>Select Assignment / Exercise</label><select id="resetWorkSelect" onchange="refreshAdminResetPanel()">${works.map(x=>`<option value="${rfEsc(x.key)}" ${x.key===(w?.key||"")?"selected":""}>${rfEsc(x.title)} — ${rfEsc(x.label)}</option>`).join("")}</select></div>
+        <div><label>Select Submitted Student</label><select id="resetStudentSelect">${rows.map(r=>`<option value="${rfEsc(r.student.id)}">${rfEsc(r.student.name)} — ${rfEsc(r.student.className||"")}</option>`).join("") || `<option value="">No active submission for this work</option>`}</select></div>
+        <div><label>Reason / Note</label><input id="resetReasonInput" placeholder="Example: wrong upload, network issue"></div>
+      </div>
+      <div class="resetActionRow">
+        <button class="green" onclick="adminResetSelectedStudentAttempt()">Reset Selected Student</button>
+        <button class="red" onclick="adminResetWholeWorkAttempt()">Reset This Assignment for All Submitted Students</button>
+        <button class="navy" onclick="review()">Refresh Review Page</button>
+      </div>
+      <div class="resetMiniSummary">
+        <span>Active submitted students for selected work: ${rows.length}</span>
+        <span>Reset students will disappear from the submitted list until they submit again.</span>
+      </div>
+    </div>`;
+  }
+  window.adminResetSubmissionPanelHTML = rfResetPanelHTML;
+  window.refreshAdminResetPanel = function(){
+    const holder = document.getElementById("adminResetSubmissionPanelHolder");
+    if(holder) holder.innerHTML = rfResetPanelHTML();
+  };
+
+  window.adminResetSelectedStudentAttempt = async function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    oneAttemptCleanup();
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const studentId = document.getElementById("resetStudentSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const w = rfWorkByKey(key);
+    if(!w || !studentId) return alert("Select an assignment and a submitted student first.");
+    const source = w.type==="quiz" ? rfActiveSubmissions().filter(s=>String(s.quizId)===String(w.id) && String(s.studentId)===String(studentId)) : rfActiveDocSubmissions().filter(s=>String(s.assignmentId)===String(w.id) && String(s.studentId)===String(studentId));
+    if(!source.length) return alert("This student is not currently in the active submitted list for the selected work.");
+    const st = rfStudent(studentId) || {};
+    if(!confirm(`Reset ${st.name || "this student"} for "${w.title}"? The student will be removed from the submitted list and can attempt again. The old submission will be preserved.`)) return;
+    source.forEach(s=>rfArchiveForReset(s,"single-student",reason));
+    await rfSaveNow();
+    alert("Reset completed. The student has been removed from the active submitted list and can now attempt the work again.");
+    review();
+  };
+
+  window.adminResetWholeWorkAttempt = async function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    oneAttemptCleanup();
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const w = rfWorkByKey(key);
+    if(!w) return alert("Select an assignment first.");
+    const source = w.type==="quiz" ? rfActiveSubmissions().filter(s=>String(s.quizId)===String(w.id)) : rfActiveDocSubmissions().filter(s=>String(s.assignmentId)===String(w.id));
+    if(!source.length) return alert("There is no active submitted student for the selected work.");
+    if(!confirm(`Reset "${w.title}" for all ${source.length} submitted student(s)? They will be removed from the submitted list and can attempt again. Old submissions will be preserved.`)) return;
+    source.forEach(s=>rfArchiveForReset(s,"whole-assignment",reason));
+    await rfSaveNow();
+    alert("General reset completed. All selected submitted students have been removed from the active submitted list and can now attempt again.");
+    review();
+  };
+
+  function rfArchivedPanelHTML(){
+    const rows = []
+      .concat((state.submissions||[]).filter(rfIsArchived).map(s=>({student:rfStudent(s.studentId)||{}, title:(rfQuiz(s.quizId)||{}).title||"Exercise", submittedAt:s.submittedAt, archivedAt:s.archivedAt||s.resetAt, reason:s.resetReason||s.archivedReason||"", type:"Exercise / Quiz"})))
+      .concat((state.docSubmissions||[]).filter(rfIsArchived).map(s=>({student:rfStudent(s.studentId)||{}, title:(rfDoc(s.assignmentId)||{}).title||"Scanned Work", submittedAt:s.submittedAt, archivedAt:s.archivedAt||s.resetAt, reason:s.resetReason||s.archivedReason||"", type:"Scanned / Theory"})));
+    if(!rows.length) return "";
+    return `<details class="archivedAttemptsPanel">
+      <summary>Preserved Archived / Reset Attempts (${rows.length})</summary>
+      <p style="color:#667085;font-weight:850">These are preserved records. They do not count as active submitted students after reset.</p>
+      ${rows.slice(0,120).map(r=>`<div class="archivedAttemptItem"><b>${rfEsc(r.student.name||"Student")}</b> — ${rfEsc(r.title)}<small>${rfEsc(r.type)} • Submitted: ${rfEsc(r.submittedAt||"")} • Archived: ${rfEsc(r.archivedAt||"")} • Reason: ${rfEsc(r.reason||"")}</small></div>`).join("")}
+      ${rows.length>120?`<p><b>${rows.length-120} more archived records preserved.</b></p>`:""}
+    </details>`;
+  }
+
+  function rfWithActiveOnly(fn){
+    const a = state.submissions;
+    const b = state.docSubmissions;
+    state.submissions = rfActiveSubmissions();
+    state.docSubmissions = rfActiveDocSubmissions();
+    try{ return fn(); }
+    finally{ state.submissions = a; state.docSubmissions = b; }
+  }
+
+  const prevReview = window.review;
+  window.review = function(){
+    oneAttemptCleanup();
+    const result = prevReview ? rfWithActiveOnly(()=>prevReview.apply(this, arguments)) : undefined;
+    const view = document.getElementById("view");
+    if(view){
+      let holder = document.getElementById("adminResetSubmissionPanelHolder");
+      if(!holder){
+        view.insertAdjacentHTML("afterbegin", `<div id="adminResetSubmissionPanelHolder">${rfResetPanelHTML()}</div>`);
+      }else{
+        holder.innerHTML = rfResetPanelHTML();
+      }
+      let archived = document.getElementById("archivedAttemptsPanelInjected");
+      if(archived) archived.remove();
+      view.insertAdjacentHTML("beforeend", `<div id="archivedAttemptsPanelInjected">${rfArchivedPanelHTML()}</div>`);
+    }
+    return result;
+  };
+
+  const prevStudentResults = window.studentResults;
+  if(typeof prevStudentResults === "function"){
+    window.studentResults = function(){
+      oneAttemptCleanup();
+      return rfWithActiveOnly(()=>prevStudentResults.apply(this, arguments));
+    };
+  }
+
+  window.rpSubmittedRows = function(){
+    const rows = [];
+    rfActiveDocSubmissions().forEach(ds=>{
+      const st = rfStudent(ds.studentId)||{};
+      const a = rfDoc(ds.assignmentId)||{};
+      rows.push({type:"Scanned / Written Work", typeKey:"scanned", studentId:ds.studentId, studentName:st.name||"Student", className:st.className||"", subject:a.subject||rfSubjectForClass(st.className)||"", workId:ds.assignmentId||"", workTitle:a.title||"Scanned/Theory Assignment", submittedAt:ds.submittedAt||"", score:ds.score ?? "", maxScore:a.maxScore ?? "", published:!!ds.published, status:ds.published?"Marked / Published":"Submitted / Not Published", feedback:ds.feedback||""});
+    });
+    rfActiveSubmissions().forEach(s=>{
+      const st = rfStudent(s.studentId)||{};
+      const q = rfQuiz(s.quizId)||{};
+      rows.push({type:"Timed MCQ Exercise", typeKey:"timed", studentId:s.studentId, studentName:st.name||"Student", className:st.className||"", subject:q.subject||rfSubjectForClass(st.className)||"", workId:s.quizId||"", workTitle:q.title||"Quiz / Exercise", submittedAt:s.submittedAt||"", score:s.teacherScore ?? s.autoScore ?? "", maxScore:s.maxScore ?? "", published:!!s.published, status:s.published?"Result Published":"Submitted / Result Not Published", feedback:s.feedback||""});
+    });
+    return rows.sort((a,b)=>String(a.className).localeCompare(String(b.className),undefined,{numeric:true,sensitivity:"base"}) || String(a.studentName).localeCompare(String(b.studentName),undefined,{sensitivity:"base"}) || String(a.workTitle).localeCompare(String(b.workTitle),undefined,{sensitivity:"base"}));
+  };
+
+  // Wrappers for saving/syncing: preserve archived records and never remote-delete submissions.
+  if(typeof window.save === "function"){
+    const prevSave = window.save;
+    window.save = function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return prevSave.apply(this, arguments);
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+  if(typeof window.saveLocal === "function"){
+    const prevSaveLocal = window.saveLocal;
+    window.saveLocal = function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return prevSaveLocal.apply(this, arguments);
+    };
+    try{ eval("saveLocal=window.saveLocal;"); }catch(e){}
+  }
+  if(typeof window.pushRemote === "function"){
+    const prevPush = window.pushRemote;
+    window.pushRemote = async function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await prevPush.apply(this, arguments);
+    };
+    try{ eval("pushRemote=window.pushRemote;"); }catch(e){}
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const prevWrite = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      oneAttemptCleanup();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await prevWrite.apply(this, arguments);
+    };
+    try{ eval("stableWriteRemoteItems=window.stableWriteRemoteItems;"); }catch(e){}
+  }
+
+  setTimeout(()=>{
+    try{
+      if(oneAttemptCleanup()){
+        if(typeof saveLocal==="function") saveLocal();
+        if(typeof pushRemote==="function") pushRemote();
+      }
+    }catch(e){}
+  }, 1200);
+
+  try{
+    eval("oneAttemptCleanup=window.oneAttemptCleanup; oneAttemptDeleteRemoteDuplicates=window.oneAttemptDeleteRemoteDuplicates; studentQuizzes=window.studentQuizzes; refreshStudentWorkAfterReset=window.refreshStudentWorkAfterReset; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; openDocSubmitSimple=window.openDocSubmitSimple; openDocSubmit=window.openDocSubmit; submitDocAssignmentSimple=window.submitDocAssignmentSimple; submitDocAssignment=window.submitDocAssignment; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList; adminResetSubmissionPanelHTML=window.adminResetSubmissionPanelHTML; refreshAdminResetPanel=window.refreshAdminResetPanel; adminResetSelectedStudentAttempt=window.adminResetSelectedStudentAttempt; adminResetWholeWorkAttempt=window.adminResetWholeWorkAttempt; review=window.review; studentResults=window.studentResults; rpSubmittedRows=window.rpSubmittedRows;");
   }catch(e){}
 })();
 
