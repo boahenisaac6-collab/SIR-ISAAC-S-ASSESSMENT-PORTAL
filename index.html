@@ -9390,6 +9390,268 @@ html,body{
   border-color:#f4c430!important;
 }
 
+
+/* ===== STUDENT MODE CLEAN DESIGN + OBJECT TEXT FIX ===== */
+.cleanStart{
+  min-height:100vh;
+  padding:22px;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at top left, rgba(244,196,48,.20), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(15,123,79,.18), transparent 30%),
+    linear-gradient(135deg,#041225,#071f3d 55%,#0f172a);
+}
+.cleanStartCard{
+  width:min(1120px,100%);
+  overflow:hidden;
+  border-radius:32px;
+  border:1px solid rgba(255,255,255,.14);
+  background:#fff;
+  box-shadow:0 30px 80px rgba(0,0,0,.35);
+}
+.cleanStartHero{
+  position:relative;
+  padding:36px 34px;
+  background:
+    linear-gradient(135deg,rgba(7,31,61,.95),rgba(4,18,37,.95)),
+    repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 1px,transparent 1px 12px);
+  color:#fff;
+  overflow:hidden;
+}
+.cleanStartHero::after{
+  content:"f(x)  ∑  ∫  √x  π  Δ  θ";
+  position:absolute;
+  right:24px;
+  bottom:12px;
+  font-size:34px;
+  font-weight:1000;
+  letter-spacing:.12em;
+  color:rgba(255,255,255,.08);
+}
+.cleanHeroRow{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  position:relative;
+  z-index:2;
+}
+.cleanLogoSeal{
+  width:82px;
+  height:82px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  color:#071f3d;
+  border:6px solid #f4c430;
+  box-shadow:0 12px 34px rgba(0,0,0,.28);
+  font-size:24px;
+  font-weight:1000;
+  flex:0 0 auto;
+}
+.cleanStartHero h1{
+  margin:0 0 8px;
+  font-size:clamp(30px,4.4vw,52px);
+  line-height:1.06;
+  letter-spacing:.01em;
+}
+.cleanStartHero p{
+  margin:0;
+  max-width:850px;
+  color:#eaf2ff;
+  font-weight:850;
+  line-height:1.55;
+}
+.cleanModeGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:18px;
+  padding:22px;
+  background:linear-gradient(180deg,#fff,#f6f9fc);
+}
+.cleanModeTile{
+  border:1px solid #d9e7f3;
+  border-radius:24px;
+  background:#fff;
+  padding:20px;
+  box-shadow:0 12px 30px rgba(7,31,61,.08);
+  position:relative;
+  overflow:hidden;
+}
+.cleanModeTile::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:8px;
+  background:#f4c430;
+}
+.cleanModeTile h2{
+  margin:0 0 8px;
+  color:#071f3d;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.cleanModeIcon{
+  width:40px;
+  height:40px;
+  border-radius:14px;
+  display:inline-grid;
+  place-items:center;
+  background:#eef5fc;
+  color:#071f3d;
+}
+.cleanModeTile p{
+  color:#475467;
+  font-weight:820;
+  line-height:1.5;
+  margin:0 0 14px;
+}
+.cleanStudentHero{
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  border-radius:24px;
+  padding:18px;
+  margin-bottom:14px;
+  background:
+    radial-gradient(circle at top right,rgba(244,196,48,.16),transparent 30%),
+    linear-gradient(135deg,#ffffff,#eef5fc);
+  color:#071f3d;
+  box-shadow:0 12px 30px rgba(7,31,61,.08);
+}
+.cleanStudentHero h2{
+  margin:0 0 6px;
+  color:#071f3d;
+  font-size:clamp(22px,3vw,34px);
+}
+.cleanStudentHero p{
+  margin:0;
+  color:#475467;
+  font-weight:850;
+  line-height:1.45;
+}
+.cleanStudentLoginCard{
+  border:1px solid #d9e7f3;
+  border-radius:22px;
+  background:#fff;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(7,31,61,.07);
+  margin-bottom:14px;
+}
+.cleanStudentFilters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+}
+.cleanStudentFilters label{
+  display:block;
+  font-size:12px;
+  font-weight:950;
+  text-transform:uppercase;
+  color:#667085;
+  margin-bottom:5px;
+}
+.cleanStudentFilters select,.cleanStudentFilters input{
+  width:100%;
+  min-height:44px;
+  border:1px solid #cbd9e8;
+  border-radius:13px;
+  padding:9px 11px;
+  color:#071f3d;
+  background:#fff;
+  font-weight:850;
+}
+.cleanStudentPickGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px;
+}
+.cleanStudentPick{
+  display:grid;
+  grid-template-columns:58px 1fr;
+  align-items:center;
+  gap:12px;
+  border:1px solid #d9e7f3;
+  border-radius:20px;
+  background:#fff;
+  color:#071f3d;
+  padding:12px;
+  text-align:left;
+  box-shadow:0 7px 20px rgba(7,31,61,.06);
+  cursor:pointer;
+}
+.cleanStudentPick:hover{
+  outline:3px solid rgba(244,196,48,.35);
+  transform:translateY(-1px);
+}
+.cleanStudentPick b,.cleanStudentPick small{display:block;overflow-wrap:anywhere}
+.cleanStudentDashboard{
+  display:grid;
+  gap:14px;
+}
+.cleanStudentHead{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:14px;
+  align-items:center;
+}
+.cleanStudentHead h2{margin:0;color:#071f3d}
+.cleanStudentHead p{margin:4px 0 0;color:#475467;font-weight:850}
+.cleanStudentActions{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.cleanActionCard{
+  border:1px solid #d9e7f3;
+  border-radius:22px;
+  background:#fff;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(7,31,61,.07);
+}
+.cleanActionCard h3{margin:0 0 8px;color:#071f3d}
+.cleanActionCard p{margin:0 0 12px;color:#475467;font-weight:820;line-height:1.45}
+.cleanActionCard button{width:100%;min-height:44px;border-radius:13px;font-weight:950}
+.cleanAvailableCentre{display:grid;gap:14px}
+.cleanWorkCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.cleanWorkCard{
+  background:#fff;
+  border:1px solid #d9e7f3;
+  border-radius:20px;
+  padding:15px;
+  box-shadow:0 8px 24px rgba(7,31,61,.06);
+}
+.cleanWorkCard h3{margin:0 0 8px;color:#071f3d}
+.cleanWorkCard p{margin:0 0 10px;color:#475467;font-weight:820;line-height:1.45}
+.cleanWorkCard button{width:100%;min-height:42px;border-radius:12px;font-weight:950}
+.cleanOpenBadge,.cleanClosedBadge,.cleanInfoBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:950;
+  margin:2px 4px 8px 0;
+}
+.cleanOpenBadge{background:#f4c430;color:#071f3d}
+.cleanClosedBadge{background:#0f7b4f;color:#fff}
+.cleanInfoBadge{background:#eef5fc;color:#071f3d;border:1px solid #d9e7f3}
+.cleanPasswordBox{
+  border:2px solid #f4c430;
+  border-radius:20px;
+  background:#fffdf0;
+  padding:14px;
+  margin:14px 0;
+}
+.cleanNoObjectWarning{display:none!important}
+@media(max-width:720px){
+  .cleanStart{padding:10px}
+  .cleanHeroRow{align-items:flex-start}
+  .cleanLogoSeal{width:62px;height:62px;font-size:18px;border-width:4px}
+  .cleanModeGrid{grid-template-columns:1fr;padding:14px}
+  .cleanStudentHead{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -31503,6 +31765,443 @@ with check (true);`;
 
   try{
     eval("initSupabase=window.initSupabase; pushRemote=window.pushRemote; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; save=window.save; dashboard=window.dashboard; settings=window.settings; renderShell=window.renderShell; liveReconnectPull=window.liveReconnectPull; liveReconnectPush=window.liveReconnectPush; liveReconnectPanelHTML=window.liveReconnectPanelHTML; injectLiveReconnectPanel=window.injectLiveReconnectPanel; liveReconnectTest=window.liveReconnectTest; copyLiveReconnectSQL=window.copyLiveReconnectSQL;");
+  }catch(e){}
+})();
+
+
+
+/* ===== STUDENT MODE CLEAN DESIGN + OBJECT TEXT FIX V14 =====
+   Fixes unclear [object Object] text and redesigns:
+   - First welcome screen
+   - Student login screen
+   - Student home dashboard
+   - Available assignments/quizzes view
+   - Submitted work/results view
+*/
+(function(){
+  if(window.__studentModeCleanDesignObjectFixV14) return;
+  window.__studentModeCleanDesignObjectFixV14 = true;
+
+  function cxText(v, fallback=""){
+    if(v === undefined || v === null) return fallback;
+    if(typeof v === "string" || typeof v === "number" || typeof v === "boolean") return String(v);
+    if(Array.isArray(v)) return v.map(x=>cxText(x,"")).filter(Boolean).join(", ");
+    if(typeof v === "object"){
+      const keys = ["name","title","label","value","text","school","teacherName","className","subject","code","id"];
+      for(const k of keys){
+        if(v[k] !== undefined && v[k] !== null && typeof v[k] !== "object") return String(v[k]);
+      }
+      return fallback;
+    }
+    return String(v);
+  }
+  function cxEsc(v, fallback=""){
+    return cxText(v,fallback).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  }
+  window.cleanText = cxText;
+  window.esc = function(v){ return cxEsc(v); };
+  try{ eval("esc=window.esc;"); }catch(e){}
+
+  function cxEnsureCleanState(){
+    state = state || {};
+    state.settings = state.settings || {};
+    state.settings.teacherName = cxText(state.settings.teacherName, "Sir Isaac Boahen");
+    state.settings.school = cxText(state.settings.school, "Akuse Methodist Senior High Technical School");
+    if(!state.settings.teacherName || state.settings.teacherName === "[object Object]") state.settings.teacherName = "Sir Isaac Boahen";
+    if(!state.settings.school || state.settings.school === "[object Object]") state.settings.school = "Akuse Methodist Senior High Technical School";
+
+    state.classes = (Array.isArray(state.classes)?state.classes:[]).map(c=>cxText(c,"")).filter(Boolean);
+    state.subjects = (Array.isArray(state.subjects)?state.subjects:[]).map(s=>{
+      if(typeof s === "string") return {name:s, classes:[]};
+      return { ...s, name:cxText(s?.name || s, "Mathematics"), classes:(Array.isArray(s?.classes)?s.classes:[]).map(c=>cxText(c,"")).filter(Boolean) };
+    }).filter(s=>s.name);
+    state.students = (Array.isArray(state.students)?state.students:[]).map((s,i)=>({
+      ...s,
+      id:cxText(s?.id, "stu_"+i),
+      name:cxText(s?.name, "STUDENT "+(i+1)),
+      code:cxText(s?.code, "STU-"+String(i+1).padStart(3,"0")),
+      className:cxText(s?.className, state.classes[0]||""),
+      phone:cxText(s?.phone,""),
+      password:cxText(s?.password, cxText(s?.code,""))
+    }));
+    state.quizzes = (Array.isArray(state.quizzes)?state.quizzes:[]).map(q=>({
+      ...q,
+      id:cxText(q?.id,"quiz_"+Math.random().toString(16).slice(2)),
+      title:cxText(q?.title,"Untitled Exercise"),
+      subject:cxText(q?.subject,""),
+      status:cxText(q?.status,"Draft"),
+      classNames:(Array.isArray(q?.classNames)?q.classNames:[]).map(c=>cxText(c,"")).filter(Boolean),
+      questions:Array.isArray(q?.questions)?q.questions:[]
+    }));
+    state.docAssignments = (Array.isArray(state.docAssignments)?state.docAssignments:[]).map(a=>({
+      ...a,
+      id:cxText(a?.id,"doc_"+Math.random().toString(16).slice(2)),
+      title:cxText(a?.title,"Untitled Scanned Work"),
+      subject:cxText(a?.subject,""),
+      status:cxText(a?.status,"Draft"),
+      instructions:cxText(a?.instructions,"Open the question paper, solve, scan and submit."),
+      classNames:(Array.isArray(a?.classNames)?a.classNames:[]).map(c=>cxText(c,"")).filter(Boolean)
+    }));
+  }
+
+  const oldNormalizeCX = window.normalize;
+  if(typeof oldNormalizeCX === "function"){
+    window.normalize = function(){
+      const r = oldNormalizeCX.apply(this, arguments);
+      cxEnsureCleanState();
+      return r;
+    };
+    try{ eval("normalize=window.normalize;"); }catch(e){}
+  }
+
+  function cxSchool(){ cxEnsureCleanState(); return state.settings.school || "Akuse Methodist Senior High Technical School"; }
+  function cxTeacher(){ cxEnsureCleanState(); return state.settings.teacherName || "Sir Isaac Boahen"; }
+  function cxStudent(id){
+    cxEnsureCleanState();
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function cxSubjectForClass(cls){
+    cls = cxText(cls,"");
+    const found = (state.subjects||[]).find(s=>(s.classes||[]).map(c=>cxText(c,"")).includes(cls));
+    return found ? cxText(found.name,"") : "";
+  }
+  window.subjectForClass = cxSubjectForClass;
+  try{ eval("subjectForClass=window.subjectForClass;"); }catch(e){}
+
+  function cxClassesForSubject(subj){
+    subj = cxText(subj,"");
+    const found = (state.subjects||[]).find(s=>cxText(s.name,"")===subj);
+    if(found && Array.isArray(found.classes) && found.classes.length) return found.classes.map(c=>cxText(c,"")).filter(Boolean);
+    return (state.classes||[]).map(c=>cxText(c,"")).filter(Boolean);
+  }
+  window.classesForSubject = cxClassesForSubject;
+  try{ eval("classesForSubject=window.classesForSubject;"); }catch(e){}
+
+  window.subjectOptions = function(sel){
+    cxEnsureCleanState();
+    return (state.subjects||[]).map(s=>{
+      const name = cxText(s.name || s,"Mathematics");
+      return `<option value="${cxEsc(name)}" ${cxText(sel)===name?'selected':''}>${cxEsc(name)}</option>`;
+    }).join("");
+  };
+  try{ eval("subjectOptions=window.subjectOptions;"); }catch(e){}
+
+  window.classOptions = function(sel){
+    cxEnsureCleanState();
+    return (state.classes||[]).map(c=>{
+      const name = cxText(c,"");
+      return `<option value="${cxEsc(name)}" ${cxText(sel)===name?'selected':''}>${cxEsc(name)}</option>`;
+    }).join("");
+  };
+  try{ eval("classOptions=window.classOptions;"); }catch(e){}
+
+  function cxPublished(item){
+    return String(item?.status||"").toLowerCase() === "published";
+  }
+  function cxVisibleToStudent(item, st){
+    if(!item || !st || !cxPublished(item)) return false;
+    const subj = cxSubjectForClass(st.className);
+    const subjectOk = !item.subject || !subj || item.subject === subj;
+    const classes = Array.isArray(item.classNames) ? item.classNames.map(c=>cxText(c,"")) : [];
+    const classOk = !classes.length || classes.includes(st.className);
+    return subjectOk && classOk;
+  }
+  function cxResetTime(type, workId, studentId){
+    const arr = Array.isArray(state.attemptResets) ? state.attemptResets : [];
+    let t = 0;
+    arr.forEach(r=>{
+      if(!r || cxText(r.type)!==type || cxText(r.workId)!==cxText(workId)) return;
+      if(cxText(r.studentId)===cxText(studentId) || r.studentId==="ALL"){
+        const a = Number(r.resetMs||0);
+        const b = new Date(r.resetAt||"").getTime();
+        t = Math.max(t, a, Number.isFinite(b)?b:0);
+      }
+    });
+    return t;
+  }
+  function cxSubTime(s){
+    const t = new Date(s?.submittedAt || "").getTime();
+    return Number.isFinite(t) ? t : 1;
+  }
+  function cxHasQuiz(studentId, quizId){
+    return (state.submissions||[]).some(s=>cxText(s.studentId)===cxText(studentId) && cxText(s.quizId)===cxText(quizId) && cxSubTime(s)>cxResetTime("quiz", quizId, studentId));
+  }
+  function cxHasDoc(studentId, aid){
+    return (state.docSubmissions||[]).some(s=>cxText(s.studentId)===cxText(studentId) && cxText(s.assignmentId)===cxText(aid) && cxSubTime(s)>cxResetTime("doc", aid, studentId));
+  }
+  function cxStudentQuizzes(st){
+    return (state.quizzes||[]).filter(q=>cxVisibleToStudent(q,st));
+  }
+  function cxStudentDocs(st){
+    return (state.docAssignments||[]).filter(a=>cxVisibleToStudent(a,st));
+  }
+
+  window.renderStart = function(){
+    cxEnsureCleanState();
+    document.getElementById("app").innerHTML = `<div class="cleanStart">
+      <div class="cleanStartCard">
+        <div class="cleanStartHero">
+          <div class="cleanHeroRow">
+            <div class="cleanLogoSeal">AM</div>
+            <div>
+              <h1>Welcome to Sir Isaac's Mathematics Classroom</h1>
+              <p>${cxEsc(cxSchool())} • A professional online assessment and learning portal for Mathematics and Additional Mathematics.</p>
+            </div>
+          </div>
+        </div>
+        <div class="cleanModeGrid">
+          <div class="cleanModeTile">
+            <h2><span class="cleanModeIcon">🔐</span>Teacher Admin Mode</h2>
+            <p>Manage students, publish assignments, review submitted work, reset attempts, and prepare reports.</p>
+            <button class="btn navy full" onclick="showAdminLogin()">Enter Admin Mode</button>
+          </div>
+          <div class="cleanModeTile">
+            <h2><span class="cleanModeIcon">🎓</span>Student Portal</h2>
+            <p>Students select their subject, class, and name to access assignments, quizzes, scanned work, scores, and reports.</p>
+            <button class="btn gold full" onclick="openStudentPortal()">Open Student Portal</button>
+          </div>
+        </div>
+        <div id="loginPanel" class="loginPanel hidden"></div>
+      </div>
+    </div>`;
+  };
+
+  window.renderShell = function(){
+    cxEnsureCleanState();
+    const items = typeof navItems === "function" ? navItems() : [];
+    const pageTitle = ({
+      dashboard:"Dashboard",students:"Students",quizzes:"Quiz Builder",review:"Review / Marking",components:"Continuous Assessment",reports:"Reports",settings:"Settings",backup:"Backup",
+      studentLogin:"Student Login",studentHome:"Student Home",studentQuizzes:"Assignments / Quizzes",studentResults:"My Results",studentSubmissionOptions:"Submitted Work Lists",studentSubmittedList:"Submitted Students"
+    })[route] || "Portal";
+
+    const saveBtn = role === "admin" ? `<button class="btn gold" onclick="save()">Save</button>` : "";
+    const brandSmall = role === "student" ? `${cxEsc(cxStudent(currentStudentId)?.className||"Student Portal")} • Mathematics Classroom` : `Mathematics / Additional Mathematics`;
+
+    document.getElementById("app").innerHTML = `<div class="appShell">
+      <aside class="side">
+        <div class="brand"><div class="logoCircle">AM</div><div><h2>Sir Isaac's Mathematics Classroom</h2><small>${brandSmall}</small></div></div>
+        <nav class="nav">${items.map(([r,t])=>`<button class="${route===r?'active':''}" onclick="setRoute('${r}')">${cxEsc(t)}</button>`).join("")}<button onclick="logout()">Logout</button></nav>
+      </aside>
+      <main class="main">
+        <div class="topbar"><div><h1>${cxEsc(pageTitle)}</h1><p>${cxEsc(cxTeacher())} • ${cxEsc(cxSchool())}</p></div><div>${saveBtn}</div></div>
+        <div id="view"></div>
+      </main>
+    </div>`;
+
+    const fns = {dashboard,students,quizzes,review,components,reports,settings,backup,studentLogin,studentHome,studentQuizzes,studentResults,studentSubmissionOptions,studentSubmittedList};
+    const fn = fns[route] || dashboard;
+    fn();
+    try{ if(typeof typeset === "function") typeset(); }catch(e){}
+    try{ if(typeof injectLiveReconnectPanel === "function") setTimeout(injectLiveReconnectPanel,80); }catch(e){}
+  };
+  try{ eval("renderStart=window.renderStart; renderShell=window.renderShell;"); }catch(e){}
+
+  window.studentLogin = function(){
+    cxEnsureCleanState();
+    const subjects = (state.subjects||[]).map(s=>cxText(s.name||s,"")).filter(Boolean);
+    const subj = cxText(document.getElementById("loginSubj")?.value || subjects[0] || "");
+    const classes = cxClassesForSubject(subj);
+    const cls = cxText(document.getElementById("loginClass")?.value || classes[0] || "");
+    const q = cxText(document.getElementById("loginSearch")?.value || "").toLowerCase();
+
+    const list = (state.students||[]).filter(s=>{
+      const okSubject = !subj || cxSubjectForClass(s.className) === subj || !cxSubjectForClass(s.className);
+      const okClass = !cls || s.className === cls;
+      const hay = `${s.name} ${s.code} ${s.className}`.toLowerCase();
+      return okSubject && okClass && (!q || hay.includes(q));
+    });
+
+    document.getElementById("view").innerHTML = `<div class="cleanStudentHero">
+      <h2>Student Portal</h2>
+      <p>Select your subject, class, and name. Everything shown here is written clearly for students; no hidden technical text is displayed.</p>
+    </div>
+    <div class="cleanStudentLoginCard">
+      <div class="cleanStudentFilters">
+        <div><label>Subject</label><select id="loginSubj" onchange="studentLogin()">${subjects.map(s=>`<option value="${cxEsc(s)}" ${s===subj?'selected':''}>${cxEsc(s)}</option>`).join("")}</select></div>
+        <div><label>Class</label><select id="loginClass" onchange="studentLogin()">${classes.map(c=>`<option value="${cxEsc(c)}" ${c===cls?'selected':''}>${cxEsc(c)}</option>`).join("")}</select></div>
+        <div><label>Search your name</label><input id="loginSearch" oninput="studentLogin()" value="${cxEsc(q)}" placeholder="Type your name or code"></div>
+      </div>
+    </div>
+    <div class="cleanStudentPickGrid">
+      ${list.map(s=>`<button class="cleanStudentPick" onclick="selectStudentLogin('${cxEsc(s.id)}')">${photoHTML(s)}<span><b>${cxEsc(s.name)}</b><small>${cxEsc(s.code)} • ${cxEsc(s.className)}</small></span></button>`).join("") || `<div class="empty">No student found. Check the subject, class, or spelling of the name.</div>`}
+    </div>
+    <div id="studentPassBox"></div>`;
+  };
+
+  window.selectStudentLogin = function(id){
+    currentStudentId = id;
+    const s = cxStudent(id);
+    if(!s) return alert("Student not found. Please refresh and try again.");
+    if(!state.settings.requireStudentPassword){
+      role = "student"; route = "studentHome"; renderShell(); return;
+    }
+    document.getElementById("studentPassBox").innerHTML = `<div class="cleanPasswordBox">
+      <h3>${cxEsc(s.name)}</h3>
+      <p class="notice">Enter your student password to open your portal.</p>
+      <input id="stuPass" class="input" type="password" placeholder="Student password" onkeydown="if(event.key==='Enter')finishStudentLogin()">
+      <button class="btn green full" onclick="finishStudentLogin()">Open My Portal</button>
+    </div>`;
+    setTimeout(()=>document.getElementById("stuPass")?.focus(),60);
+  };
+
+  window.finishStudentLogin = function(){
+    const s = cxStudent(currentStudentId);
+    if(!s) return alert("Student not found.");
+    if((document.getElementById("stuPass")?.value || "") !== s.password) return alert("Wrong password.");
+    role = "student"; route = "studentHome"; renderShell();
+  };
+
+  window.studentHome = function(){
+    cxEnsureCleanState();
+    const s = cxStudent(currentStudentId);
+    if(!s){ role="guest"; route="studentLogin"; return renderShell(); }
+    const qs = cxStudentQuizzes(s);
+    const docs = cxStudentDocs(s);
+    const openWork = qs.filter(q=>!cxHasQuiz(s.id,q.id)).length + docs.filter(a=>!cxHasDoc(s.id,a.id)).length;
+    const submitted = (state.submissions||[]).filter(x=>cxText(x.studentId)===s.id).length + (state.docSubmissions||[]).filter(x=>cxText(x.studentId)===s.id).length;
+    const reportOpen = (typeof isReportPublished === "function" && isReportPublished(s.id));
+
+    document.getElementById("view").innerHTML = `<div class="cleanStudentDashboard">
+      <div class="cleanStudentHero">
+        <div class="cleanStudentHead">${photoHTML(s)}<div><h2>Welcome, ${cxEsc(s.name)}</h2><p>${cxEsc(s.className)} • ${cxEsc(cxSubjectForClass(s.className)||"Mathematics")}</p></div></div>
+      </div>
+      <div class="cards">
+        <div class="card stat"><span>Open Work</span><b>${openWork}</b></div>
+        <div class="card stat"><span>Submitted Work</span><b>${submitted}</b></div>
+        <div class="card stat"><span>Report Card</span><b>${reportOpen ? "Open" : "Locked"}</b></div>
+      </div>
+      <div class="cleanStudentActions">
+        <div class="cleanActionCard"><h3>Assignments and Quizzes</h3><p>View all exercises, quizzes, and scanned/theory work assigned to your class.</p><button class="btn green" onclick="forceOpenAvailableAssignmentsNow ? forceOpenAvailableAssignmentsNow() : setRoute('studentQuizzes')">View Available Assignments / Quizzes</button></div>
+        <div class="cleanActionCard"><h3>Submitted Work and Scores</h3><p>Check submitted work, published feedback, marked scripts, and report card information.</p><button class="btn light" onclick="setRoute('studentResults')">View Submitted Work / Results</button></div>
+        <div class="cleanActionCard"><h3>Refresh Portal</h3><p>Refresh your portal after Sir Isaac publishes new work or resets an attempt.</p><button class="btn gold" onclick="studentHome()">Refresh My Portal</button></div>
+      </div>
+    </div>`;
+  };
+
+  window.renderAvailableAssignmentsNow = function(){
+    cxEnsureCleanState();
+    const s = cxStudent(currentStudentId);
+    if(!s){ role="guest"; route="studentLogin"; return renderShell(); }
+    route = "studentQuizzes";
+    const qs = cxStudentQuizzes(s);
+    const docs = cxStudentDocs(s);
+    const openCount = qs.filter(q=>!cxHasQuiz(s.id,q.id)).length + docs.filter(a=>!cxHasDoc(s.id,a.id)).length;
+    const closedCount = (qs.length + docs.length) - openCount;
+
+    const qHTML = qs.map(q=>{
+      const done = cxHasQuiz(s.id,q.id);
+      return `<div class="cleanWorkCard ${done?'oneAttemptClosedCard':''}">
+        <h3>${cxEsc(q.title)}</h3>
+        <span class="${done?'cleanClosedBadge':'cleanOpenBadge'}">${done?'Submitted / Closed':'Available Now'}</span>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${cxEsc(cxComponentLabel(q.assessmentComponent||""))}</p>
+        ${done ? `<button class="btn light" onclick="setRoute('studentResults')">View Submitted Result</button>` : `<button class="btn green" onclick="takeQuiz('${cxEsc(q.id)}')">Start Exercise</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No multiple-choice exercise is available now.</div>`;
+
+    const dHTML = docs.map(a=>{
+      const done = cxHasDoc(s.id,a.id);
+      const qFile = a.questionFile ? `<div class="studentQuestionPreview"><b>Question Paper:</b> ${cxEsc(a.questionFile.name||"Question paper")}
+        ${String(a.questionFile.type||"").startsWith("image/") || String(a.questionFile.data||"").startsWith("data:image") ? `<img src="${a.questionFile.data}" alt="Question paper">` : `<p><a class="studentDownloadBtn" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}
+      </div>` : "";
+      return `<div class="cleanWorkCard ${done?'oneAttemptClosedCard':''}">
+        <h3>${cxEsc(a.title)}</h3>
+        <span class="${done?'cleanClosedBadge':'cleanOpenBadge'}">${done?'Submitted / Closed':'Available Now'}</span>
+        <p>${cxEsc(a.instructions)}</p>
+        <p>Maximum score: ${cxEsc(a.maxScore ?? "")} • ${cxEsc(cxComponentLabel(a.assessmentComponent||""))}</p>
+        ${qFile}
+        ${done ? `<button class="btn light" onclick="setRoute('studentResults')">View Submitted Work</button>` : `<button class="btn green" onclick="openDocSubmitSimple('${cxEsc(a.id)}')">Submit My Answer Script</button>`}
+      </div>`;
+    }).join("") || `<div class="empty">No scanned/theory work is available now.</div>`;
+
+    document.getElementById("view").innerHTML = `<div class="cleanAvailableCentre">
+      <div class="cleanStudentHero">
+        <h2>Available Assignments and Quizzes</h2>
+        <p>${cxEsc(s.name)} • ${cxEsc(s.className)}. Open work can be attempted. Submitted work remains closed unless the admin resets it.</p>
+        <span class="cleanOpenBadge">${openCount} open</span><span class="cleanClosedBadge">${closedCount} submitted / closed</span>
+      </div>
+      <div class="card"><h2>Multiple-Choice Exercises / Quizzes</h2><div class="cleanWorkCards">${qHTML}</div></div>
+      <div class="card"><h2>Theory / Scanned Work</h2><div class="cleanWorkCards">${dHTML}</div></div>
+    </div>`;
+    try{ if(typeof typeset === "function") typeset(); }catch(e){}
+  };
+
+  function cxComponentLabel(key){
+    try{
+      if(typeof reportComponents === "function"){
+        const c = reportComponents().find(x=>x.key===key);
+        if(c) return cxText(c.label||c.name, key);
+      }
+    }catch(e){}
+    return cxText(key,"Assessment");
+  }
+
+  window.forceOpenAvailableAssignmentsNow = function(){
+    renderAvailableAssignmentsNow();
+    setTimeout(async ()=>{
+      try{
+        if(typeof stablePullRemote === "function"){
+          await Promise.race([stablePullRemote(true), new Promise(res=>setTimeout(res,2200))]);
+          if(route === "studentQuizzes") renderAvailableAssignmentsNow();
+        }
+      }catch(e){}
+    },50);
+  };
+  window.forceOpenAvailableAssignments = window.forceOpenAvailableAssignmentsNow;
+  window.openStudentAssignmentsAndQuizzes = window.forceOpenAvailableAssignmentsNow;
+  window.studentQuizzes = window.renderAvailableAssignmentsNow;
+
+  window.studentResults = function(){
+    cxEnsureCleanState();
+    const s = cxStudent(currentStudentId);
+    if(!s){ role="guest"; route="studentLogin"; return renderShell(); }
+    const qs = (state.submissions||[]).filter(x=>cxText(x.studentId)===s.id);
+    const ds = (state.docSubmissions||[]).filter(x=>cxText(x.studentId)===s.id);
+    const reportOpen = (typeof isReportPublished === "function" && isReportPublished(s.id));
+
+    const qHTML = qs.map(su=>{
+      const q = (state.quizzes||[]).find(x=>cxText(x.id)===cxText(su.quizId)) || {};
+      return `<div class="submissionCard"><h3>${cxEsc(q.title||"Quiz / Exercise")}</h3><p>Submitted: ${cxEsc(su.submittedAt)}</p>${su.published?`<b>Score: ${cxEsc((su.teacherScore ?? su.autoScore) + " / " + (su.maxScore ?? ""))}</b><p>${cxEsc(su.feedback||"")}</p>`:`<div class="notice">Score not yet published by teacher.</div>`}</div>`;
+    }).join("");
+
+    const dHTML = ds.map(su=>{
+      const a = (state.docAssignments||[]).find(x=>cxText(x.id)===cxText(su.assignmentId)) || {};
+      return `<div class="submissionCard"><h3>${cxEsc(a.title||"Scanned / Theory Work")}</h3><p>Submitted: ${cxEsc(su.submittedAt)}</p>${su.published?`<b>Score: ${cxEsc((su.score ?? "") + " / " + (a.maxScore ?? ""))}</b><p>${cxEsc(su.feedback||"")}</p>`:`<div class="notice">Marked script or score not yet published by teacher.</div>`}</div>`;
+    }).join("");
+
+    document.getElementById("view").innerHTML = `<div class="cleanStudentHero">
+      <h2>My Submitted Work and Results</h2>
+      <p>${cxEsc(s.name)} • ${cxEsc(s.className)}. Published results and marked scripts will appear here.</p>
+    </div>
+    ${reportOpen ? `<div class="card"><h2>My Report Card</h2><div id="reportPrintArea">${reportCardHTML(s.id,false)}</div></div>` : `<div class="notice">Your report card has not been published yet.</div>`}
+    <div class="card"><h2>My Quiz / Exercise Submissions</h2>${qHTML || `<div class="empty">No quiz or exercise submission yet.</div>`}</div>
+    <div class="card"><h2>My Scanned / Theory Work Submissions</h2>${dHTML || `<div class="empty">No scanned/theory submission yet.</div>`}</div>`;
+  };
+
+  // Capture any old button text and force the clean page.
+  document.addEventListener("click", function(ev){
+    const el = ev.target.closest && ev.target.closest("button, a, [role='button']");
+    if(!el) return;
+    const txt = cxText(el.textContent,"").toLowerCase();
+    const code = cxText(el.getAttribute("onclick"),"");
+    if(txt.includes("view available assignments") || code.includes("openStudentAssignmentsAndQuizzes") || code.includes("forceOpenAvailableAssignments")){
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      forceOpenAvailableAssignmentsNow();
+    }
+  }, true);
+
+  // Clean existing state once after live load.
+  setTimeout(()=>{
+    try{
+      cxEnsureCleanState();
+      if(typeof saveLocal === "function") saveLocal();
+      if(role === null && typeof renderStart === "function") renderStart();
+    }catch(e){}
+  },900);
+
+  try{
+    eval("cleanText=window.cleanText; studentLogin=window.studentLogin; selectStudentLogin=window.selectStudentLogin; finishStudentLogin=window.finishStudentLogin; studentHome=window.studentHome; renderAvailableAssignmentsNow=window.renderAvailableAssignmentsNow; forceOpenAvailableAssignmentsNow=window.forceOpenAvailableAssignmentsNow; forceOpenAvailableAssignments=window.forceOpenAvailableAssignments; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults;");
   }catch(e){}
 })();
 
