@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Firebase Connection Check</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;padding:24px;color:#071f3d}
+.card{max-width:800px;margin:auto;background:white;border-radius:20px;padding:20px;box-shadow:0 12px 28px rgba(7,31,61,.12)}
+pre{background:#f7f9fc;border:1px solid #d8e2ee;border-radius:12px;padding:12px;white-space:pre-wrap}
+button{background:#071f3d;color:white;border:0;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>Firebase Connection Check</h2>
+<p>This checks whether firebase-config.js and Firestore are working.</p>
+<button onclick="runCheck()">Run Check</button>
+<pre id="out">Click Run Check.</pre>
+</div>
+<script>
+async function runCheck(){
+ const out=document.getElementById('out');
+ try{
+  out.textContent='Checking Firebase...';
+  if(!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey){
+    out.textContent='❌ Firebase config missing in firebase-config.js';
+    return;
+  }
+  if(!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
+  const db=firebase.firestore();
+  const ref=db.collection('portal_live_state').doc('main');
+  const snap=await ref.get();
+  let report='Project ID: '+window.FIREBASE_CONFIG.projectId+'\n';
+  if(!snap.exists){
+    report+='⚠️ Firestore connected, but portal_live_state/main is empty. Open the app and click Publish This Browser Live.\n';
+  }else{
+    const data=snap.data().data || {};
+    report+='✅ Firestore connected. Students online: '+((data.students||[]).length)+'\n';
+  }
+  report+='Cloudinary cloud name: '+(window.CLOUDINARY_CLOUD_NAME||'missing')+'\n';
+  report+='Cloudinary preset: '+(window.CLOUDINARY_UPLOAD_PRESET||'missing')+'\n';
+  out.textContent=report;
+ }catch(e){
+  out.textContent='❌ Firebase check failed: '+(e.message||e)+'\n\nCheck Firestore rules and firebase-config.js.';
+ }
+}
+</script>
+</body>
+</html>

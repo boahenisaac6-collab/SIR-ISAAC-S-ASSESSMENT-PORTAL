@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sir Isaac's Firebase Mathematics Assessment Portal</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<style>
+:root{
+  --navy:#071f3d;--navy2:#0a2d57;--gold:#f4c430;--green:#0f7b4f;--red:#b42318;
+  --bg:#f4f7fb;--card:#ffffff;--line:#d8e2ee;--muted:#667085;--ink:#101828;
+  --shadow:0 14px 35px rgba(7,31,61,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink);font-size:15px}
+button,input,select,textarea{font-family:inherit;font-size:14px}
+button{cursor:pointer}
+.topbar{background:linear-gradient(135deg,var(--navy),var(--navy2));color:white;padding:14px 18px;display:flex;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,var(--gold),#fff1a6);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:1000;font-size:18px;border:2px solid rgba(255,255,255,.65)}
+.brand h1{font-size:18px;margin:0;letter-spacing:.3px}
+.brand p{font-size:12px;margin:3px 0 0;color:#e8eff9}
+.status{font-size:12px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);font-weight:800}
+.status.ok{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}.status.bad{background:#fff1f0;color:#b42318;border-color:#ffcdc9}.status.warn{background:#fff8db;color:#8a6100;border-color:#f4c430}
+.wrap{max-width:1260px;margin:auto;padding:18px}
+.hero{border-radius:28px;background:linear-gradient(135deg,#fff,#f8fbff);box-shadow:var(--shadow);padding:20px;border:1px solid var(--line);position:relative;overflow:hidden}
+.hero:before{content:"∫  ∑  π  √  f(x)  x²+y²";position:absolute;right:20px;top:15px;font-size:32px;font-weight:1000;color:rgba(244,196,48,.18);letter-spacing:10px;white-space:nowrap}
+.hero h2{margin:0 0 6px;color:var(--navy);font-size:24px}
+.hero p{margin:0;color:var(--muted);font-weight:750;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:16px}
+.col-12{grid-column:span 12}.col-8{grid-column:span 8}.col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{border:0;border-radius:14px;padding:10px 13px;font-weight:900;background:#e9eef6;color:var(--navy);min-height:42px}
+.btn.primary{background:var(--navy);color:white}.btn.green{background:var(--green);color:white}.btn.gold{background:var(--gold);color:var(--navy)}.btn.red{background:var(--red);color:white}.btn.light{background:#fff;border:1px solid var(--line)}
+.btn.small{font-size:12px;padding:7px 9px;min-height:32px;border-radius:11px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.input,textarea,select{width:100%;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:white;outline:none}
+textarea{min-height:92px;resize:vertical}
+label{display:block;font-weight:900;color:var(--navy);font-size:13px;margin:8px 0 5px}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:18px;background:white}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:10px;border-bottom:1px solid #edf2f7;text-align:left;vertical-align:top}
+th{background:#f7f9fc;color:var(--navy);font-size:12px;text-transform:uppercase;letter-spacing:.35px}
+tr:hover td{background:#fbfdff}
+.badge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:12px;font-weight:900;background:#eef5fc;color:var(--navy);border:1px solid #d9e7f3;margin:2px}
+.badge.ok{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}.badge.warn{background:#fff8db;color:#8a6100;border-color:#f4c430}.badge.bad{background:#fff1f0;color:#b42318;border-color:#ffcdc9}
+.studentCard{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:18px;padding:12px;background:white;cursor:pointer;transition:.18s;box-shadow:0 8px 20px rgba(7,31,61,.06)}
+.studentCard:hover{transform:translateY(-2px);border-color:var(--gold)}
+.avatar{width:52px;height:52px;border-radius:18px;background:linear-gradient(135deg,var(--navy),var(--green));color:white;display:flex;align-items:center;justify-content:center;font-weight:1000;overflow:hidden;border:2px solid #fff;box-shadow:0 5px 16px rgba(7,31,61,.18)}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.studentGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:12px}
+.question{border:1px solid var(--line);border-radius:18px;padding:13px;margin:12px 0;background:#fff}
+.options{display:grid;gap:8px;margin-top:10px}
+.option{border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;gap:8px;align-items:flex-start}
+.timer{font-size:20px;font-weight:1000;color:var(--red);background:#fff1f0;padding:8px 12px;border-radius:14px;border:1px solid #ffcdc9}
+.printCard{background:white;color:#111;padding:20px;border:1px solid #222;max-width:800px;margin:auto}
+.reportHead{text-align:center;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:10px}
+.reportHead h2{margin:0;font-size:20px}.reportHead p{margin:3px 0}
+.notice{border-left:6px solid var(--gold);background:#fffbea;border-radius:16px;padding:12px;font-weight:800;color:#584300}
+.hidden{display:none!important}
+.footer{text-align:center;color:var(--muted);font-size:12px;padding:18px}
+@media(max-width:850px){.grid{display:block}.card{margin-top:12px}.brand h1{font-size:15px}.hero h2{font-size:20px}.topbar{align-items:flex-start;flex-direction:column}.status{width:100%}table{min-width:700px}}
+@media print{body{background:white}.topbar,.nav,.noPrint,.btn,.hero,.footer{display:none!important}.wrap{padding:0;max-width:none}.card{box-shadow:none;border:0;padding:0}.printCard{border:0;max-width:none}.tableWrap{border:0}table{min-width:0}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">SI</div>
+    <div>
+      <h1 id="topTitle">Sir Isaac's Firebase Assessment Portal</h1>
+      <p>Akuse Methodist SHTS • Firebase Firestore Live Version</p>
+    </div>
+  </div>
+  <div id="syncStatus" class="status warn">Opening app...</div>
+</div>
+<div class="wrap" id="app"></div>
+<div class="footer">Prepared by Sir Isaac Boahen • Mathematics Classroom Assessment Portal</div>
+
+<script>
+/* SIR ISAAC FIREBASE FULL LIVE READY APP
+   Firestore handles live data. Cloudinary handles file uploads.
+   No Supabase. No Firebase Storage. App opens first, then Firebase connects in the background.
+*/
+const SEEDED_STATE={"schoolName":"AKUSE METHODIST SENIOR HIGH TECHNICAL SCHOOL","teacherName":"Sir Isaac Boahen","adminPassword":"@amest","classes":["1 AGRIC","1 SCIENCE","1H2A","1 G3B"],"subjects":["Mathematics","Additional Mathematics"],"settings":{"requireStudentPassword":false,"allowStudentPhotoUpload":true,"academicYear":"2025/2026","semester":"First Semester"},"students":[{"id":"stu_1AGRIC_001","name":"ABOAH TRACY","className":"1 AGRIC","phone":"","password":"1AGRIC-001","code":"1AGRIC-001","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_002","name":"NKORNU SHARON KEZIA NAA","className":"1 AGRIC","phone":"","password":"1AGRIC-002","code":"1AGRIC-002","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_003","name":"OFUSU MAVIS EMEFA","className":"1 AGRIC","phone":"","password":"1AGRIC-003","code":"1AGRIC-003","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_004","name":"AMANKWAH PRINCESS OTUBEA","className":"1 AGRIC","phone":"","password":"1AGRIC-004","code":"1AGRIC-004","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_005","name":"OFOSU JENNIFER ANIMA","className":"1 AGRIC","phone":"","password":"1AGRIC-005","code":"1AGRIC-005","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_006","name":"COFFIE CHELSEA","className":"1 AGRIC","phone":"","password":"1AGRIC-006","code":"1AGRIC-006","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_007","name":"ACQUAH JOSHUA KOFI","className":"1 AGRIC","phone":"","password":"1AGRIC-007","code":"1AGRIC-007","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_008","name":"TETTEH TIMOTHY","className":"1 AGRIC","phone":"","password":"1AGRIC-008","code":"1AGRIC-008","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_009","name":"TEYE ABBRAHAM","className":"1 AGRIC","phone":"","password":"1AGRIC-009","code":"1AGRIC-009","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_010","name":"BAAKO JUDE KABU","className":"1 AGRIC","phone":"","password":"1AGRIC-010","code":"1AGRIC-010","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_011","name":"TERKPERTEY HORACIOUS KWADJO","className":"1 AGRIC","phone":"","password":"1AGRIC-011","code":"1AGRIC-011","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_012","name":"GODSON ELLIS SAMPAH JNR","className":"1 AGRIC","phone":"","password":"1AGRIC-012","code":"1AGRIC-012","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_013","name":"ANTHONY ATULE","className":"1 AGRIC","phone":"","password":"1AGRIC-013","code":"1AGRIC-013","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_014","name":"ANTWI EMMANUEL","className":"1 AGRIC","phone":"","password":"1AGRIC-014","code":"1AGRIC-014","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_015","name":"RICHMOND IDUN","className":"1 AGRIC","phone":"","password":"1AGRIC-015","code":"1AGRIC-015","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_016","name":"AYITEY MICHEAL","className":"1 AGRIC","phone":"","password":"1AGRIC-016","code":"1AGRIC-016","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_017","name":"ERIC FIANU","className":"1 AGRIC","phone":"","password":"1AGRIC-017","code":"1AGRIC-017","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_018","name":"WILSON ELIZABETH","className":"1 AGRIC","phone":"","password":"1AGRIC-018","code":"1AGRIC-018","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_019","name":"QUAYE DUODU GIDEON","className":"1 AGRIC","phone":"","password":"1AGRIC-019","code":"1AGRIC-019","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_020","name":"ACKAH BENEDICT OWUSU","className":"1 AGRIC","phone":"","password":"1AGRIC-020","code":"1AGRIC-020","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1AGRIC_021","name":"ANNORKWAO MERCY BARNS","className":"1 AGRIC","phone":"","password":"1AGRIC-021","code":"1AGRIC-021","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_001","name":"AWUKUTSE ABENA JOYCE","className":"1 SCIENCE","phone":"","password":"1SCIENCE-001","code":"1SCIENCE-001","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_002","name":"INUSAH HAIDA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-002","code":"1SCIENCE-002","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_003","name":"MARY GIFTY MENSAH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-003","code":"1SCIENCE-003","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_004","name":"PRISCILLA LAMKI ATTEH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-004","code":"1SCIENCE-004","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_005","name":"ARTHUR CASSANDRA AKUBA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-005","code":"1SCIENCE-005","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_006","name":"TEYE MARY MAKU","className":"1 SCIENCE","phone":"","password":"1SCIENCE-006","code":"1SCIENCE-006","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_007","name":"JEDIDIAH ADU SAWYER","className":"1 SCIENCE","phone":"","password":"1SCIENCE-007","code":"1SCIENCE-007","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_008","name":"AKUTEYE ADDO JOSEPH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-008","code":"1SCIENCE-008","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_009","name":"ASARE AFIA JOYCE","className":"1 SCIENCE","phone":"","password":"1SCIENCE-009","code":"1SCIENCE-009","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_010","name":"ISSABELLA FATI ABUBAKAR KARIM","className":"1 SCIENCE","phone":"","password":"1SCIENCE-010","code":"1SCIENCE-010","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_011","name":"TSIKUDO DELIGHT","className":"1 SCIENCE","phone":"","password":"1SCIENCE-011","code":"1SCIENCE-011","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_012","name":"BRISTER OPHELIA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-012","code":"1SCIENCE-012","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_013","name":"ESTHER DEDE TETTEH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-013","code":"1SCIENCE-013","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_014","name":"BLAY AMA JACKLINE","className":"1 SCIENCE","phone":"","password":"1SCIENCE-014","code":"1SCIENCE-014","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_015","name":"TEYE AGNES ABLAH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-015","code":"1SCIENCE-015","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_016","name":"MATEY DOMINIC TETTEH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-016","code":"1SCIENCE-016","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_017","name":"AMOAH PRECIOUS","className":"1 SCIENCE","phone":"","password":"1SCIENCE-017","code":"1SCIENCE-017","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_018","name":"OFORI ESTHER POMAAH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-018","code":"1SCIENCE-018","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_019","name":"AGBEKO URSULA WOELINAM","className":"1 SCIENCE","phone":"","password":"1SCIENCE-019","code":"1SCIENCE-019","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_020","name":"BOATENG BETTY","className":"1 SCIENCE","phone":"","password":"1SCIENCE-020","code":"1SCIENCE-020","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_021","name":"GABRIEL TETTEH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-021","code":"1SCIENCE-021","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_022","name":"NIPALE EUGENE AGYAPONG","className":"1 SCIENCE","phone":"","password":"1SCIENCE-022","code":"1SCIENCE-022","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_023","name":"PHILIP MENSAH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-023","code":"1SCIENCE-023","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_024","name":"SUDEY JEREMIAH KWABLA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-024","code":"1SCIENCE-024","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_025","name":"HENRY AWAH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-025","code":"1SCIENCE-025","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_026","name":"ESTHER TETTEH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-026","code":"1SCIENCE-026","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_027","name":"SODJI JOSHUA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-027","code":"1SCIENCE-027","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_028","name":"ABOAGYEWAA JESSICA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-028","code":"1SCIENCE-028","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_029","name":"BILLY JOHN ETONAM","className":"1 SCIENCE","phone":"","password":"1SCIENCE-029","code":"1SCIENCE-029","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_030","name":"AMINATU ISMAIL","className":"1 SCIENCE","phone":"","password":"1SCIENCE-030","code":"1SCIENCE-030","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_031","name":"NATHANIEL ASANTE","className":"1 SCIENCE","phone":"","password":"1SCIENCE-031","code":"1SCIENCE-031","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_032","name":"SAMUEL AIDOO INKOOM","className":"1 SCIENCE","phone":"","password":"1SCIENCE-032","code":"1SCIENCE-032","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_033","name":"DZIWORNU TODA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-033","code":"1SCIENCE-033","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_034","name":"DASI SHADRACH ALIPUE","className":"1 SCIENCE","phone":"","password":"1SCIENCE-034","code":"1SCIENCE-034","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_035","name":"THEODORICK ARKU","className":"1 SCIENCE","phone":"","password":"1SCIENCE-035","code":"1SCIENCE-035","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_036","name":"ARTHUR BENEDICT","className":"1 SCIENCE","phone":"","password":"1SCIENCE-036","code":"1SCIENCE-036","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_037","name":"ATTABRAH BLESSING NANA YAA MENSAH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-037","code":"1SCIENCE-037","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_038","name":"HAWA POKUA MALIK","className":"1 SCIENCE","phone":"","password":"1SCIENCE-038","code":"1SCIENCE-038","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_039","name":"FRIMPONG ALEXANDER","className":"1 SCIENCE","phone":"","password":"1SCIENCE-039","code":"1SCIENCE-039","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_040","name":"ASIEDU VANESSA SERWAA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-040","code":"1SCIENCE-040","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_041","name":"GERNAIL KWAME DUAH","className":"1 SCIENCE","phone":"","password":"1SCIENCE-041","code":"1SCIENCE-041","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_042","name":"SAMUEL YEBOAH ANTWI","className":"1 SCIENCE","phone":"","password":"1SCIENCE-042","code":"1SCIENCE-042","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_043","name":"DANIEL SEKYI","className":"1 SCIENCE","phone":"","password":"1SCIENCE-043","code":"1SCIENCE-043","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_044","name":"AKUTEI SAMUEL AMANOR","className":"1 SCIENCE","phone":"","password":"1SCIENCE-044","code":"1SCIENCE-044","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_045","name":"QUARMYNE DESMOND","className":"1 SCIENCE","phone":"","password":"1SCIENCE-045","code":"1SCIENCE-045","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_046","name":"ATTEH BENEDICTA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-046","code":"1SCIENCE-046","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_047","name":"OWUSU BENEDICTA KYEI","className":"1 SCIENCE","phone":"","password":"1SCIENCE-047","code":"1SCIENCE-047","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_048","name":"FRANKWAH ETHEL MAKU","className":"1 SCIENCE","phone":"","password":"1SCIENCE-048","code":"1SCIENCE-048","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_049","name":"ADAMAH JOHANNES TETTEY","className":"1 SCIENCE","phone":"","password":"1SCIENCE-049","code":"1SCIENCE-049","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_050","name":"ESSEL EMMANUELLA ODE AKUA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-050","code":"1SCIENCE-050","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_051","name":"NYARKO EDRICA KORYO","className":"1 SCIENCE","phone":"","password":"1SCIENCE-051","code":"1SCIENCE-051","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_052","name":"OFORI RICHMOND KOFI","className":"1 SCIENCE","phone":"","password":"1SCIENCE-052","code":"1SCIENCE-052","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_053","name":"LEKE GIFTY MAWUENA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-053","code":"1SCIENCE-053","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_054","name":"FABRA KAMAL YAHAYA","className":"1 SCIENCE","phone":"","password":"1SCIENCE-054","code":"1SCIENCE-054","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1SCIENCE_055","name":"DAWUD ARMAN","className":"1 SCIENCE","phone":"","password":"1SCIENCE-055","code":"1SCIENCE-055","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_001","name":"NARH BENEDICTA","className":"1H2A","phone":"","password":"1H2A-001","code":"1H2A-001","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_002","name":"ASANTE PENIEL","className":"1H2A","phone":"","password":"1H2A-002","code":"1H2A-002","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_003","name":"KORGBETOR JUSTINA","className":"1H2A","phone":"","password":"1H2A-003","code":"1H2A-003","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_004","name":"BONNEY MERCY","className":"1H2A","phone":"","password":"1H2A-004","code":"1H2A-004","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_005","name":"ANITA ELIKPLIM AHETO","className":"1H2A","phone":"","password":"1H2A-005","code":"1H2A-005","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_006","name":"GAKPO DORIS","className":"1H2A","phone":"","password":"1H2A-006","code":"1H2A-006","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_007","name":"OTUBUAH OFOEKWO PRISCILLA","className":"1H2A","phone":"","password":"1H2A-007","code":"1H2A-007","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_008","name":"OFFEI JACKLYN","className":"1H2A","phone":"","password":"1H2A-008","code":"1H2A-008","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_009","name":"DORLEAGBENU MARY ETORNAM","className":"1H2A","phone":"","password":"1H2A-009","code":"1H2A-009","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_010","name":"TETTEH ANGELA KORKOR","className":"1H2A","phone":"","password":"1H2A-010","code":"1H2A-010","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_011","name":"TETTEH STEPHANIE PADIKOUR","className":"1H2A","phone":"","password":"1H2A-011","code":"1H2A-011","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_012","name":"KABUTEY LETICIA DEDE","className":"1H2A","phone":"","password":"1H2A-012","code":"1H2A-012","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_013","name":"TENGEY ANGELA MAWULAWOE","className":"1H2A","phone":"","password":"1H2A-013","code":"1H2A-013","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_014","name":"AMPONSAH HILLARY","className":"1H2A","phone":"","password":"1H2A-014","code":"1H2A-014","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_015","name":"PAPPOE GEORGETTE AKU","className":"1H2A","phone":"","password":"1H2A-015","code":"1H2A-015","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_016","name":"AYERTEY CHRISTABEL DOEKWOR","className":"1H2A","phone":"","password":"1H2A-016","code":"1H2A-016","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_017","name":"AMANING JOSELYN","className":"1H2A","phone":"","password":"1H2A-017","code":"1H2A-017","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_018","name":"ADDO PEPERTUAL","className":"1H2A","phone":"","password":"1H2A-018","code":"1H2A-018","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_019","name":"AKRONG NAA LAMILEY PRINCESS","className":"1H2A","phone":"","password":"1H2A-019","code":"1H2A-019","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_020","name":"GLEE SABINA MAKAFUI AMA","className":"1H2A","phone":"","password":"1H2A-020","code":"1H2A-020","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_021","name":"AMANOR EMMANUELLA","className":"1H2A","phone":"","password":"1H2A-021","code":"1H2A-021","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_022","name":"JEFFREY PATIENCE","className":"1H2A","phone":"","password":"1H2A-022","code":"1H2A-022","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_023","name":"MABELLE PATAMIA MANSAH","className":"1H2A","phone":"","password":"1H2A-023","code":"1H2A-023","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_024","name":"OKAI JUSTINA","className":"1H2A","phone":"","password":"1H2A-024","code":"1H2A-024","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_025","name":"ADORKOR LETICIA","className":"1H2A","phone":"","password":"1H2A-025","code":"1H2A-025","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_026","name":"MUMUNI SALIFU SAHADATU","className":"1H2A","phone":"","password":"1H2A-026","code":"1H2A-026","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_027","name":"NARTEY ANGELA MAKU","className":"1H2A","phone":"","password":"1H2A-027","code":"1H2A-027","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_028","name":"OPPONG REBECCA","className":"1H2A","phone":"","password":"1H2A-028","code":"1H2A-028","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_029","name":"FORGIVE MAWUNYO GANYAGLO DOGLI","className":"1H2A","phone":"","password":"1H2A-029","code":"1H2A-029","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_030","name":"YAOKUMAH ELEMAWUSI EMELIA","className":"1H2A","phone":"","password":"1H2A-030","code":"1H2A-030","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_031","name":"AVADZI BETTY FAFALI","className":"1H2A","phone":"","password":"1H2A-031","code":"1H2A-031","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_032","name":"TETTEH NAOMI AMI","className":"1H2A","phone":"","password":"1H2A-032","code":"1H2A-032","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_033","name":"TEYE EUGENIA LARYO","className":"1H2A","phone":"","password":"1H2A-033","code":"1H2A-033","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_034","name":"OBENG CYNTHIA PRECIOUS","className":"1H2A","phone":"","password":"1H2A-034","code":"1H2A-034","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_035","name":"AGBENEDE ANITA","className":"1H2A","phone":"","password":"1H2A-035","code":"1H2A-035","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_036","name":"GBEKLI MARY","className":"1H2A","phone":"","password":"1H2A-036","code":"1H2A-036","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_037","name":"KWAO JUDITH ATAYO","className":"1H2A","phone":"","password":"1H2A-037","code":"1H2A-037","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_038","name":"GYINABA IBRAHIM","className":"1H2A","phone":"","password":"1H2A-038","code":"1H2A-038","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_039","name":"KOOMSON ELLEN","className":"1H2A","phone":"","password":"1H2A-039","code":"1H2A-039","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_040","name":"ANSAH-OWUSU FAITH","className":"1H2A","phone":"","password":"1H2A-040","code":"1H2A-040","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_041","name":"MAWUSUOR JOANA","className":"1H2A","phone":"","password":"1H2A-041","code":"1H2A-041","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_042","name":"JESSICA DJAM AKU","className":"1H2A","phone":"","password":"1H2A-042","code":"1H2A-042","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_043","name":"ANSAH OPOKUA ISSABELLA","className":"1H2A","phone":"","password":"1H2A-043","code":"1H2A-043","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_044","name":"BAFFOE DEBORAH","className":"1H2A","phone":"","password":"1H2A-044","code":"1H2A-044","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_045","name":"PHILBERTA KEKELI AGBOKA","className":"1H2A","phone":"","password":"1H2A-045","code":"1H2A-045","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_046","name":"ESSANDOH EMMANUELLA","className":"1H2A","phone":"","password":"1H2A-046","code":"1H2A-046","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_047","name":"NFUGMA GILIMA ERNESTINA","className":"1H2A","phone":"","password":"1H2A-047","code":"1H2A-047","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_048","name":"NARTSU LYDIA DEWI","className":"1H2A","phone":"","password":"1H2A-048","code":"1H2A-048","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_049","name":"KUNAH FAITH MAWUENA","className":"1H2A","phone":"","password":"1H2A-049","code":"1H2A-049","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_050","name":"AISHA ISSAH YARTEY","className":"1H2A","phone":"","password":"1H2A-050","code":"1H2A-050","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_051","name":"FIRDAUS IBRAHIM","className":"1H2A","phone":"","password":"1H2A-051","code":"1H2A-051","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_052","name":"KUDOHIA ABLA FAUSTINA","className":"1H2A","phone":"","password":"1H2A-052","code":"1H2A-052","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"},{"id":"stu_1H2A_053","name":"GAMURY JENNIFER","className":"1H2A","phone":"","password":"1H2A-053","code":"1H2A-053","photo":"","createdAt":"2026-05-20T00:00:00.000Z","updatedAt":"2026-05-20T00:00:00.000Z"}],"quizzes":[],"quizSubmissions":[],"assignments":[],"assignmentSubmissions":[],"components":[],"scores":[],"reportPublications":[],"resetRequests":[],"announcements":[],"updatedAt":"2026-05-20T00:00:00.000Z"};
+const LS_KEY = "SIR_ISAAC_FIREBASE_FULL_LIVE_READY_V1";
+const DOC_PATH = ["portal_live_state","main"];
+let db = null;
+let unsubscribe = null;
+let onlineReady = false;
+let currentRole = "home";
+let adminLogged = false;
+let route = "dashboard";
+let selectedStudentId = null;
+let activeQuiz = null;
+let quizTimer = null;
+let quizSecondsLeft = 0;
+let working = false;
+let applyingRemote = false;
+
+const defaultState = () => JSON.parse(JSON.stringify(SEEDED_STATE));
+let state = loadLocal();
+
+function uid(prefix="id"){return prefix+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8)}
+function now(){return new Date().toISOString()}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function setStatus(text, type="warn"){const el=document.getElementById("syncStatus");if(el){el.textContent=text;el.className="status "+type}}
+function normalize(){
+  const d=defaultState();
+  state={...d,...(state||{})};
+  ["classes","subjects","students","quizzes","quizSubmissions","assignments","assignmentSubmissions","components","scores","reportPublications","resetRequests","announcements"].forEach(k=>{if(!Array.isArray(state[k])) state[k]=[]});
+  state.settings={...d.settings,...(state.settings||{})};
+  if(!state.students.length) state.students = d.students;
+}
+function loadLocal(){try{return JSON.parse(localStorage.getItem(LS_KEY))||defaultState()}catch(e){return defaultState()}}
+function saveLocal(){normalize();localStorage.setItem(LS_KEY,JSON.stringify(state))}
+function touch(obj){if(obj && typeof obj==="object") obj.updatedAt=now()}
+function save(){normalize();state.updatedAt=now();saveLocal();schedulePush()}
+function initials(name){return String(name||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"?"}
+function active(list){return (list||[]).filter(x=>!x.deleted)}
+function byId(arr,id){return (arr||[]).find(x=>x.id===id)}
+function studentName(id){return byId(state.students,id)?.name || "Unknown Student"}
+function quizName(id){return byId(state.quizzes,id)?.title || "Unknown Quiz"}
+function assignmentName(id){return byId(state.assignments,id)?.title || "Unknown Assignment"}
+function eligible(item, student){return !!(item && !item.deleted && item.published && student && (!item.className || item.className==="All Classes" || item.className===student.className))}
+function fileUrl(file){return file?.url || file?.data || ""}
+function render(){normalize();document.getElementById("topTitle").textContent=state.schoolName || "Sir Isaac's Firebase Assessment Portal"; if(currentRole==="admin") return renderAdmin(); if(currentRole==="student") return renderStudent(); return renderHome()}
+
+function renderHome(){
+  selectedStudentId=null;
+  document.getElementById("app").innerHTML=`
+    <div class="hero">
+      <h2>${esc(state.schoolName)}</h2>
+      <p>Welcome to ${esc(state.teacherName)}'s Mathematics Assessment Portal. Select Student Portal or Teacher Admin Mode to continue.</p>
+      <div class="nav">
+        <button class="btn green" onclick="currentRole='student';render()">Student Portal</button>
+        <span class="badge ok">${active(state.students).length} students loaded</span>
+        <button class="btn primary" onclick="showAdminLogin()">Teacher Admin Mode</button>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card col-4"><h3>Firebase Live Data</h3><p>Firestore stores the live portal data for phones and browsers.</p><span class="badge ${onlineReady?'ok':'warn'}">${onlineReady?'Firebase connected':'Local mode until connected'}</span></div>
+      <div class="card col-4"><h3>Student Portal</h3><p>All students show first, with search and class filter.</p><span class="badge ok">${active(state.students).length} students</span></div>
+      <div class="card col-4"><h3>Uploads</h3><p>Cloudinary handles pictures, question papers, scanned scripts and marked scripts.</p><span class="badge">Cloudinary preset: amest_uploads</span></div>
+    </div>`;
+}
+function showAdminLogin(){
+  const pass=prompt("Enter Teacher Admin Password");
+  if(pass===state.adminPassword){adminLogged=true;currentRole="admin";route="dashboard";render()}
+  else if(pass!==null) alert("Wrong password.");
+}
+
+function navBtn(id,label){return `<button class="btn ${route===id?'primary':'light'}" onclick="route='${id}';render()">${label}</button>`}
+function renderAdmin(){
+  if(!adminLogged){currentRole="home";return renderHome()}
+  const nav=`<div class="nav noPrint">
+    ${navBtn("dashboard","Dashboard")}
+    ${navBtn("students","Students")}
+    ${navBtn("quizzes","Quizzes")}
+    ${navBtn("assignments","Scanned Work")}
+    ${navBtn("marking","Review / Marking")}
+    ${navBtn("reports","Reports")}
+    ${navBtn("announcements","Announcements")}
+    ${navBtn("settings","Settings / Backup")}
+    <button class="btn red" onclick="adminLogged=false;currentRole='home';render()">Exit Admin</button>
+  </div>`;
+  let body="";
+  if(route==="dashboard") body=adminDashboard();
+  if(route==="students") body=adminStudents();
+  if(route==="quizzes") body=adminQuizzes();
+  if(route==="assignments") body=adminAssignments();
+  if(route==="marking") body=adminMarking();
+  if(route==="reports") body=adminReports();
+  if(route==="announcements") body=adminAnnouncements();
+  if(route==="settings") body=adminSettings();
+  document.getElementById("app").innerHTML=`<div class="hero"><h2>Teacher Admin Mode</h2><p>Manage students, quizzes, scanned assignments, results, report cards and live publishing.</p>${nav}</div>${body}`;
+}
+
+function adminDashboard(){
+  const c={students:active(state.students).length, quizzes:active(state.quizzes).length, publishedQuizzes:active(state.quizzes).filter(q=>q.published).length, assignments:active(state.assignments).length, submissions:state.assignmentSubmissions.filter(s=>!s.deleted).length, quizSubmissions:state.quizSubmissions.filter(s=>!s.archived&&!s.deleted).length, reports:state.reportPublications.length, resets:state.resetRequests.filter(r=>r.status==="Pending").length};
+  return `<div class="grid">
+    <div class="card col-12">
+      <h2>Firebase Live Control</h2>
+      <p class="notice">This version uses Firebase Firestore for the live database. It opens immediately, then connects to Firebase in the background. Supabase has been removed.</p>
+      <div class="nav">
+        <button class="btn green" onclick="testFirebase()">Test Firebase Live</button>
+        <button class="btn light" onclick="pullRemote(true,true)">Load Online Data</button>
+        <button class="btn gold" onclick="pushRemote(true)">Publish This Browser Live</button>
+        <button class="btn primary" onclick="render()">Refresh Screen</button>
+      </div>
+      <p><span class="badge ${onlineReady?'ok':'warn'}">${onlineReady?'Firebase connected':'Not connected yet'}</span><span class="badge">Firestore path: portal_live_state/main</span><span class="badge">Students: ${c.students}</span></p>
+    </div>
+    ${statCard("Students",c.students,"Active students")}
+    ${statCard("Published Quizzes",c.publishedQuizzes,"Visible to students")}
+    ${statCard("Scanned Assignments",c.assignments,"Uploaded question papers")}
+    ${statCard("Quiz Submissions",c.quizSubmissions,"Non-archived attempts")}
+    ${statCard("Scanned Submissions",c.submissions,"Student uploads")}
+    ${statCard("Published Reports",c.reports,"Student printable reports")}
+    <div class="card col-12"><h3>Pending Reset Requests</h3>${resetRequestsTable()}</div>
+  </div>`;
+}
+function statCard(title,num,text){return `<div class="card col-4"><h3>${esc(title)}</h3><h2 style="font-size:34px;color:var(--navy);margin:5px 0">${num}</h2><p>${esc(text)}</p></div>`}
+
+function adminStudents(){
+  return `<div class="grid">
+    <div class="card col-4"><h3>Add Student</h3>
+      <label>Full Name</label><input class="input" id="stName">
+      <label>Class</label>${classSelect("stClass")}
+      <label>Phone Number</label><input class="input" id="stPhone">
+      <label>Password / Code</label><input class="input" id="stPass" placeholder="Leave blank for generated code">
+      <label>Photo</label><input class="input" type="file" id="stPhoto" accept="image/*">
+      <button class="btn green" onclick="addStudent()">Add Student</button>
+    </div>
+    <div class="card col-8"><h3>Bulk Import Students</h3>
+      <p>Write one student per line using: <b>Name, Class, Phone</b></p>
+      <textarea id="bulkStudents" placeholder="Abena Mensah, 1 SCIENCE, 0240000000"></textarea>
+      <button class="btn gold" onclick="bulkImportStudents()">Import Students</button>
+      <button class="btn light" onclick="printStudentList()">Print Student List</button>
+    </div>
+    <div class="card col-12"><h3>Student List</h3>
+      <div class="nav"><input class="input" id="studentSearchAdmin" oninput="render()" placeholder="Search student..." style="max-width:320px"></div>
+      ${studentsTable()}
+    </div>
+  </div>`;
+}
+function classSelect(id, val="", all=false){return `<select id="${id}" class="input">${all?`<option ${val==="All Classes"?"selected":""}>All Classes</option>`:""}${state.classes.map(c=>`<option ${val===c?"selected":""}>${esc(c)}</option>`).join("")}</select>`}
+function subjectSelect(id, val=""){return `<select id="${id}" class="input">${state.subjects.map(s=>`<option ${val===s?"selected":""}>${esc(s)}</option>`).join("")}</select>`}
+async function addStudent(){
+  const name=document.getElementById("stName").value.trim(); if(!name) return alert("Enter student name.");
+  const student={id:uid("stu"),name:name.toUpperCase(),className:document.getElementById("stClass").value,phone:document.getElementById("stPhone").value.trim(),password:document.getElementById("stPass").value.trim()||Math.random().toString(36).slice(2,8).toUpperCase(),photo:"",createdAt:now(),updatedAt:now()};
+  const f=document.getElementById("stPhoto").files[0]; if(f) student.photo=await uploadFile(f,`students/${student.id}`);
+  state.students.push(student); save(); render();
+}
+function bulkImportStudents(){
+  const txt=document.getElementById("bulkStudents").value.trim(); if(!txt) return;
+  let count=0;
+  txt.split(/\n+/).forEach(line=>{const [name,cls,phone]=line.split(",").map(x=>String(x||"").trim()); if(name){state.students.push({id:uid("stu"),name:name.toUpperCase(),className:cls||state.classes[0],phone:phone||"",password:Math.random().toString(36).slice(2,8).toUpperCase(),photo:"",createdAt:now(),updatedAt:now()});count++}});
+  save(); alert(count+" students imported."); render();
+}
+function studentsTable(){
+  const q=(document.getElementById("studentSearchAdmin")?.value||"").toLowerCase();
+  const list=active(state.students).filter(s=>(s.name+" "+s.className+" "+s.phone).toLowerCase().includes(q));
+  return `<div class="tableWrap"><table><thead><tr><th>Photo</th><th>Name</th><th>Class</th><th>Phone</th><th>Password</th><th>Actions</th></tr></thead><tbody>${list.map(s=>`
+    <tr><td>${avatarHTML(s)}</td><td><b>${esc(s.name)}</b></td><td>${esc(s.className)}</td><td>${esc(s.phone||"")}</td><td><span class="badge">${esc(s.password||"")}</span></td>
+    <td><button class="btn small light" onclick="editStudent('${s.id}')">Edit</button> <button class="btn small red" onclick="deleteStudent('${s.id}')">Delete</button></td></tr>`).join("")||`<tr><td colspan="6">No students yet.</td></tr>`}</tbody></table></div>`;
+}
+function avatarHTML(s){return `<div class="avatar">${s.photo?`<img src="${esc(s.photo)}">`:esc(initials(s.name))}</div>`}
+function editStudent(id){const s=byId(state.students,id); if(!s) return; const name=prompt("Student name",s.name); if(!name) return; const cls=prompt("Class",s.className)||s.className; const phone=prompt("Phone",s.phone||"")||""; const pass=prompt("Password",s.password||"")||s.password; Object.assign(s,{name:name.toUpperCase(), className:cls, phone, password:pass, updatedAt:now()}); save(); render();}
+function deleteStudent(id){const s=byId(state.students,id); if(s && confirm("Delete this student from active list?")){s.deleted=true;touch(s);save();render()}}
+function printStudentList(){window.print()}
+
+function adminQuizzes(){
+  return `<div class="grid">
+    <div class="card col-4"><h3>Create Quiz</h3>
+      <label>Quiz Title</label><input class="input" id="qTitle">
+      <label>Subject</label>${subjectSelect("qSubject")}
+      <label>Class</label>${classSelect("qClass","All Classes",true)}
+      <label>Duration in minutes</label><input class="input" id="qDuration" type="number" value="30">
+      <label>Questions</label>
+      <textarea id="qQuestions" placeholder="Use one question per line:
+Question | A | B | C | D | Correct letter
+Example:
+2+3=? | 4 | 5 | 6 | 7 | B"></textarea>
+      <button class="btn green" onclick="createQuiz()">Create Quiz</button>
+    </div>
+    <div class="card col-8"><h3>Quizzes</h3>${quizzesTable()}</div>
+  </div>`;
+}
+function createQuiz(){
+  const title=document.getElementById("qTitle").value.trim(); if(!title) return alert("Enter quiz title.");
+  const lines=document.getElementById("qQuestions").value.trim().split(/\n+/).filter(Boolean);
+  const questions=lines.map((line,i)=>{const p=line.split("|").map(x=>x.trim());return {id:uid("que"),text:p[0]||`Question ${i+1}`,options:[p[1]||"",p[2]||"",p[3]||"",p[4]||""],answer:(p[5]||"A").trim().toUpperCase()[0]||"A"};});
+  if(!questions.length) return alert("Add at least one question.");
+  state.quizzes.push({id:uid("quiz"),title,subject:document.getElementById("qSubject").value,className:document.getElementById("qClass").value,duration:Number(document.getElementById("qDuration").value)||30,questions,published:false,createdAt:now(),updatedAt:now()});
+  save();render();
+}
+function quizzesTable(){
+  const list=active(state.quizzes);
+  return `<div class="tableWrap"><table><thead><tr><th>Title</th><th>Subject</th><th>Class</th><th>Questions</th><th>Status</th><th>Actions</th></tr></thead><tbody>${list.map(q=>`
+    <tr><td><b>${esc(q.title)}</b></td><td>${esc(q.subject)}</td><td>${esc(q.className)}</td><td>${q.questions?.length||0}</td><td><span class="badge ${q.published?'ok':'warn'}">${q.published?'Published':'Hidden'}</span></td>
+    <td><button class="btn small ${q.published?'red':'green'}" onclick="toggleQuiz('${q.id}')">${q.published?'Unpublish':'Publish'}</button> <button class="btn small light" onclick="previewQuiz('${q.id}')">Preview</button> <button class="btn small red" onclick="deleteQuiz('${q.id}')">Delete</button></td></tr>`).join("")||`<tr><td colspan="6">No quizzes yet.</td></tr>`}</tbody></table></div>`;
+}
+function toggleQuiz(id){const q=byId(state.quizzes,id); if(q){q.published=!q.published;touch(q);save();render()}}
+function deleteQuiz(id){const q=byId(state.quizzes,id); if(q&&confirm("Delete/hide this quiz?")){q.deleted=true;touch(q);save();render()}}
+function previewQuiz(id){const q=byId(state.quizzes,id); if(!q)return; alert(q.questions.map((x,i)=>`${i+1}. ${x.text}\nA. ${x.options[0]}\nB. ${x.options[1]}\nC. ${x.options[2]}\nD. ${x.options[3]}\nAns: ${x.answer}`).join("\n\n"))}
+
+function adminAssignments(){
+  return `<div class="grid">
+    <div class="card col-4"><h3>Create Scanned Assignment</h3>
+      <label>Title</label><input class="input" id="aTitle">
+      <label>Subject</label>${subjectSelect("aSubject")}
+      <label>Class</label>${classSelect("aClass","All Classes",true)}
+      <label>Max Score</label><input class="input" id="aMax" type="number" value="20">
+      <label>Question Paper / Image / PDF</label><input class="input" id="aFile" type="file" accept="image/*,.pdf,.doc,.docx">
+      <label>Instruction</label><textarea id="aInstruction" placeholder="Download/read the question and upload your scanned solution."></textarea>
+      <button class="btn green" onclick="createAssignment()">Create Assignment</button>
+    </div>
+    <div class="card col-8"><h3>Scanned Assignments</h3>${assignmentsTable()}</div>
+  </div>`;
+}
+async function createAssignment(){
+  const title=document.getElementById("aTitle").value.trim(); if(!title) return alert("Enter assignment title.");
+  const f=document.getElementById("aFile").files[0];
+  let questionFile=null; if(f) questionFile={name:f.name,type:f.type,url:await uploadFile(f,`assignments/${uid("assfile")}`)};
+  state.assignments.push({id:uid("ass"),title,subject:document.getElementById("aSubject").value,className:document.getElementById("aClass").value,maxScore:Number(document.getElementById("aMax").value)||20,instruction:document.getElementById("aInstruction").value.trim(),questionFile,published:false,createdAt:now(),updatedAt:now()});
+  save();render();
+}
+function assignmentsTable(){
+  const list=active(state.assignments);
+  return `<div class="tableWrap"><table><thead><tr><th>Title</th><th>Subject</th><th>Class</th><th>File</th><th>Status</th><th>Actions</th></tr></thead><tbody>${list.map(a=>`
+    <tr><td><b>${esc(a.title)}</b></td><td>${esc(a.subject)}</td><td>${esc(a.className)}</td><td>${a.questionFile?`<a target="_blank" href="${esc(fileUrl(a.questionFile))}">Open</a>`:"No file"}</td><td><span class="badge ${a.published?'ok':'warn'}">${a.published?'Published':'Hidden'}</span></td>
+    <td><button class="btn small ${a.published?'red':'green'}" onclick="toggleAssignment('${a.id}')">${a.published?'Unpublish':'Publish'}</button> <button class="btn small light" onclick="replaceAssignmentFile('${a.id}')">Replace File</button> <button class="btn small red" onclick="deleteAssignment('${a.id}')">Delete</button></td></tr>`).join("")||`<tr><td colspan="6">No scanned assignments yet.</td></tr>`}</tbody></table></div>`;
+}
+function toggleAssignment(id){const a=byId(state.assignments,id); if(a){a.published=!a.published;touch(a);save();render()}}
+async function replaceAssignmentFile(id){const a=byId(state.assignments,id); if(!a)return; const input=document.createElement("input");input.type="file";input.accept="image/*,.pdf,.doc,.docx"; input.onchange=async()=>{const f=input.files[0]; if(f){a.questionFile={name:f.name,type:f.type,url:await uploadFile(f,`assignments/${id}`)};touch(a);save();render()}}; input.click();}
+function deleteAssignment(id){const a=byId(state.assignments,id); if(a&&confirm("Delete/hide this assignment? Existing submissions will remain safe.")){a.deleted=true;touch(a);save();render()}}
+
+function adminMarking(){
+  const qs=state.quizSubmissions.filter(s=>!s.deleted&&!s.archived);
+  const as=state.assignmentSubmissions.filter(s=>!s.deleted);
+  return `<div class="grid"><div class="card col-12"><h3>Quiz Submissions</h3>${quizSubmissionsTable(qs)}</div><div class="card col-12"><h3>Scanned Assignment Submissions</h3>${assignmentSubmissionsTable(as)}</div><div class="card col-12"><h3>Reset Requests</h3>${resetRequestsTable()}</div></div>`;
+}
+function quizSubmissionsTable(list){return `<div class="tableWrap"><table><thead><tr><th>Student</th><th>Quiz</th><th>Score</th><th>Date</th><th>Published</th><th>Actions</th></tr></thead><tbody>${list.map(s=>`<tr><td>${esc(studentName(s.studentId))}</td><td>${esc(quizName(s.quizId))}</td><td><b>${s.score}/${s.maxScore}</b></td><td>${new Date(s.submittedAt).toLocaleString()}</td><td><span class="badge ${s.published?'ok':'warn'}">${s.published?'Yes':'No'}</span></td><td><button class="btn small ${s.published?'red':'green'}" onclick="toggleQuizResult('${s.id}')">${s.published?'Unpublish':'Publish'}</button> <button class="btn small light" onclick="viewQuizSubmission('${s.id}')">View</button></td></tr>`).join("")||`<tr><td colspan="6">No quiz submissions yet.</td></tr>`}</tbody></table></div>`}
+function toggleQuizResult(id){const s=byId(state.quizSubmissions,id); if(s){s.published=!s.published;touch(s);save();render()}}
+function viewQuizSubmission(id){const s=byId(state.quizSubmissions,id); const q=byId(state.quizzes,s?.quizId); if(!s||!q)return; alert(q.questions.map((x,i)=>`${i+1}. ${x.text}\nStudent: ${s.answers?.[x.id]||""}\nCorrect: ${x.answer}`).join("\n\n"))}
+function assignmentSubmissionsTable(list){return `<div class="tableWrap"><table><thead><tr><th>Student</th><th>Assignment</th><th>Files</th><th>Score</th><th>Published</th><th>Actions</th></tr></thead><tbody>${list.map(s=>`<tr><td>${esc(studentName(s.studentId))}</td><td>${esc(assignmentName(s.assignmentId))}</td><td>${(s.files||[]).map((f,i)=>`<a target="_blank" href="${esc(fileUrl(f))}">File ${i+1}</a>`).join("<br>")}</td><td>${s.score??""}/${s.maxScore??""}</td><td><span class="badge ${s.published?'ok':'warn'}">${s.published?'Yes':'No'}</span></td><td><button class="btn small light" onclick="markAssignment('${s.id}')">Mark</button> <button class="btn small ${s.published?'red':'green'}" onclick="toggleAssignmentResult('${s.id}')">${s.published?'Unpublish':'Publish'}</button></td></tr>`).join("")||`<tr><td colspan="6">No scanned submissions yet.</td></tr>`}</tbody></table></div>`}
+async function markAssignment(id){const s=byId(state.assignmentSubmissions,id); if(!s)return; const score=prompt("Enter score",s.score??""); if(score===null)return; const feedback=prompt("Enter feedback",s.feedback||"")||""; s.score=Number(score); s.feedback=feedback; s.markedAt=now(); const add=confirm("Do you want to upload a marked script/file now?"); if(add){const input=document.createElement("input"); input.type="file"; input.accept="image/*,.pdf,.doc,.docx"; input.multiple=true; input.onchange=async()=>{s.markedFiles=s.markedFiles||[]; for(const f of input.files){s.markedFiles.push({name:f.name,type:f.type,url:await uploadFile(f,`marked/${id}`)})} touch(s);save();render();}; input.click();}else{touch(s);save();render();}}
+function toggleAssignmentResult(id){const s=byId(state.assignmentSubmissions,id); if(s){s.published=!s.published;touch(s);save();render()}}
+function resetRequestsTable(){const list=state.resetRequests.filter(r=>!r.deleted).slice().reverse();return `<div class="tableWrap"><table><thead><tr><th>Student</th><th>Quiz</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody>${list.map(r=>`<tr><td>${esc(studentName(r.studentId))}</td><td>${esc(quizName(r.quizId))}</td><td>${esc(r.reason||"")}</td><td><span class="badge ${r.status==="Granted"?'ok':r.status==="Denied"?'bad':'warn'}">${esc(r.status)}</span></td><td>${r.status==="Pending"?`<button class="btn small green" onclick="grantReset('${r.id}')">Grant</button> <button class="btn small red" onclick="denyReset('${r.id}')">Deny</button>`:""}</td></tr>`).join("")||`<tr><td colspan="5">No reset requests.</td></tr>`}</tbody></table></div>`}
+function grantReset(id){const r=byId(state.resetRequests,id); if(!r)return; r.status="Granted";r.decidedAt=now(); state.quizSubmissions.forEach(s=>{if(s.studentId===r.studentId&&s.quizId===r.quizId&&!s.archived){s.archived=true;s.resetByTeacher=true;touch(s)}}); save();render();}
+function denyReset(id){const r=byId(state.resetRequests,id); if(r){r.status="Denied";r.decidedAt=now();save();render()}}
+
+function adminReports(){
+  return `<div class="grid">
+    <div class="card col-4"><h3>Add Score Component</h3>
+      <label>Component Name</label><input class="input" id="cName" placeholder="Class Test / Assignment / Exam">
+      <label>Subject</label>${subjectSelect("cSubject")}
+      <label>Class</label>${classSelect("cClass","All Classes",true)}
+      <label>Type</label><select id="cType" class="input"><option>CA</option><option>Exam</option></select>
+      <label>Max Score</label><input class="input" id="cMax" type="number" value="100">
+      <button class="btn green" onclick="addComponent()">Add Component</button>
+    </div>
+    <div class="card col-8"><h3>Enter Scores / Publish Reports</h3>
+      <label>Select Component</label><select id="scoreComponent" class="input" onchange="render()">${active(state.components).map(c=>`<option value="${c.id}">${esc(c.name)} - ${esc(c.subject)} - ${esc(c.className)} - ${esc(c.type)}</option>`).join("")}</select>
+      ${scoreEntryTable()}
+    </div>
+    <div class="card col-12"><h3>Components</h3>${componentsTable()}</div>
+  </div>`;
+}
+function addComponent(){const name=document.getElementById("cName").value.trim(); if(!name)return alert("Enter component name."); state.components.push({id:uid("comp"),name,subject:document.getElementById("cSubject").value,className:document.getElementById("cClass").value,type:document.getElementById("cType").value,maxScore:Number(document.getElementById("cMax").value)||100,createdAt:now(),updatedAt:now()}); save();render();}
+function componentsTable(){const list=active(state.components); return `<div class="tableWrap"><table><thead><tr><th>Name</th><th>Subject</th><th>Class</th><th>Type</th><th>Max</th><th>Action</th></tr></thead><tbody>${list.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.subject)}</td><td>${esc(c.className)}</td><td>${esc(c.type)}</td><td>${c.maxScore}</td><td><button class="btn small red" onclick="deleteComponent('${c.id}')">Delete</button></td></tr>`).join("")||`<tr><td colspan="6">No components.</td></tr>`}</tbody></table></div>`}
+function deleteComponent(id){const c=byId(state.components,id); if(c&&confirm("Delete this component?")){c.deleted=true;touch(c);save();render()}}
+function scoreEntryTable(){const compId=document.getElementById("scoreComponent")?.value || active(state.components)[0]?.id; const c=byId(state.components,compId); if(!c) return `<p class="notice">Add a score component first.</p>`; const students=active(state.students).filter(s=>c.className==="All Classes"||s.className===c.className); return `<div class="nav"><button class="btn gold" onclick="saveScores('${c.id}')">Save Scores</button><button class="btn green" onclick="publishReportsForComponent('${c.id}')">Publish Reports for this Subject/Class</button></div><div class="tableWrap"><table><thead><tr><th>Student</th><th>Class</th><th>Score out of ${c.maxScore}</th></tr></thead><tbody>${students.map(s=>{const score=getScore(s.id,c.id);return `<tr><td>${esc(s.name)}</td><td>${esc(s.className)}</td><td><input class="input" type="number" min="0" max="${c.maxScore}" id="score_${s.id}" value="${score??""}"></td></tr>`}).join("")||`<tr><td colspan="3">No students in this class.</td></tr>`}</tbody></table></div>`}
+function getScore(studentId,componentId){return state.scores.find(x=>x.studentId===studentId&&x.componentId===componentId&&!x.deleted)?.score}
+function saveScores(componentId){active(state.students).forEach(st=>{const el=document.getElementById("score_"+st.id); if(!el || el.value==="") return; let row=state.scores.find(x=>x.studentId===st.id&&x.componentId===componentId&&!x.deleted); if(!row){row={id:uid("score"),studentId:st.id,componentId,createdAt:now()};state.scores.push(row)} row.score=Number(el.value); touch(row);}); save();alert("Scores saved.");render();}
+function publishReportsForComponent(componentId){const c=byId(state.components,componentId); if(!c)return; active(state.students).filter(s=>c.className==="All Classes"||s.className===c.className).forEach(s=>{let pub=state.reportPublications.find(x=>x.studentId===s.id&&x.subject===c.subject&&x.academicYear===state.settings.academicYear&&x.semester===state.settings.semester); if(!pub){pub={id:uid("rep"),studentId:s.id,subject:c.subject,academicYear:state.settings.academicYear,semester:state.settings.semester,createdAt:now()};state.reportPublications.push(pub)} pub.published=true;touch(pub);}); save();alert("Reports published for this subject/class.");render();}
+function calculateReport(studentId, subject){const comps=active(state.components).filter(c=>c.subject===subject); let caGot=0, caMax=0, examGot=0, examMax=0; comps.forEach(c=>{const sc=getScore(studentId,c.id); if(sc===undefined || sc===null || sc==="") return; if(c.type==="Exam"){examGot+=Number(sc);examMax+=Number(c.maxScore||100)} else{caGot+=Number(sc);caMax+=Number(c.maxScore||100)}}); const ca30=caMax?caGot/caMax*30:0; const exam70=examMax?examGot/examMax*70:0; const total=Math.round((ca30+exam70)*10)/10; return {ca30,exam70,total,grade:grade(total),remark:remark(total),comps}}
+function grade(x){if(x>=80)return"A1"; if(x>=70)return"B2"; if(x>=65)return"B3"; if(x>=60)return"C4"; if(x>=55)return"C5"; if(x>=50)return"C6"; if(x>=45)return"D7"; if(x>=40)return"E8"; return"F9"}
+function remark(x){if(x>=80)return"Excellent"; if(x>=70)return"Very Good"; if(x>=60)return"Good"; if(x>=50)return"Credit"; if(x>=40)return"Pass"; return"Needs serious support"}
+
+function adminAnnouncements(){return `<div class="grid"><div class="card col-4"><h3>Add Announcement</h3><label>Title</label><input class="input" id="annTitle"><label>Message</label><textarea id="annMsg"></textarea><button class="btn green" onclick="addAnnouncement()">Publish Announcement</button></div><div class="card col-8"><h3>Announcements</h3>${announcementsList(true)}</div></div>`}
+function addAnnouncement(){const title=document.getElementById("annTitle").value.trim(), msg=document.getElementById("annMsg").value.trim(); if(!title||!msg)return; state.announcements.push({id:uid("ann"),title,msg,published:true,createdAt:now(),updatedAt:now()});save();render()}
+function announcementsList(admin=false){const list=active(state.announcements).filter(a=>admin||a.published).slice().reverse();return list.map(a=>`<div class="question"><b>${esc(a.title)}</b><p>${esc(a.msg)}</p><span class="badge">${new Date(a.createdAt).toLocaleString()}</span> ${admin?`<button class="btn small red" onclick="deleteAnnouncement('${a.id}')">Delete</button>`:""}</div>`).join("")||"<p>No announcements.</p>"}
+function deleteAnnouncement(id){const a=byId(state.announcements,id); if(a){a.deleted=true;touch(a);save();render()}}
+
+function adminSettings(){
+  return `<div class="grid">
+    <div class="card col-4"><h3>General Settings</h3>
+      <label>School Name</label><input class="input" id="setSchool" value="${esc(state.schoolName)}">
+      <label>Teacher Name</label><input class="input" id="setTeacher" value="${esc(state.teacherName)}">
+      <label>Admin Password</label><input class="input" id="setPass" value="${esc(state.adminPassword)}">
+      <label>Academic Year</label><input class="input" id="setYear" value="${esc(state.settings.academicYear)}">
+      <label>Semester</label><input class="input" id="setSem" value="${esc(state.settings.semester)}">
+      <label>Classes, separated by comma</label><textarea id="setClasses">${esc(state.classes.join(", "))}</textarea>
+      <label>Subjects, separated by comma</label><textarea id="setSubjects">${esc(state.subjects.join(", "))}</textarea>
+      <button class="btn green" onclick="saveSettings()">Save Settings</button>
+    </div>
+    <div class="card col-4"><h3>Backup / Restore</h3>
+      <p class="notice">Use this before deleting anything. It protects your students, scores, reports and submissions.</p>
+      <button class="btn gold" onclick="downloadBackup()">Download Backup JSON</button>
+      <label>Restore Backup JSON</label><input class="input" type="file" id="restoreFile" accept=".json">
+      <button class="btn green" onclick="restoreBackup()">Restore Backup</button>
+      <button class="btn red" onclick="freshResetLocal()">Reset This Browser Only</button>
+    </div>
+    <div class="card col-4"><h3>Firebase Connection</h3>
+      <p><span class="badge ${onlineReady?'ok':'warn'}">${onlineReady?'Connected':'Not connected'}</span></p>
+      <button class="btn green" onclick="testFirebase()">Test Firebase</button>
+      <button class="btn light" onclick="pullRemote(true,true)">Load Online Data</button>
+      <button class="btn gold" onclick="pushRemote(true)">Publish This Browser Live</button>
+      <p style="font-size:12px;color:var(--muted)">If starting afresh, update Firestore rules first, then publish this browser live.</p>
+    </div>
+  </div>`;
+}
+function saveSettings(){state.schoolName=document.getElementById("setSchool").value.trim()||state.schoolName; state.teacherName=document.getElementById("setTeacher").value.trim()||state.teacherName; state.adminPassword=document.getElementById("setPass").value||state.adminPassword; state.settings.academicYear=document.getElementById("setYear").value.trim()||state.settings.academicYear; state.settings.semester=document.getElementById("setSem").value.trim()||state.settings.semester; state.classes=document.getElementById("setClasses").value.split(",").map(x=>x.trim()).filter(Boolean); state.subjects=document.getElementById("setSubjects").value.split(",").map(x=>x.trim()).filter(Boolean); save();render();}
+function downloadBackup(){const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}); const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="sir_isaac_firebase_portal_backup_"+new Date().toISOString().slice(0,10)+".json";a.click();}
+function restoreBackup(){const f=document.getElementById("restoreFile").files[0]; if(!f)return alert("Choose a backup JSON file."); const reader=new FileReader(); reader.onload=()=>{try{const data=JSON.parse(reader.result);state=mergeState(state,data);save();alert("Backup restored. Now click Publish This Browser Live.");render()}catch(e){alert("Invalid backup file.")}}; reader.readAsText(f);}
+function freshResetLocal(){if(confirm("This clears only this browser's local copy. It does not delete Firebase online data.")){localStorage.removeItem(LS_KEY);state=defaultState();saveLocal();render()}}
+
+function renderStudent(){
+  const student=byId(state.students,selectedStudentId);
+  if(!student) return renderStudentPicker();
+  const nav=`<div class="nav noPrint"><button class="btn ${route==='home'?'primary':'light'}" onclick="route='home';render()">Home</button><button class="btn ${route==='work'?'primary':'light'}" onclick="route='work';render()">My Work</button><button class="btn ${route==='results'?'primary':'light'}" onclick="route='results';render()">My Results</button><button class="btn ${route==='report'?'primary':'light'}" onclick="route='report';render()">View Report Card</button><button class="btn red" onclick="selectedStudentId=null;render()">Change Student</button></div>`;
+  let body=""; if(route==="home") body=studentHome(student); if(route==="work") body=studentWork(student); if(route==="results") body=studentResults(student); if(route==="report") body=studentReport(student);
+  document.getElementById("app").innerHTML=`<div class="hero"><h2>Student Portal</h2><p>${esc(student.name)} • ${esc(student.className)}</p>${nav}</div>${body}`;
+}
+function renderStudentPicker(){
+  const q=(document.getElementById("studentSearch")?.value||"").toLowerCase();
+  const cls=document.getElementById("studentClassFilter")?.value||"All Classes";
+  const list=active(state.students).filter(s=>(cls==="All Classes"||s.className===cls)&&(s.name+" "+s.className+" "+(s.phone||"")).toLowerCase().includes(q));
+  document.getElementById("app").innerHTML=`<div class="hero"><h2>Student Portal</h2><p>Search your name or select from the full student list. All students appear first.</p><div class="nav"><button class="btn light" onclick="currentRole='home';render()">Back</button><span class="badge ok">${active(state.students).length} students</span></div></div>
+    <div class="card"><h3>Find Your Name</h3><div class="grid" style="margin-top:0"><div class="col-8"><input class="input" id="studentSearch" placeholder="Search by name, class or phone..." oninput="render()" value="${esc(document.getElementById("studentSearch")?.value||"")}"></div><div class="col-4"><select id="studentClassFilter" class="input" onchange="render()"><option>All Classes</option>${state.classes.map(c=>`<option ${cls===c?"selected":""}>${esc(c)}</option>`).join("")}</select></div></div><div class="studentGrid">${list.map(s=>`<div class="studentCard" onclick="selectStudent('${s.id}')">${avatarHTML(s)}<div><b>${esc(s.name)}</b><br><span class="badge">${esc(s.className)}</span></div></div>`).join("")||"<p>No student found.</p>"}</div></div>`;
+}
+function selectStudent(id){const s=byId(state.students,id); if(!s)return; if(state.settings.requireStudentPassword){const p=prompt("Enter your student password/code"); if(p!==s.password)return alert("Wrong password.");} selectedStudentId=id; route="home"; render();}
+function studentHome(s){return `<div class="grid"><div class="card col-8"><h3>Welcome, ${esc(s.name)}</h3><p>Use the buttons above to open your quizzes, scanned assignments, results and report card.</p>${announcementsList(false)}</div><div class="card col-4"><h3>Profile</h3>${avatarHTML(s)}<p><b>Name:</b> ${esc(s.name)}<br><b>Class:</b> ${esc(s.className)}<br><b>Phone:</b> ${esc(s.phone||"")}</p><button class="btn light" onclick="studentUploadPhoto()">Upload/Change Picture</button></div></div>`}
+async function studentUploadPhoto(){const s=byId(state.students,selectedStudentId); if(!s)return; const input=document.createElement("input");input.type="file";input.accept="image/*"; input.onchange=async()=>{const f=input.files[0]; if(f){s.photo=await uploadFile(f,`students/${s.id}`);touch(s);save();render()}}; input.click();}
+function studentWork(s){const quizzes=active(state.quizzes).filter(q=>eligible(q,s)); const assignments=active(state.assignments).filter(a=>eligible(a,s)); return `<div class="grid"><div class="card col-6"><h3>Available Quizzes</h3>${quizzes.map(q=>quizStudentCard(q,s)).join("")||"<p>No published quiz now.</p>"}</div><div class="card col-6"><h3>Scanned Assignments</h3>${assignments.map(a=>assignmentStudentCard(a,s)).join("")||"<p>No scanned assignment now.</p>"}</div></div>`}
+function activeSubmissionFor(studentId,quizId){return state.quizSubmissions.find(x=>x.studentId===studentId&&x.quizId===quizId&&!x.archived&&!x.deleted)}
+function quizStudentCard(q,s){const sub=activeSubmissionFor(s.id,q.id); return `<div class="question"><b>${esc(q.title)}</b><p>${esc(q.subject)} • ${q.duration} minutes • ${q.questions.length} questions</p>${sub?`<span class="badge ok">Submitted: ${sub.score}/${sub.maxScore}</span><br><button class="btn small light" onclick="requestReset('${q.id}')">Request Reset</button>`:`<button class="btn green" onclick="startQuiz('${q.id}')">Start Quiz</button>`}</div>`}
+function startQuiz(id){const q=byId(state.quizzes,id), s=byId(state.students,selectedStudentId); if(!q||!s)return; if(activeSubmissionFor(s.id,q.id)) return alert("You have already submitted this quiz. Request reset if needed."); if(!confirm(`Start ${q.title}?\nTime: ${q.duration} minutes.\nThe timer will count down after you start.`)) return; activeQuiz={quizId:id,answers:{}}; quizSecondsLeft=(Number(q.duration)||30)*60; route="takeQuiz"; renderTakeQuiz(); clearInterval(quizTimer); quizTimer=setInterval(()=>{quizSecondsLeft--; updateTimer(); if(quizSecondsLeft<=0) submitQuiz(true)},1000);}
+function renderTakeQuiz(){const q=byId(state.quizzes,activeQuiz.quizId); if(!q)return render(); document.getElementById("app").innerHTML=`<div class="hero"><h2>${esc(q.title)}</h2><p>${esc(q.subject)}</p><div class="timer" id="timerBox"></div></div><div class="card">${q.questions.map((x,i)=>`<div class="question"><b>${i+1}. ${esc(x.text)}</b><div class="options">${["A","B","C","D"].map((L,idx)=>`<label class="option"><input type="radio" name="${x.id}" value="${L}" onchange="activeQuiz.answers['${x.id}']='${L}'"> <span><b>${L}.</b> ${esc(x.options[idx]||"")}</span></label>`).join("")}</div></div>`).join("")}<button class="btn green" onclick="submitQuiz(false)">Submit Quiz</button></div>`; updateTimer();}
+function updateTimer(){const el=document.getElementById("timerBox"); if(el) el.textContent=`Time left: ${Math.floor(quizSecondsLeft/60)}:${String(quizSecondsLeft%60).padStart(2,"0")}`}
+function submitQuiz(auto=false){if(!activeQuiz)return; const q=byId(state.quizzes,activeQuiz.quizId), s=byId(state.students,selectedStudentId); if(!q||!s)return; if(!auto && !confirm("Submit quiz now?")) return; clearInterval(quizTimer); let score=0; q.questions.forEach(x=>{if((activeQuiz.answers[x.id]||"").toUpperCase()===x.answer) score++}); state.quizSubmissions.push({id:uid("qsub"),studentId:s.id,quizId:q.id,answers:activeQuiz.answers,score,maxScore:q.questions.length,published:false,submittedAt:now(),updatedAt:now()}); activeQuiz=null; route="results"; save(); alert(auto?"Time is up. Your quiz has been submitted.":"Quiz submitted successfully."); render();}
+function requestReset(quizId){const reason=prompt("Why do you want a reset?")||""; state.resetRequests.push({id:uid("reset"),studentId:selectedStudentId,quizId,reason,status:"Pending",requestedAt:now(),updatedAt:now()}); save();alert("Reset request sent to your teacher.");}
+function assignmentStudentCard(a,s){const sub=state.assignmentSubmissions.find(x=>x.studentId===s.id&&x.assignmentId===a.id&&!x.deleted); return `<div class="question"><b>${esc(a.title)}</b><p>${esc(a.subject)} • Max score: ${a.maxScore}</p><p>${esc(a.instruction||"")}</p>${a.questionFile?`<a class="btn small light" target="_blank" href="${esc(fileUrl(a.questionFile))}">Open Question</a>`:""} ${sub?`<span class="badge ok">Submitted</span> ${sub.published?`<span class="badge ok">Marked: ${sub.score}/${sub.maxScore}</span>`:""}`:`<button class="btn green" onclick="submitAssignment('${a.id}')">Upload Answer</button>`}</div>`}
+async function submitAssignment(id){const a=byId(state.assignments,id), s=byId(state.students,selectedStudentId); if(!a||!s)return; const input=document.createElement("input"); input.type="file"; input.accept="image/*,.pdf,.doc,.docx"; input.multiple=true; input.onchange=async()=>{if(!input.files.length)return; const files=[]; for(const f of input.files){files.push({name:f.name,type:f.type,url:await uploadFile(f,`student-submissions/${s.id}/${id}`)})} state.assignmentSubmissions.push({id:uid("asub"),studentId:s.id,assignmentId:id,files,maxScore:a.maxScore,score:null,feedback:"",published:false,submittedAt:now(),updatedAt:now()}); save(); alert("Submitted successfully."); render();}; input.click();}
+function studentResults(s){const qs=state.quizSubmissions.filter(x=>x.studentId===s.id&&!x.archived&&!x.deleted&&x.published); const as=state.assignmentSubmissions.filter(x=>x.studentId===s.id&&!x.deleted&&x.published); return `<div class="grid"><div class="card col-6"><h3>Published Quiz Results</h3>${qs.map(x=>`<div class="question"><b>${esc(quizName(x.quizId))}</b><p>Score: <b>${x.score}/${x.maxScore}</b></p></div>`).join("")||"<p>No published quiz result yet.</p>"}</div><div class="card col-6"><h3>Marked Scanned Work</h3>${as.map(x=>`<div class="question"><b>${esc(assignmentName(x.assignmentId))}</b><p>Score: <b>${x.score}/${x.maxScore}</b></p><p>${esc(x.feedback||"")}</p>${(x.markedFiles||[]).map((f,i)=>`<a target="_blank" href="${esc(fileUrl(f))}">Download Marked File ${i+1}</a>`).join("<br>")}</div>`).join("")||"<p>No marked scanned work yet.</p>"}</div></div>`}
+function studentReport(s){const pubs=state.reportPublications.filter(x=>x.studentId===s.id&&x.published); if(!pubs.length) return `<div class="card"><p class="notice">No report card has been published for you yet.</p></div>`; const subject=pubs[0].subject; const r=calculateReport(s.id,subject); return `<div class="card"><div class="nav noPrint"><button class="btn gold" onclick="window.print()">Print Report Card</button></div>${reportHTML(s,subject,r)}</div>`}
+function reportHTML(s,subject,r){return `<div class="printCard"><div class="reportHead"><h2>${esc(state.schoolName)}</h2><p><b>Student Report Card</b></p><p>${esc(state.settings.academicYear)} • ${esc(state.settings.semester)}</p></div><p><b>Name:</b> ${esc(s.name)}<br><b>Class:</b> ${esc(s.className)}<br><b>Subject:</b> ${esc(subject)}</p><table style="min-width:0"><thead><tr><th>Assessment</th><th>Type</th><th>Score</th><th>Max</th></tr></thead><tbody>${active(state.components).filter(c=>c.subject===subject).map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.type)}</td><td>${getScore(s.id,c.id)??""}</td><td>${c.maxScore}</td></tr>`).join("")}</tbody></table><p><b>CA (30%):</b> ${r.ca30.toFixed(1)} &nbsp; <b>Exam (70%):</b> ${r.exam70.toFixed(1)} &nbsp; <b>Total:</b> ${r.total.toFixed(1)} &nbsp; <b>Grade:</b> ${r.grade}</p><p><b>Remark:</b> ${esc(r.remark)}</p><br><p>Teacher's Signature: ________________________</p></div>`}
+
+/* FIREBASE */
+async function initFirebase(){
+  render();
+  setStatus("App opened. Connecting Firebase in background...","warn");
+  try{
+    if(!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey){setStatus("Firebase config missing. App is in local mode.","warn");return;}
+    if(!window.firebase){setStatus("Firebase SDK failed to load. App is in local mode.","bad");return;}
+    if(!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
+    db=firebase.firestore();
+    try{await db.enablePersistence({synchronizeTabs:true})}catch(e){}
+    await pullRemote(true,false);
+    subscribeRealtime();
+    onlineReady=true; setStatus("Firebase connected","ok"); render();
+  }catch(e){console.error(e); setStatus("Firebase not connected. Check Firestore rules.","bad")}
+}
+async function testFirebase(){
+  try{
+    if(!db) await initFirebase();
+    const ref=db.collection(DOC_PATH[0]).doc(DOC_PATH[1]);
+    const snap=await ref.get();
+    if(!snap.exists){alert("Firebase connected, but online data row is empty. Click Publish This Browser Live.");return;}
+    const data=snap.data()?.data||{};
+    alert("Firebase is working. Students online: "+((data.students||[]).length));
+  }catch(e){console.error(e);alert("Firebase test failed. Check Firestore rules and firebase-config.js.")}
+}
+async function pullRemote(merge=true,showAlert=false){
+  if(!db) return false;
+  const ref=db.collection(DOC_PATH[0]).doc(DOC_PATH[1]);
+  const snap=await ref.get();
+  if(snap.exists && snap.data()?.data && hasImportantData(snap.data().data)){
+    applyingRemote=true;
+    state=merge?mergeState(snap.data().data,state):snap.data().data; 
+    saveLocal();
+    applyingRemote=false;
+    if(showAlert) alert("Online Firebase data loaded.");
+    render();
+    return true;
+  }else{
+    if(hasImportantData(state)) await pushRemote(false);
+    return false;
+  }
+}
+let pushTimer=null;
+function schedulePush(){clearTimeout(pushTimer); if(!applyingRemote) pushTimer=setTimeout(()=>pushRemote(false),900)}
+async function pushRemote(showAlert=false){
+  if(working) return false;
+  if(!db){ if(showAlert) alert("Firebase is not connected yet. Check firebase-config.js and Firestore rules."); return false; }
+  working=true;
+  try{
+    setStatus("Saving live to Firebase...","warn");
+    const ref=db.collection(DOC_PATH[0]).doc(DOC_PATH[1]);
+    let remote=null;
+    try{const snap=await ref.get(); remote=snap.exists ? (snap.data()?.data||null) : null;}catch(e){}
+    if(remote) state=mergeState(remote,state);
+    state.updatedAt=now(); saveLocal();
+    await ref.set({data:state, updatedAt: firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    onlineReady=true; setStatus("Saved live to Firebase","ok");
+    if(showAlert) alert("Published live successfully.");
+    return true;
+  }catch(e){console.error(e);setStatus("Firebase save failed. Check Firestore rules.","bad"); if(showAlert) alert("Firebase save failed. Check Firestore rules."); return false}
+  finally{working=false}
+}
+function subscribeRealtime(){
+  if(!db) return;
+  const ref=db.collection(DOC_PATH[0]).doc(DOC_PATH[1]);
+  if(unsubscribe) unsubscribe();
+  unsubscribe=ref.onSnapshot(snap=>{
+    if(!snap.exists || working) return;
+    const remote=snap.data()?.data;
+    if(remote && hasImportantData(remote)){
+      applyingRemote=true;
+      state=mergeState(remote,state);
+      saveLocal();
+      applyingRemote=false;
+      setStatus("Firebase live update received","ok");
+      if(currentRole==="student"||currentRole==="admin") render();
+    }
+  },err=>{console.error(err);setStatus("Firebase listener error. Check rules.","bad")});
+  setInterval(()=>{if(db && (currentRole==="student"||currentRole==="admin")) pullRemote(true,false).catch(()=>{})},15000);
+}
+function hasImportantData(st){return !!(st && ((st.students||[]).length||(st.quizzes||[]).length||(st.assignments||[]).length||(st.quizSubmissions||[]).length||(st.assignmentSubmissions||[]).length||(st.reportPublications||[]).length))}
+function mergeState(remote,local){
+  const d=defaultState(); remote={...d,...(remote||{})}; local={...d,...(local||{})};
+  const out={...remote,...local,settings:{...(remote.settings||{}),...(local.settings||{})}};
+  ["classes","subjects"].forEach(k=>out[k]=[...new Set([...(remote[k]||[]),...(local[k]||[])])]);
+  ["students","quizzes","quizSubmissions","assignments","assignmentSubmissions","components","scores","reportPublications","resetRequests","announcements"].forEach(k=>out[k]=mergeArray(remote[k]||[],local[k]||[]));
+  return out;
+}
+function mergeArray(a,b){
+  const m=new Map();
+  [...a,...b].forEach(x=>{
+    if(!x) return;
+    const id=x.id||uid("row");
+    const old=m.get(id);
+    if(!old) m.set(id,x);
+    else{
+      const ot=new Date(old.updatedAt||old.createdAt||0).getTime();
+      const nt=new Date(x.updatedAt||x.createdAt||0).getTime();
+      m.set(id, nt>=ot ? {...old,...x} : {...x,...old});
+    }
+  });
+  return [...m.values()];
+}
+async function uploadFile(file,folder){
+  if(!file) return "";
+  const cloud=window.CLOUDINARY_CLOUD_NAME, preset=window.CLOUDINARY_UPLOAD_PRESET;
+  if(cloud && preset){
+    try{
+      const form=new FormData();
+      form.append("file",file);
+      form.append("upload_preset",preset);
+      form.append("folder",folder || "amest_assessment_portal");
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${cloud}/auto/upload`,{method:"POST",body:form});
+      const json=await res.json();
+      if(!res.ok || !json.secure_url) throw new Error(json.error?.message||"Upload failed");
+      return json.secure_url;
+    }catch(e){console.error("Cloudinary upload failed",e); setStatus("File upload failed. Check Cloudinary preset.","bad");}
+  }
+  return await fileToDataURL(file);
+}
+function fileToDataURL(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
+
+normalize();
+saveLocal();
+render();
+setTimeout(initFirebase,300);
+</script>
+</body>
+</html>
