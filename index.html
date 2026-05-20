@@ -10151,11 +10151,34 @@ html,body{
 }
 
 
-/* ===== SUPABASE NO-WAIT STARTUP REPAIR ===== */
-.supabaseNowaitPanel{border:2px solid #f4c430;border-left:10px solid #0f7b4f;background:linear-gradient(135deg,#fff,#fffdf0);color:#071f3d;border-radius:24px;padding:16px;margin:0 0 16px;box-shadow:0 12px 32px rgba(7,31,61,.10)}
-.supabaseNowaitPanel h2{margin:0 0 7px;color:#071f3d}.supabaseNowaitPanel p{margin:0 0 10px;color:#475467;font-weight:850;line-height:1.45}.supabaseNowaitActions{display:flex;flex-wrap:wrap;gap:8px}.supabaseNowaitActions button{min-height:40px;border-radius:12px;padding:8px 12px;font-weight:950;cursor:pointer}.supabaseNowaitStats{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.supabaseNowaitStats span{display:inline-flex;border-radius:999px;padding:5px 9px;background:#eef5fc;color:#071f3d;border:1px solid #d9e7f3;font-size:12px;font-weight:950}.supabaseNowaitStats span.good{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}.emergencyStart{min-height:100vh;display:grid;place-items:center;padding:20px;background:#071f3d;color:#071f3d}.emergencyStartCard{max-width:880px;background:#fff;border-radius:28px;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.35)}.emergencyStartCard h1{margin:0 0 10px;color:#071f3d}.emergencyStartCard p{font-weight:800;color:#475467}.emergencyStartCard button{border:0;border-radius:14px;padding:12px 16px;margin:6px;background:#f4c430;color:#071f3d;font-weight:1000;cursor:pointer}.emergencyStartCard button:first-of-type{background:#071f3d;color:#fff}
+/* ===== FIREBASE + CLOUDINARY LIVE SYNC FINAL ===== */
+.firebaseLivePanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:24px;
+  padding:16px;
+  margin:0 0 16px;
+  box-shadow:0 12px 32px rgba(7,31,61,.10);
+}
+.firebaseLivePanel h2{margin:0 0 7px;color:#071f3d}
+.firebaseLivePanel p{margin:0 0 10px;color:#475467;font-weight:850;line-height:1.45}
+.firebaseLiveActions{display:flex;flex-wrap:wrap;gap:8px}
+.firebaseLiveActions button{min-height:40px;border-radius:12px;padding:8px 12px;font-weight:950;cursor:pointer}
+.firebaseLiveStats{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.firebaseLiveStats span{display:inline-flex;border-radius:999px;padding:5px 9px;background:#eef5fc;color:#071f3d;border:1px solid #d9e7f3;font-size:12px;font-weight:950}
+.firebaseLiveStats span.good{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}
+.firebaseLiveStats span.warn{background:#fff8db;color:#8a6100;border-color:#f4c430}
+.firebaseLiveStats span.bad{background:#fff1f0;color:#b42318;border-color:#ffcdc9}
 
 </style>
+
+<!-- Firebase + Cloudinary Live Version -->
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
 </head>
 <body>
 <div id="liveStatus" class="topStatus warn">Starting...</div>
@@ -34129,125 +34152,472 @@ with check (true);`;
 
 
 
-/* ===== SUPABASE NO-WAIT STARTUP REPAIR V21 =====
-   This layer fixes the blank/loading screen by rendering the app immediately.
-   Supabase loads in the background, so a slow/error connection cannot block the interface.
-   It uses Supabase only and preserves latest student features.
+/* ===== FIREBASE + CLOUDINARY LIVE SYNC FINAL V1 =====
+   Uses:
+   - Firebase Firestore for true live communication across browsers/phones.
+   - Cloudinary unsigned upload preset for photos, question papers, scanned answer scripts and marked scripts.
+   - Vercel/GitHub continues hosting the interface.
+   This layer deliberately stops Supabase sync messages/errors.
 */
 (function(){
-  if(window.__supabaseNoWaitStartupRepairV21) return;
-  window.__supabaseNoWaitStartupRepairV21 = true;
+  if(window.__firebaseCloudinaryLiveFinalV1) return;
+  window.__firebaseCloudinaryLiveFinalV1 = true;
 
-  const NW_TABLE='app_state';
-  const NW_ID='main';
-  const NW_BUCKET='assessment-files';
-  const NW_LIST_KEYS=['classes','subjects','students','quizzes','submissions','components','scores','publishedReports','publishedComponentResults','reportScores','reportComments','academicYears','semesters','docAssignments','docSubmissions','announcements','studentAnnouncements','attemptResets','resetRequests','passwordShares','assignmentNotifications','quizResets','messages','chatMessages','chatThreads','classMessages','teacherMessages','studentMessages'];
-  let nwPulling=false, nwPushing=false, nwChannel=null, nwPollStarted=false;
+  const FB_LIST_KEYS = [
+    "classes","subjects","students","quizzes","submissions","components","scores",
+    "publishedReports","publishedComponentResults","reportScores","reportComments",
+    "academicYears","semesters","docAssignments","docSubmissions","announcements",
+    "studentAnnouncements","attemptResets","resetRequests","passwordShares",
+    "assignmentNotifications","quizResets","messages","chatMessages","chatThreads",
+    "classMessages","teacherMessages","studentMessages"
+  ];
+  let fbApp = null;
+  let fbDb = null;
+  let fbUnsubCore = null;
+  let fbUnsubItems = null;
+  let fbPushBusy = false;
+  let fbPullBusy = false;
+  let fbDebounceTimer = null;
 
-  function nwClone(x){try{return JSON.parse(JSON.stringify(x||{}));}catch(e){return x;}}
-  function nwStatus(msg,cls='warn'){
-    try{let el=document.getElementById('liveStatus'); if(el){el.textContent=String(msg||''); el.className='topStatus '+cls;}}catch(e){}
-    try{let el=document.getElementById('stableSyncStatus'); if(el) el.textContent=String(msg||'');}catch(e){}
-    console.log('SUPABASE NO-WAIT:', msg);
+  function fbClone(x){ try{return JSON.parse(JSON.stringify(x || {}));}catch(e){return x;} }
+  function fbNowISO(){ return new Date().toISOString(); }
+  function fbStatus(text, cls="warn"){
+    const msg=String(text||"");
+    const el=document.getElementById("liveStatus");
+    if(el){ el.textContent=msg; el.className="topStatus "+cls; }
+    const s=document.getElementById("stableSyncStatus");
+    if(s) s.textContent=msg;
+    console.log("FIREBASE LIVE:", msg);
   }
-  window.stableStatus=nwStatus;
-  try{eval('stableStatus=window.stableStatus;')}catch(e){}
+  window.stableStatus = fbStatus;
+  try{ eval("stableStatus=window.stableStatus;"); }catch(e){}
 
-  function nwEnsure(){
-    if(!state || typeof state!=='object'){try{state=defaultState();}catch(e){state={};}}
-    NW_LIST_KEYS.forEach(k=>{if(!Array.isArray(state[k])) state[k]=[];});
-    state.settings=state.settings||{};
+  function fbEnsureState(){
+    if(!state || typeof state!=="object"){
+      try{ state=defaultState(); }catch(e){ state={}; }
+    }
+    FB_LIST_KEYS.forEach(k=>{ if(!Array.isArray(state[k])) state[k]=[]; });
+    state.settings = state.settings || {};
   }
-  const oldNorm=window.normalize;
-  if(typeof oldNorm==='function'){
-    window.normalize=function(){let r=oldNorm.apply(this,arguments); nwEnsure(); return r;};
-    try{eval('normalize=window.normalize;')}catch(e){}
+  const oldNormalizeFB = window.normalize;
+  if(typeof oldNormalizeFB==="function"){
+    window.normalize=function(){
+      const r=oldNormalizeFB.apply(this,arguments);
+      fbEnsureState();
+      return r;
+    };
+    try{ eval("normalize=window.normalize;"); }catch(e){}
   }
-  function nwDefault(){try{return defaultState();}catch(e){return {};}}
-  function nwCounts(st){st=st||state||{}; return {students:(st.students||[]).length,quizzes:(st.quizzes||[]).length,submissions:(st.submissions||[]).length,docAssignments:(st.docAssignments||[]).length,docSubmissions:(st.docSubmissions||[]).length,reports:(st.publishedReports||[]).length,resetRequests:(st.resetRequests||[]).length};}
-  function nwHasData(st){let c=nwCounts(st||{}); return c.students||c.quizzes||c.submissions||c.docAssignments||c.docSubmissions||c.reports||c.resetRequests;}
-  function nwLocalSave(){try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); try{if(typeof saveLocal==='function')saveLocal();}catch(e){}}
-  function nwItemKey(key,item,index){
-    if(item&&typeof item==='object'&&item.id) return String(item.id);
-    if(key==='students') return `${item?.name||''}|${item?.className||''}|${item?.code||''}`;
-    if(key==='submissions') return `${item?.studentId||''}|${item?.quizId||''}|${item?.submittedAt||index}`;
-    if(key==='docSubmissions') return `${item?.studentId||''}|${item?.assignmentId||''}|${item?.submittedAt||index}`;
-    if(key==='scores') return `${item?.studentId||''}|${item?.componentId||item?.component||''}|${item?.subject||''}`;
-    if(key==='publishedReports'||key==='publishedComponentResults') return String(item);
-    return JSON.stringify(item||{}).slice(0,180)+'|'+index;
+
+  function fbCounts(st){
+    st=st||state||{};
+    return {
+      students:(st.students||[]).length,
+      quizzes:(st.quizzes||[]).length,
+      submissions:(st.submissions||[]).length,
+      docAssignments:(st.docAssignments||[]).length,
+      docSubmissions:(st.docSubmissions||[]).length,
+      reports:(st.publishedReports||[]).length,
+      resetRequests:(st.resetRequests||[]).length
+    };
   }
-  function nwMergeObj(r,l){
-    if(l===undefined||l===null) return nwClone(r); if(r===undefined||r===null) return nwClone(l);
-    if(Array.isArray(r)||Array.isArray(l)) return nwClone(l);
-    if(typeof r==='object'&&typeof l==='object'){
-      const out={...nwClone(r),...nwClone(l)};
-      ['files','markedFiles','answers','questionFile','photo'].forEach(k=>{if((!out[k]||(Array.isArray(out[k])&&!out[k].length))&&r[k])out[k]=r[k]; if((!out[k]||(Array.isArray(out[k])&&!out[k].length))&&l[k])out[k]=l[k];});
+  function fbHasImportantData(st){
+    const c=fbCounts(st||{});
+    return c.students || c.quizzes || c.submissions || c.docAssignments || c.docSubmissions || c.reports || c.resetRequests;
+  }
+  function fbDefault(){
+    try{return defaultState();}catch(e){return {};}
+  }
+  function fbLocalSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    fbEnsureState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+  }
+  function fbSafeDocId(text){
+    const str=String(text||"x");
+    try{
+      return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"").slice(0,900) || "x";
+    }catch(e){
+      return str.replace(/[^\w\-]+/g,"_").slice(0,900) || "x";
+    }
+  }
+  function fbItemId(key,item,index){
+    if(item && typeof item==="object" && item.id) return String(item.id);
+    if(key==="students") return `${item?.name||""}|${item?.className||""}|${item?.code||""}`;
+    if(key==="submissions") return `${item?.studentId||""}|${item?.quizId||""}|${item?.submittedAt||index}`;
+    if(key==="docSubmissions") return `${item?.studentId||""}|${item?.assignmentId||""}|${item?.submittedAt||index}`;
+    if(key==="scores") return `${item?.studentId||""}|${item?.componentId||item?.component||""}|${item?.subject||""}`;
+    if(key==="publishedReports") return String(item);
+    if(key==="publishedComponentResults") return String(item);
+    return JSON.stringify(item||{}).slice(0,180)+"|"+index;
+  }
+  function fbTime(item){
+    if(!item || typeof item!=="object") return 0;
+    const fields=["_fbUpdatedAt","updatedAt","updated_at","submittedAt","createdAt","publishedAt","resetAt","requestedAt","decidedAt","deletedAt","savedAt"];
+    for(const f of fields){
+      if(item[f]){
+        const t=new Date(item[f]).getTime();
+        if(Number.isFinite(t)) return t;
+      }
+    }
+    return 0;
+  }
+  function fbMergeValue(remote, local){
+    if(local===undefined || local===null) return fbClone(remote);
+    if(remote===undefined || remote===null) return fbClone(local);
+    if(Array.isArray(remote) || Array.isArray(local)) return fbClone(local);
+    if(typeof remote==="object" && typeof local==="object"){
+      const r=fbClone(remote), l=fbClone(local);
+      const out={...r,...l};
+      ["files","markedFiles","answers","questionFile","photo"].forEach(k=>{
+        if((!out[k] || (Array.isArray(out[k]) && !out[k].length)) && r[k]) out[k]=r[k];
+        if((!out[k] || (Array.isArray(out[k]) && !out[k].length)) && l[k]) out[k]=l[k];
+      });
       return out;
     }
-    return nwClone(l);
+    return fbClone(local);
   }
-  function nwMergeArr(ra,la,key){let m=new Map(); (Array.isArray(ra)?ra:[]).forEach((it,i)=>m.set(nwItemKey(key,it,i),nwClone(it))); (Array.isArray(la)?la:[]).forEach((it,i)=>{let id=nwItemKey(key,it,i); m.set(id,m.has(id)?nwMergeObj(m.get(id),it):nwClone(it));}); return [...m.values()];}
-  function nwMergeState(remote,local){
-    const base={...nwDefault(),...(nwClone(remote)||{})}, loc=nwClone(local)||{}, out={...base};
-    Object.keys(loc).forEach(k=>{if(NW_LIST_KEYS.includes(k))return; if(k==='settings')out.settings={...(out.settings||{}),...(loc.settings||{})}; else if(loc[k]!==undefined)out[k]=nwMergeObj(out[k],loc[k]);});
-    NW_LIST_KEYS.forEach(k=>out[k]=nwMergeArr(base[k]||[],loc[k]||[],k));
-    out.submissions=nwMergeArr(base.submissions||[],loc.submissions||[],'submissions');
-    out.docSubmissions=nwMergeArr(base.docSubmissions||[],loc.docSubmissions||[],'docSubmissions');
-    out.publishedReports=[...new Set([...(base.publishedReports||[]),...(loc.publishedReports||[])].map(String))];
-    out.publishedComponentResults=[...new Set([...(base.publishedComponentResults||[]),...(loc.publishedComponentResults||[])].map(String))];
-    return out;
+  function fbMergeArray(remoteArr, localArr, key){
+    const map=new Map();
+    (Array.isArray(remoteArr)?remoteArr:[]).forEach((item,i)=>{
+      map.set(fbItemId(key,item,i), fbClone(item));
+    });
+    (Array.isArray(localArr)?localArr:[]).forEach((item,i)=>{
+      const id=fbItemId(key,item,i);
+      if(map.has(id)) map.set(id, fbMergeValue(map.get(id), item));
+      else map.set(id, fbClone(item));
+    });
+    return [...map.values()];
   }
-  async function nwClient(){
-    if(sb) return sb;
-    const url=window.AMEST_SUPABASE_URL, key=window.AMEST_SUPABASE_ANON_KEY;
-    if(!url||!key||String(url).includes('PASTE')){nwStatus('Supabase keys missing in app-config.js','bad'); return null;}
-    if(!window.supabase){nwStatus('Supabase library not loaded yet','warn'); return null;}
-    sb=window.supabase.createClient(url,key); return sb;
+  function fbMergeState(remote, local){
+    const base={...fbDefault(), ...(fbClone(remote)||{})};
+    const loc=fbClone(local)||{};
+    const merged={...base};
+
+    Object.keys(loc).forEach(k=>{
+      if(FB_LIST_KEYS.includes(k)) return;
+      if(k==="settings") merged.settings={...(merged.settings||{}), ...(loc.settings||{})};
+      else if(loc[k]!==undefined) merged[k]=fbMergeValue(merged[k],loc[k]);
+    });
+
+    FB_LIST_KEYS.forEach(k=> merged[k]=fbMergeArray(base[k]||[], loc[k]||[], k));
+    merged.submissions = fbMergeArray(base.submissions||[], loc.submissions||[], "submissions");
+    merged.docSubmissions = fbMergeArray(base.docSubmissions||[], loc.docSubmissions||[], "docSubmissions");
+    merged.publishedReports = [...new Set([...(base.publishedReports||[]), ...(loc.publishedReports||[])].map(String))];
+    merged.publishedComponentResults = [...new Set([...(base.publishedComponentResults||[]), ...(loc.publishedComponentResults||[])].map(String))];
+    return merged;
   }
-  async function nwFetch(){let c=await nwClient(); if(!c)return null; let {data,error}=await c.from(NW_TABLE).select('data,updated_at').eq('id',NW_ID).maybeSingle(); if(error)throw error; return data||null;}
-  async function nwWrite(data){let c=await nwClient(); if(!c)return false; let {error}=await c.from(NW_TABLE).upsert({id:NW_ID,data:nwClone(data||{}),updated_at:new Date().toISOString()},{onConflict:'id'}); if(error)throw error; return true;}
-  async function nwUpload(dataUrl,folder,name='file'){
-    if(!dataUrl||typeof dataUrl!=='string'||!dataUrl.startsWith('data:'))return dataUrl;
-    let c=await nwClient(); if(!c)return dataUrl;
-    try{let mime=(dataUrl.match(/^data:([^;]+);/)||[])[1]||'application/octet-stream'; let ext=mime.includes('pdf')?'pdf':mime.includes('png')?'png':mime.includes('webp')?'webp':(mime.includes('jpg')||mime.includes('jpeg'))?'jpg':'bin'; let safe=String(name||'file').replace(/\.[^.]+$/,'').replace(/[^\w\-]+/g,'_').slice(0,80)||'file'; let path=`${folder}/${safe}_${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`; let blob=await (await fetch(dataUrl)).blob(); let {error}=await c.storage.from(NW_BUCKET).upload(path,blob,{upsert:true,contentType:mime}); if(error)throw error; let {data}=c.storage.from(NW_BUCKET).getPublicUrl(path); return data.publicUrl;}catch(e){console.warn('Storage upload skipped',e); nwStatus('Storage upload failed - run setup SQL','bad'); return dataUrl;}
+
+  function fbInitClient(){
+    if(fbDb) return fbDb;
+    const cfg = window.FIREBASE_CONFIG || window.firebaseConfig;
+    if(!cfg || !cfg.apiKey || !cfg.projectId){
+      fbStatus("Firebase config missing","bad");
+      return null;
+    }
+    if(!window.firebase){
+      fbStatus("Firebase SDK not loaded","bad");
+      return null;
+    }
+    if(!firebase.apps.length) fbApp = firebase.initializeApp(cfg);
+    else fbApp = firebase.app();
+    fbDb = firebase.firestore();
+    try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(()=>{}); }catch(e){}
+    return fbDb;
   }
-  async function nwMigrateMedia(){
-    nwEnsure();
-    for(const s of state.students||[]){if(s&&typeof s.photo==='string'&&s.photo.startsWith('data:'))s.photo=await nwUpload(s.photo,`students/${s.id}`,'profile_photo');}
-    for(const a of state.docAssignments||[]){if(a?.questionFile?.data&&typeof a.questionFile.data==='string'&&a.questionFile.data.startsWith('data:'))a.questionFile.data=await nwUpload(a.questionFile.data,`assignments/${a.id}`,a.questionFile.name||'question_paper');}
-    for(const ds of state.docSubmissions||[]){if(Array.isArray(ds.files)){for(let i=0;i<ds.files.length;i++){let f=ds.files[i]; if(f?.data&&typeof f.data==='string'&&f.data.startsWith('data:'))f.data=await nwUpload(f.data,`submissions/${ds.id}`,f.name||`submitted_page_${i+1}`);}} if(Array.isArray(ds.markedFiles)){for(let i=0;i<ds.markedFiles.length;i++){let f=ds.markedFiles[i]; if(f?.data&&typeof f.data==='string'&&f.data.startsWith('data:'))f.data=await nwUpload(f.data,`marked/${ds.id}`,f.name||`marked_page_${i+1}`);}}}
+
+  async function fbUploadCloudinary(dataUrl, folder, nameHint="file"){
+    if(!dataUrl || typeof dataUrl!=="string" || !dataUrl.startsWith("data:")) return dataUrl;
+    const cloud = window.CLOUDINARY_CLOUD_NAME;
+    const preset = window.CLOUDINARY_UPLOAD_PRESET;
+    if(!cloud || !preset){
+      fbStatus("Cloudinary settings missing; file kept locally","warn");
+      return dataUrl;
+    }
+    try{
+      const form = new FormData();
+      form.append("file", dataUrl);
+      form.append("upload_preset", preset);
+      form.append("folder", folder || "amest_assessment_portal");
+      const publicId = String(nameHint||"file").replace(/\.[^.]+$/,"").replace(/[^\w\-]+/g,"_").slice(0,90);
+      if(publicId) form.append("public_id", publicId + "_" + Date.now());
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/auto/upload`, {method:"POST", body:form});
+      const json = await res.json();
+      if(!res.ok || !json.secure_url) throw new Error(json.error?.message || "Cloudinary upload failed");
+      return json.secure_url;
+    }catch(e){
+      console.error("Cloudinary upload failed:", e);
+      fbStatus("Cloudinary upload failed; check unsigned preset","bad");
+      return dataUrl;
+    }
   }
-  window.supabaseNoWaitPull=async function(mergeLocal=true,renderAfter=false){
-    if(nwPulling)return false; nwPulling=true;
-    try{nwStatus('Loading live in background...','warn'); let local=nwClone(state||{}), row=null; try{row=await nwFetch();}catch(e){console.error(e); nwStatus('Supabase setup error - run SQL','bad'); return false;} let remote=row?.data||null; if(!nwHasData(remote)){if(nwHasData(local))await supabaseNoWaitPush(false); return false;} applyingRemote=true; state=mergeLocal?nwMergeState(remote,local):nwMergeState(remote,{}); try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); try{if(typeof restoreAllHiddenSubmissions==='function')restoreAllHiddenSubmissions();}catch(e){} nwLocalSave(); applyingRemote=false; nwStatus('Supabase live loaded','live'); if(renderAfter){try{if(typeof renderShell==='function'&&(role==='admin'||role==='student'))renderShell();else if(typeof render==='function')render();}catch(e){}} return true;} finally{applyingRemote=false; nwPulling=false;}
+
+  async function fbMigrateMedia(){
+    fbEnsureState();
+    for(const s of state.students||[]){
+      if(s && typeof s.photo==="string" && s.photo.startsWith("data:")){
+        s.photo = await fbUploadCloudinary(s.photo, `amest_assessment_portal/students/${s.id}`, "profile_photo");
+      }
+    }
+    for(const a of state.docAssignments||[]){
+      if(a?.questionFile?.data && typeof a.questionFile.data==="string" && a.questionFile.data.startsWith("data:")){
+        a.questionFile.data = await fbUploadCloudinary(a.questionFile.data, `amest_assessment_portal/assignments/${a.id}`, a.questionFile.name || "question_paper");
+      }
+    }
+    for(const ds of state.docSubmissions||[]){
+      if(Array.isArray(ds.files)){
+        for(let i=0;i<ds.files.length;i++){
+          const f=ds.files[i];
+          if(f?.data && typeof f.data==="string" && f.data.startsWith("data:")){
+            f.data = await fbUploadCloudinary(f.data, `amest_assessment_portal/submissions/${ds.id}`, f.name || `submitted_page_${i+1}`);
+          }
+        }
+      }
+      if(Array.isArray(ds.markedFiles)){
+        for(let i=0;i<ds.markedFiles.length;i++){
+          const f=ds.markedFiles[i];
+          if(f?.data && typeof f.data==="string" && f.data.startsWith("data:")){
+            f.data = await fbUploadCloudinary(f.data, `amest_assessment_portal/marked/${ds.id}`, f.name || `marked_page_${i+1}`);
+          }
+        }
+      }
+    }
+  }
+
+  function fbCoreState(st){
+    st=fbClone(st||state||{});
+    const core={...st};
+    FB_LIST_KEYS.forEach(k=>delete core[k]);
+    return core;
+  }
+
+  async function fbLoadRemoteItems(){
+    const db=fbInitClient(); if(!db) return null;
+    const coreDoc = await db.collection("portal_core").doc("main").get();
+    const remote = coreDoc.exists ? (coreDoc.data()?.data || {}) : {};
+    FB_LIST_KEYS.forEach(k=>remote[k]=[]);
+    const snap = await db.collection("portal_items").get();
+    snap.forEach(doc=>{
+      const row=doc.data() || {};
+      const bucket=row.bucket;
+      if(!FB_LIST_KEYS.includes(bucket)) return;
+      const item=fbClone(row.data);
+      if(item && typeof item==="object") item._fbUpdatedAt = row.updatedAt || "";
+      remote[bucket].push(item);
+    });
+    if(!coreDoc.exists && snap.empty) return {empty:true,state:null};
+    return {empty:false,state:remote};
+  }
+
+  async function fbWriteRemoteItems(){
+    const db=fbInitClient(); if(!db) return false;
+    fbEnsureState();
+    const now=fbNowISO();
+    const ops = [];
+    ops.push({type:"set", ref:db.collection("portal_core").doc("main"), data:{data:fbCoreState(state), updatedAt:now}});
+
+    FB_LIST_KEYS.forEach(key=>{
+      const arr=Array.isArray(state[key])?state[key]:[];
+      arr.forEach((item,i)=>{
+        let data=fbClone(item);
+        if(data && typeof data==="object"){
+          delete data._fbUpdatedAt;
+          data._fbUpdatedAt=now;
+        }
+        const rawId = key+"__"+fbItemId(key,data,i);
+        ops.push({type:"set", ref:db.collection("portal_items").doc(fbSafeDocId(rawId)), data:{bucket:key,item_id:fbItemId(key,data,i),data,updatedAt:now}});
+      });
+    });
+
+    for(let i=0;i<ops.length;i+=450){
+      const batch=db.batch();
+      ops.slice(i,i+450).forEach(op=>batch.set(op.ref, op.data, {merge:true}));
+      await batch.commit();
+    }
+    return true;
+  }
+
+  window.firebaseLivePull = async function(mergeLocal=true, renderAfter=false){
+    if(fbPullBusy) return false;
+    fbPullBusy=true;
+    try{
+      fbStatus("Loading Firebase live data...","warn");
+      const local=fbClone(state||{});
+      let loaded=null;
+      try{ loaded=await fbLoadRemoteItems(); }
+      catch(e){ console.error(e); fbStatus("Firebase read failed: check Firestore rules","bad"); return false; }
+
+      if(!loaded || loaded.empty || !fbHasImportantData(loaded.state)){
+        if(fbHasImportantData(local)){
+          await firebaseLivePush(false);
+          fbStatus("Firebase live database created","live");
+        }else fbStatus("Firebase live database empty","warn");
+        return false;
+      }
+
+      applyingRemote=true;
+      state = mergeLocal ? fbMergeState(loaded.state, local) : fbMergeState(loaded.state,{});
+      try{ if(typeof normalize==="function") normalize(); }catch(e){}
+      fbEnsureState();
+      try{ if(typeof restoreAllHiddenSubmissions==="function") restoreAllHiddenSubmissions(); }catch(e){}
+      fbLocalSave();
+      applyingRemote=false;
+      fbStatus("Firebase live loaded","live");
+      if(renderAfter){
+        try{
+          if(typeof renderShell==="function" && (role==="admin"||role==="student")) renderShell();
+          else if(typeof render==="function") render();
+        }catch(e){}
+      }
+      return true;
+    }finally{
+      applyingRemote=false;
+      fbPullBusy=false;
+    }
   };
-  window.supabaseNoWaitPush=async function(show=false){
-    if(nwPushing)return false; nwPushing=true;
-    try{nwStatus('Saving live...','warn'); nwEnsure(); let remote=null; try{let row=await nwFetch(); if(row?.data)remote=row.data;}catch(e){console.error(e); nwStatus('Supabase setup error - run SQL','bad'); if(show)alert('Supabase setup error. Run the SQL file first.'); return false;} state=nwMergeState(remote||{},state||{}); try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); await nwMigrateMedia(); await nwWrite(state); nwLocalSave(); nwStatus('Supabase live connected','live'); if(show)alert('Saved live successfully. Open another browser/phone and refresh.'); return true;}catch(e){console.error(e); nwStatus('Live save failed - check SQL/Storage','bad'); if(show)alert('Live save failed. Check SQL setup and Storage bucket.'); return false;} finally{nwPushing=false;}
+
+  window.firebaseLivePush = async function(showAlert=false){
+    if(fbPushBusy) return false;
+    fbPushBusy=true;
+    try{
+      fbStatus("Saving to Firebase live...","warn");
+      fbEnsureState();
+      try{ if(typeof restoreAllHiddenSubmissions==="function") restoreAllHiddenSubmissions(); }catch(e){}
+
+      let remote=null;
+      try{
+        const loaded=await fbLoadRemoteItems();
+        if(loaded && !loaded.empty) remote=loaded.state;
+      }catch(e){ console.warn("Remote pre-pull skipped", e); }
+
+      state = fbMergeState(remote||{}, state||{});
+      try{ if(typeof normalize==="function") normalize(); }catch(e){}
+      fbEnsureState();
+
+      await fbMigrateMedia();
+      await fbWriteRemoteItems();
+      fbLocalSave();
+      fbStatus("Firebase live connected","live");
+      if(showAlert) alert("Saved live successfully. Other browsers and phones should see the update.");
+      return true;
+    }catch(e){
+      console.error(e);
+      fbStatus("Firebase save failed: check Firestore rules / Cloudinary preset","bad");
+      if(showAlert) alert("Firebase live save failed. Check Firestore test rules and Cloudinary unsigned preset.");
+      return false;
+    }finally{
+      fbPushBusy=false;
+    }
   };
-  window.initSupabase=async function(){
-    let c=await nwClient(); if(!c)return;
-    // Do not block the app. Pull remote after interface is visible.
-    setTimeout(()=>supabaseNoWaitPull(true,false),700);
-    try{if(nwChannel)await c.removeChannel(nwChannel);}catch(e){}
-    try{nwChannel=c.channel('isaacs-nowait-app-state-v21').on('postgres_changes',{event:'*',schema:'public',table:NW_TABLE,filter:`id=eq.${NW_ID}`},payload=>{if(!payload.new||!payload.new.data||applyingRemote||nwPushing)return; let incoming=payload.new.data, local=nwClone(state||{}); applyingRemote=true; state=nwMergeState(incoming,local); try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); nwLocalSave(); applyingRemote=false; nwStatus('Live updated','live'); try{if(role==='student'||role==='admin')renderShell();}catch(e){} }).subscribe(s=>{if(s==='SUBSCRIBED')nwStatus('Supabase live connected','live')});}catch(e){console.warn(e)}
-    if(!nwPollStarted){nwPollStarted=true; setInterval(()=>{if(sb&&!nwPushing&&!nwPulling&&(role==='student'||role==='admin'))supabaseNoWaitPull(true,role==='student')},10000)}
-    nwStatus('Supabase live connected','live');
+
+  window.initSupabase = async function(){
+    // Old function name retained so the existing app startup calls Firebase instead of Supabase.
+    const db=fbInitClient();
+    if(!db) return;
+    try{
+      fbStatus("Connecting Firebase live...","warn");
+      await firebaseLivePull(true,false);
+
+      try{ if(fbUnsubCore) fbUnsubCore(); }catch(e){}
+      try{ if(fbUnsubItems) fbUnsubItems(); }catch(e){}
+      fbUnsubCore = db.collection("portal_core").doc("main").onSnapshot(()=> {
+        clearTimeout(fbDebounceTimer);
+        fbDebounceTimer=setTimeout(()=>{ if(!fbPushBusy) firebaseLivePull(true,true); },800);
+      });
+      fbUnsubItems = db.collection("portal_items").onSnapshot(()=> {
+        clearTimeout(fbDebounceTimer);
+        fbDebounceTimer=setTimeout(()=>{ if(!fbPushBusy) firebaseLivePull(true,true); },900);
+      });
+
+      fbStatus("Firebase live connected","live");
+    }catch(e){
+      console.error(e);
+      fbStatus("Firebase connection error","bad");
+    }
   };
-  window.pushRemote=async()=>await supabaseNoWaitPush(false); window.stablePullRemote=async(m=true)=>await supabaseNoWaitPull(m,false); window.stableWriteRemoteItems=async()=>await supabaseNoWaitPush(false); window.stableLoadRemoteItems=async()=>await nwFetch(); window.stableMigrateMedia=async()=>await nwMigrateMedia();
-  window.save=function(){try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); nwLocalSave(); if(sb&&!applyingRemote){clearTimeout(saveTimer); saveTimer=setTimeout(()=>supabaseNoWaitPush(false),650)}};
-  window.supabaseNoWaitTest=async function(){try{await nwClient(); let row=await nwFetch(); let c=nwCounts(row?.data||{}); alert(`Supabase live is connected.\nStudents online: ${c.students}\nQuizzes online: ${c.quizzes}\nQuiz submissions online: ${c.submissions}\nScanned assignments online: ${c.docAssignments}\nScanned submissions online: ${c.docSubmissions}\nPublished reports online: ${c.reports}`);}catch(e){console.error(e); alert('Supabase test failed. Run FULL_SUPABASE_NO_WAIT_SETUP.sql.');}};
-  window.supabaseNoWaitPanelHTML=function(){let c=nwCounts(state); return `<div class="supabaseNowaitPanel" id="supabaseNoWaitPanel"><h2>Supabase Live Connection</h2><p>This repair opens the app immediately, then loads Supabase in the background. It uses Supabase only.</p><div class="supabaseNowaitActions"><button class="btn green" onclick="supabaseNoWaitTest()">Test Supabase Live</button><button class="btn light" onclick="supabaseNoWaitPull(true,true)">Load Online Data</button><button class="btn gold" onclick="supabaseNoWaitPush(true)">Publish This Browser Live</button></div><div class="supabaseNowaitStats"><span class="good">Students: ${c.students}</span><span>Quizzes: ${c.quizzes}</span><span>Quiz submissions: ${c.submissions}</span><span>Scanned assignments: ${c.docAssignments}</span><span>Scanned submissions: ${c.docSubmissions}</span><span class="good">Published reports: ${c.reports}</span></div></div>`};
-  window.injectSupabaseNoWaitPanel=function(){if(role!=='admin')return; let v=document.getElementById('view'); if(!v||document.getElementById('supabaseNoWaitPanel'))return; v.insertAdjacentHTML('afterbegin',supabaseNoWaitPanelHTML())};
-  const oldRS=window.renderShell;if(typeof oldRS==='function'){window.renderShell=function(){let r=oldRS.apply(this,arguments);setTimeout(()=>{if(['dashboard','settings','reports','quizzes','review'].includes(route))injectSupabaseNoWaitPanel()},120);return r}};
-  const oldDash=window.dashboard;if(typeof oldDash==='function'){window.dashboard=function(){let r=oldDash.apply(this,arguments);setTimeout(injectSupabaseNoWaitPanel,120);return r}};
-  window.emergencyRender=function(){try{if(typeof render==='function'){render();return;}}catch(e){console.error(e)} let app=document.getElementById('app'); if(app)app.innerHTML=`<div class="emergencyStart"><div class="emergencyStartCard"><h1>Sir Isaac Assessment Portal</h1><p>The interface opened in recovery mode. Use the buttons below.</p><button onclick="role=null;currentStudentId=null;route='dashboard';render()">Open Main Page</button><button onclick="role='admin';route='dashboard';renderShell()">Open Admin Dashboard</button><button onclick="role='guest';route='studentLogin';renderShell()">Open Student Portal</button></div></div>`};
-  window.supabaseNoWaitStartup=function(){try{if(typeof loadLocal==='function')loadLocal();}catch(e){console.error('loadLocal error',e); try{state=defaultState();}catch(x){state={}}} try{if(window.importOldPortalDataIfNeeded)window.importOldPortalDataIfNeeded();}catch(e){} setTimeout(()=>{let app=document.getElementById('app'); if(app&&!app.innerHTML.trim())emergencyRender();},800); emergencyRender(); setTimeout(()=>{try{initSupabase();}catch(e){console.error(e);nwStatus('Supabase background connection failed','bad')}},1000);};
-  try{eval('stableStatus=window.stableStatus; normalize=window.normalize; initSupabase=window.initSupabase; pushRemote=window.pushRemote; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; stableLoadRemoteItems=window.stableLoadRemoteItems; stableMigrateMedia=window.stableMigrateMedia; save=window.save; supabaseNoWaitPull=window.supabaseNoWaitPull; supabaseNoWaitPush=window.supabaseNoWaitPush; supabaseNoWaitTest=window.supabaseNoWaitTest; supabaseNoWaitPanelHTML=window.supabaseNoWaitPanelHTML; injectSupabaseNoWaitPanel=window.injectSupabaseNoWaitPanel; renderShell=window.renderShell; dashboard=window.dashboard; emergencyRender=window.emergencyRender; supabaseNoWaitStartup=window.supabaseNoWaitStartup;')}catch(e){}
+
+  window.pushRemote = async function(){ return await firebaseLivePush(false); };
+  window.stablePullRemote = async function(mergeLocal=true){ return await firebaseLivePull(mergeLocal,false); };
+  window.stableWriteRemoteItems = async function(){ return await firebaseLivePush(false); };
+  window.stableLoadRemoteItems = async function(){ return await fbLoadRemoteItems(); };
+  window.stableMigrateMedia = async function(){ return await fbMigrateMedia(); };
+
+  window.save = function(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    fbEnsureState();
+    fbLocalSave();
+    if(!applyingRemote){
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(()=>firebaseLivePush(false),650);
+    }
+  };
+
+  window.firebaseLiveTest = async function(){
+    try{
+      const loaded=await fbLoadRemoteItems();
+      const c=fbCounts(loaded?.state||{});
+      alert(`Firebase live is connected.\nStudents online: ${c.students}\nQuizzes online: ${c.quizzes}\nQuiz submissions online: ${c.submissions}\nScanned assignments online: ${c.docAssignments}\nScanned submissions online: ${c.docSubmissions}\nPublished reports online: ${c.reports}`);
+    }catch(e){
+      console.error(e);
+      alert("Firebase test failed. Check Firestore rules and Firebase config.");
+    }
+  };
+
+  window.firebaseLivePanelHTML = function(){
+    const c=fbCounts(state);
+    return `<div class="firebaseLivePanel" id="firebaseLivePanel">
+      <h2>Firebase + Cloudinary Live Connection</h2>
+      <p>This is the new live system. Firestore handles instant data communication. Cloudinary handles pictures, question papers, scanned scripts and marked scripts.</p>
+      <div class="firebaseLiveActions">
+        <button class="btn green" onclick="firebaseLiveTest()">Test Firebase Live</button>
+        <button class="btn light" onclick="firebaseLivePull(true,true)">Load Online Data</button>
+        <button class="btn gold" onclick="firebaseLivePush(true)">Publish This Browser Live</button>
+      </div>
+      <div class="firebaseLiveStats">
+        <span class="good">Students: ${c.students}</span>
+        <span>Quizzes: ${c.quizzes}</span>
+        <span>Quiz submissions: ${c.submissions}</span>
+        <span>Scanned assignments: ${c.docAssignments}</span>
+        <span>Scanned submissions: ${c.docSubmissions}</span>
+        <span class="good">Published reports: ${c.reports}</span>
+      </div>
+    </div>`;
+  };
+
+  window.injectFirebaseLivePanel = function(){
+    if(role!=="admin") return;
+    const view=document.getElementById("view");
+    if(!view || document.getElementById("firebaseLivePanel")) return;
+    view.insertAdjacentHTML("afterbegin", firebaseLivePanelHTML());
+  };
+
+  const oldRenderShellFB = window.renderShell;
+  if(typeof oldRenderShellFB==="function"){
+    window.renderShell=function(){
+      const r=oldRenderShellFB.apply(this,arguments);
+      setTimeout(()=>{ if(["dashboard","settings","reports","quizzes","review"].includes(route)) injectFirebaseLivePanel(); },120);
+      return r;
+    };
+  }
+  const oldDashboardFB = window.dashboard;
+  if(typeof oldDashboardFB==="function"){
+    window.dashboard=function(){
+      const r=oldDashboardFB.apply(this,arguments);
+      setTimeout(injectFirebaseLivePanel,120);
+      return r;
+    };
+  }
+
+  try{
+    eval("stableStatus=window.stableStatus; initSupabase=window.initSupabase; pushRemote=window.pushRemote; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; stableLoadRemoteItems=window.stableLoadRemoteItems; stableMigrateMedia=window.stableMigrateMedia; save=window.save; firebaseLivePull=window.firebaseLivePull; firebaseLivePush=window.firebaseLivePush; firebaseLiveTest=window.firebaseLiveTest; firebaseLivePanelHTML=window.firebaseLivePanelHTML; injectFirebaseLivePanel=window.injectFirebaseLivePanel; renderShell=window.renderShell; dashboard=window.dashboard;");
+  }catch(e){}
 })();
 
 
-supabaseNoWaitStartup();
+loadLocal();
+if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
+initSupabase().then(render);
+render();
 </script>
 </body>
 </html>

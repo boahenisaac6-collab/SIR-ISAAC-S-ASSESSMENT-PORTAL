@@ -1,5 +1,3 @@
-// Supabase configuration for Sir Isaac Assessment Portal
-// Supabase only version. Firebase and Cloudinary are not used.
-
-window.AMEST_SUPABASE_URL = "https://qaizvskjnabmoejtqauf.supabase.co";
-window.AMEST_SUPABASE_ANON_KEY = "sb_publishable_a8jZmDVhiQJnWsSjYZgI6A_hPyE_6oB";
+// Supabase is no longer used in this Firebase + Cloudinary version.
+window.AMEST_SUPABASE_URL = "";
+window.AMEST_SUPABASE_ANON_KEY = "";
