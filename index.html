@@ -10150,6 +10150,60 @@ html,body{
   .portalControlActions button,.portalControlActions label{width:100%;text-align:center}
 }
 
+
+/* ===== TRUE LIVE SUPABASE STABLE SYNC FINAL ===== */
+.trueLiveSyncPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #0f7b4f;
+  background:linear-gradient(135deg,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:24px;
+  padding:16px;
+  margin:0 0 16px;
+  box-shadow:0 12px 32px rgba(7,31,61,.10);
+}
+.trueLiveSyncPanel h2{
+  margin:0 0 7px;
+  color:#071f3d;
+}
+.trueLiveSyncPanel p{
+  margin:0 0 10px;
+  color:#475467;
+  font-weight:850;
+  line-height:1.45;
+}
+.trueLiveSyncActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.trueLiveSyncActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.trueLiveStats{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.trueLiveStats span{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+  font-size:12px;
+  font-weight:950;
+}
+.trueLiveStats span.good{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}
+.trueLiveStats span.warn{background:#fff8db;color:#8a6100;border-color:#f4c430}
+.trueLiveStats span.bad{background:#fff1f0;color:#b42318;border-color:#ffcdc9}
+
 </style>
 </head>
 <body>
@@ -34119,6 +34173,504 @@ with check (true);`;
 
   try{
     eval("normalize=window.normalize; toggleComponentPublish=window.toggleComponentPublish; publishAllComponentResults=window.publishAllComponentResults; publishReportsByClass=window.publishReportsByClass; smartPortalControlHTML=window.smartPortalControlHTML; injectSmartPortalControl=window.injectSmartPortalControl; smartDocAssignmentControlHTML=window.smartDocAssignmentControlHTML; refreshDocClasses=window.refreshDocClasses; saveDocAssignmentSmart=window.saveDocAssignmentSmart; saveDocAssignment=window.saveDocAssignment; saveExistingDocAssignment=window.saveExistingDocAssignment; toggleDocAssignment=window.toggleDocAssignment; deleteDocAssignmentSafe=window.deleteDocAssignmentSafe; deleteDocAssignment=window.deleteDocAssignment; publishDocResults=window.publishDocResults; quizzes=window.quizzes; smartReviewCommunicationHTML=window.smartReviewCommunicationHTML; injectSmartReviewCommunication=window.injectSmartReviewCommunication; setDocScore=window.setDocScore; setDocFeedback=window.setDocFeedback; smartPublishScannedSubmission=window.smartPublishScannedSubmission; smartHideScannedSubmission=window.smartHideScannedSubmission; publishDocSubmission=window.publishDocSubmission; publishDocSubmissionSimple=window.publishDocSubmissionSimple; review=window.review; studentResults=window.studentResults; studentHome=window.studentHome; dashboard=window.dashboard; reports=window.reports; components=window.components; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== TRUE LIVE SUPABASE STABLE SYNC FINAL V18 =====
+   This is the final live-fix layer.
+   Problem fixed:
+   - Same browser was showing local data only.
+   - Different browsers/phones could not see published changes because Supabase stable tables/storage were not fully set up.
+   What this does:
+   - Uses stable_items as the true live database.
+   - Uses Supabase Storage for scanned scripts, question papers, marked scripts and photos.
+   - Migrates old app_state/main data into stable_items when needed.
+   - Safely merges local and online data before saving.
+   - Preserves submitted work, report cards, results, scanned work and reset requests.
+*/
+(function(){
+  if(window.__trueLiveSupabaseStableSyncFinalV18) return;
+  window.__trueLiveSupabaseStableSyncFinalV18 = true;
+
+  const TL_BUCKET = "assessment-files";
+  const TL_LIST_KEYS = [
+    "classes","subjects","students","quizzes","submissions","components","scores",
+    "publishedReports","publishedComponentResults","reportScores","reportComments",
+    "academicYears","semesters","docAssignments","docSubmissions","announcements",
+    "studentAnnouncements","attemptResets","resetRequests","passwordShares",
+    "assignmentNotifications","quizResets","messages","chatMessages","chatThreads",
+    "classMessages","teacherMessages","studentMessages"
+  ];
+  let tlChannel = null;
+  let tlPushBusy = false;
+  let tlPullBusy = false;
+  let tlRealtimeTimer = null;
+
+  function tlClone(x){ try{return JSON.parse(JSON.stringify(x || {}));}catch(e){return x;} }
+  function tlNowISO(){ return new Date().toISOString(); }
+  function tlId(prefix){ return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function tlStatus(text, cls="warn"){
+    const nice = String(text || "");
+    try{
+      const el=document.getElementById("liveStatus");
+      if(el){ el.textContent=nice; el.className="topStatus "+cls; }
+    }catch(e){}
+    try{
+      const el=document.getElementById("stableSyncStatus");
+      if(el) el.textContent=nice;
+    }catch(e){}
+    console.log("TRUE LIVE:", nice);
+  }
+  // Neutralise old confusing stable error messages.
+  window.stableStatus = tlStatus;
+  try{ eval("stableStatus=window.stableStatus;"); }catch(e){}
+
+  function tlEnsureState(){
+    if(!state || typeof state !== "object"){
+      try{ state = defaultState(); }catch(e){ state = {}; }
+    }
+    TL_LIST_KEYS.forEach(k=>{ if(!Array.isArray(state[k])) state[k]=[]; });
+    state.settings = state.settings || {};
+  }
+  function tlCounts(st){
+    st = st || state || {};
+    return {
+      students:(st.students||[]).length,
+      quizzes:(st.quizzes||[]).length,
+      submissions:(st.submissions||[]).length,
+      docAssignments:(st.docAssignments||[]).length,
+      docSubmissions:(st.docSubmissions||[]).length,
+      reports:(st.publishedReports||[]).length,
+      resets:(st.resetRequests||[]).length
+    };
+  }
+  function tlHasImportantData(st){
+    const c=tlCounts(st||{});
+    return c.students || c.quizzes || c.submissions || c.docAssignments || c.docSubmissions || c.reports || c.resets;
+  }
+  function tlDefault(){
+    try{return defaultState();}catch(e){return {};}
+  }
+  function tlLocalSave(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    tlEnsureState();
+    try{ if(typeof saveLocal==="function") saveLocal(); }catch(e){}
+  }
+  function tlItemId(key,item,index){
+    if(item && item.id) return String(item.id);
+    if(key==="students") return `${item?.name||""}|${item?.className||""}|${item?.code||""}`;
+    if(key==="submissions") return `${item?.studentId||""}|${item?.quizId||""}|${item?.submittedAt||index}`;
+    if(key==="docSubmissions") return `${item?.studentId||""}|${item?.assignmentId||""}|${item?.submittedAt||index}`;
+    if(key==="scores") return `${item?.studentId||""}|${item?.componentId||item?.component||""}|${item?.subject||""}`;
+    if(key==="publishedReports") return String(item);
+    if(key==="publishedComponentResults") return String(item);
+    return JSON.stringify(item || {}).slice(0,180)+"|"+index;
+  }
+  function tlTime(item){
+    if(!item || typeof item !== "object") return 0;
+    const fields=["_tlUpdatedAt","updatedAt","updated_at","_stableSavedAt","_stableRemoteUpdatedAt","submittedAt","createdAt","publishedAt","resetAt","requestedAt","decidedAt","deletedAt"];
+    for(const f of fields){
+      if(item[f]){
+        const t=new Date(item[f]).getTime();
+        if(Number.isFinite(t)) return t;
+      }
+    }
+    return 0;
+  }
+  function tlMergeValue(remote, local){
+    if(local === undefined || local === null) return tlClone(remote);
+    if(remote === undefined || remote === null) return tlClone(local);
+    if(Array.isArray(remote) || Array.isArray(local)) return tlClone(local);
+    if(typeof remote === "object" && typeof local === "object"){
+      const r=tlClone(remote), l=tlClone(local);
+      const out={...r,...l};
+      // Never lose media or marking fields.
+      ["files","markedFiles","answers","questionFile","photo"].forEach(k=>{
+        if((!out[k] || (Array.isArray(out[k]) && !out[k].length)) && r[k]) out[k]=r[k];
+        if((!out[k] || (Array.isArray(out[k]) && !out[k].length)) && l[k]) out[k]=l[k];
+      });
+      return out;
+    }
+    return tlClone(local);
+  }
+  function tlMergeArray(remoteArr, localArr, key){
+    const map=new Map();
+    (Array.isArray(remoteArr)?remoteArr:[]).forEach((item,i)=>{
+      const id=tlItemId(key,item,i);
+      map.set(id, tlClone(item));
+    });
+    (Array.isArray(localArr)?localArr:[]).forEach((item,i)=>{
+      const id=tlItemId(key,item,i);
+      if(map.has(id)) map.set(id, tlMergeValue(map.get(id), item));
+      else map.set(id, tlClone(item));
+    });
+    return [...map.values()];
+  }
+  function tlMergeState(remote, local){
+    const base={...tlDefault(), ...(tlClone(remote)||{})};
+    const loc=tlClone(local)||{};
+    const merged={...base};
+
+    Object.keys(loc).forEach(k=>{
+      if(TL_LIST_KEYS.includes(k)) return;
+      if(k==="settings") merged.settings={...(merged.settings||{}), ...(loc.settings||{})};
+      else if(loc[k]!==undefined) merged[k]=tlMergeValue(merged[k],loc[k]);
+    });
+    TL_LIST_KEYS.forEach(k=>{
+      merged[k]=tlMergeArray(base[k]||[], loc[k]||[], k);
+    });
+
+    // Critical safety fields:
+    merged.submissions = tlMergeArray(base.submissions||[], loc.submissions||[], "submissions");
+    merged.docSubmissions = tlMergeArray(base.docSubmissions||[], loc.docSubmissions||[], "docSubmissions");
+    merged.publishedReports = [...new Set([...(base.publishedReports||[]), ...(loc.publishedReports||[])].map(String))];
+    merged.publishedComponentResults = [...new Set([...(base.publishedComponentResults||[]), ...(loc.publishedComponentResults||[])].map(String))];
+
+    return merged;
+  }
+  async function tlClient(){
+    if(sb) return sb;
+    const url=window.AMEST_SUPABASE_URL;
+    const key=window.AMEST_SUPABASE_ANON_KEY;
+    if(!url || !key || String(url).includes("PASTE")){
+      tlStatus("Offline: Supabase keys missing","bad");
+      return null;
+    }
+    sb = window.supabase.createClient(url,key);
+    return sb;
+  }
+  async function tlFetchAppState(id="main"){
+    const client=await tlClient(); if(!client) return null;
+    const {data,error}=await client.from("app_state").select("data,updated_at").eq("id",id).maybeSingle();
+    if(error) throw error;
+    return data || null;
+  }
+  async function tlWriteAppState(data,id="main_backup"){
+    const client=await tlClient(); if(!client) return false;
+    const {error}=await client.from("app_state").upsert({id,data:tlClone(data||{}),updated_at:tlNowISO()},{onConflict:"id"});
+    if(error) throw error;
+    return true;
+  }
+  async function tlUploadDataUrl(dataUrl,pathBase,nameHint="file"){
+    const client=await tlClient();
+    if(!client || !dataUrl || typeof dataUrl!=="string" || !dataUrl.startsWith("data:")) return dataUrl;
+    try{
+      const mime=(dataUrl.match(/^data:([^;]+);/)||[])[1] || "application/octet-stream";
+      const ext = mime.includes("pdf")?"pdf":mime.includes("png")?"png":mime.includes("webp")?"webp":mime.includes("jpeg")||mime.includes("jpg")?"jpg":"bin";
+      const safe=String(nameHint||"file").replace(/\.[^.]+$/,"").replace(/[^\w\-]+/g,"_").slice(0,80) || "file";
+      const path=`${pathBase}/${safe}_${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
+      const blob=await (await fetch(dataUrl)).blob();
+      const {error}=await client.storage.from(TL_BUCKET).upload(path, blob, {upsert:true, contentType:mime});
+      if(error) throw error;
+      const {data}=client.storage.from(TL_BUCKET).getPublicUrl(path);
+      return data.publicUrl;
+    }catch(e){
+      console.warn("Storage upload skipped/fallback:", e);
+      tlStatus("Live connected, but Storage setup is needed for large files","warn");
+      return dataUrl;
+    }
+  }
+  async function tlMigrateMedia(){
+    tlEnsureState();
+    for(const s of state.students||[]){
+      if(s && typeof s.photo==="string" && s.photo.startsWith("data:")){
+        s.photo = await tlUploadDataUrl(s.photo, `students/${s.id}`, "profile_photo");
+      }
+    }
+    for(const a of state.docAssignments||[]){
+      if(a?.questionFile?.data && typeof a.questionFile.data==="string" && a.questionFile.data.startsWith("data:")){
+        a.questionFile.data = await tlUploadDataUrl(a.questionFile.data, `assignments/${a.id}`, a.questionFile.name || "question_paper");
+      }
+    }
+    for(const ds of state.docSubmissions||[]){
+      if(Array.isArray(ds.files)){
+        for(let i=0;i<ds.files.length;i++){
+          const f=ds.files[i];
+          if(f?.data && typeof f.data==="string" && f.data.startsWith("data:")){
+            f.data = await tlUploadDataUrl(f.data, `submissions/${ds.id}`, f.name || `submitted_page_${i+1}`);
+          }
+        }
+      }
+      if(Array.isArray(ds.markedFiles)){
+        for(let i=0;i<ds.markedFiles.length;i++){
+          const f=ds.markedFiles[i];
+          if(f?.data && typeof f.data==="string" && f.data.startsWith("data:")){
+            f.data = await tlUploadDataUrl(f.data, `marked/${ds.id}`, f.name || `marked_page_${i+1}`);
+          }
+        }
+      }
+    }
+  }
+  function tlCoreState(st){
+    st=tlClone(st||state||{});
+    const core={...st};
+    TL_LIST_KEYS.forEach(k=>delete core[k]);
+    return core;
+  }
+  async function tlLoadStableItems(){
+    const client=await tlClient(); if(!client) return null;
+    const all=[];
+    let from=0, step=1000;
+    while(true){
+      const {data,error}=await client.from("stable_items").select("bucket,item_id,data,updated_at").range(from,from+step-1);
+      if(error) throw error;
+      all.push(...(data||[]));
+      if(!data || data.length<step) break;
+      from+=step;
+      if(from>100000) break;
+    }
+    if(!all.length) return {empty:true,state:null};
+    const remote={};
+    TL_LIST_KEYS.forEach(k=>remote[k]=[]);
+    all.forEach(row=>{
+      if(row.bucket==="core" && row.item_id==="main"){
+        Object.assign(remote,row.data||{});
+      }else if(TL_LIST_KEYS.includes(row.bucket)){
+        const item=tlClone(row.data||{});
+        if(item && typeof item==="object") item._stableRemoteUpdatedAt=row.updated_at;
+        remote[row.bucket].push(item);
+      }
+    });
+    return {empty:false,state:remote};
+  }
+  async function tlWriteStableItems(){
+    const client=await tlClient(); if(!client) return false;
+    tlEnsureState();
+    const now=tlNowISO();
+    const rows=[{bucket:"core",item_id:"main",data:tlCoreState(state),updated_at:now}];
+
+    TL_LIST_KEYS.forEach(key=>{
+      const arr=Array.isArray(state[key])?state[key]:[];
+      arr.forEach((item,i)=>{
+        let data=tlClone(item);
+        if(data && typeof data==="object"){
+          delete data._stableRemoteUpdatedAt;
+          data._tlUpdatedAt=now;
+        }
+        rows.push({bucket:key,item_id:tlItemId(key,data,i),data,updated_at:now});
+      });
+    });
+
+    for(let i=0;i<rows.length;i+=80){
+      const batch=rows.slice(i,i+80);
+      const {error}=await client.from("stable_items").upsert(batch,{onConflict:"bucket,item_id"});
+      if(error) throw error;
+    }
+    return true;
+  }
+
+  window.trueLivePull = async function(mergeLocal=true, renderAfter=false){
+    if(tlPullBusy) return false;
+    tlPullBusy=true;
+    try{
+      tlStatus("Loading live database...","warn");
+      const local=tlClone(state||{});
+      let loaded=null;
+      try{ loaded=await tlLoadStableItems(); }
+      catch(e){
+        console.error(e);
+        tlStatus("Supabase setup incomplete: run FULL SQL setup","bad");
+        return false;
+      }
+
+      let remote=loaded && !loaded.empty ? loaded.state : null;
+      if(!tlHasImportantData(remote)){
+        try{
+          const old=await tlFetchAppState("main");
+          if(tlHasImportantData(old?.data)) remote=old.data;
+        }catch(e){}
+      }
+      if(!tlHasImportantData(remote)){
+        try{
+          const old=await tlFetchAppState("main_backup");
+          if(tlHasImportantData(old?.data)) remote=old.data;
+        }catch(e){}
+      }
+
+      if(!tlHasImportantData(remote)){
+        if(tlHasImportantData(local)){
+          await trueLivePush(false);
+          tlStatus("Live database created from this browser","live");
+        }else{
+          tlStatus("Live database empty","warn");
+        }
+        return false;
+      }
+
+      applyingRemote=true;
+      state = mergeLocal ? tlMergeState(remote, local) : tlMergeState(remote,{});
+      try{ if(typeof normalize==="function") normalize(); }catch(e){}
+      tlEnsureState();
+      try{ if(typeof restoreAllHiddenSubmissions==="function") restoreAllHiddenSubmissions(); }catch(e){}
+      tlLocalSave();
+      applyingRemote=false;
+      tlStatus("Live loaded","live");
+      if(renderAfter){
+        try{ if(typeof renderShell==="function" && (role==="admin"||role==="student")) renderShell(); else if(typeof render==="function") render(); }catch(e){}
+      }
+      return true;
+    }finally{
+      applyingRemote=false;
+      tlPullBusy=false;
+    }
+  };
+
+  window.trueLivePush = async function(showAlert=false){
+    if(tlPushBusy) return false;
+    tlPushBusy=true;
+    try{
+      tlStatus("Saving live...","warn");
+      tlEnsureState();
+      try{ if(typeof restoreAllHiddenSubmissions==="function") restoreAllHiddenSubmissions(); }catch(e){}
+
+      // First pull/merge latest remote so this browser cannot overwrite students' latest submissions.
+      let remote=null;
+      try{
+        const loaded=await tlLoadStableItems();
+        if(loaded && !loaded.empty) remote=loaded.state;
+      }catch(e){
+        console.error(e);
+        tlStatus("Supabase setup incomplete: run FULL SQL setup","bad");
+        if(showAlert) alert("Supabase setup is incomplete. Run the FULL SQL setup file in Supabase, then try again.");
+        return false;
+      }
+
+      state = tlMergeState(remote||{}, state||{});
+      try{ if(typeof normalize==="function") normalize(); }catch(e){}
+      tlEnsureState();
+
+      await tlMigrateMedia();
+      await tlWriteStableItems();
+      // Keep app_state as a small backup for migration/recovery. After Storage migration it should be safe.
+      try{ await tlWriteAppState(state,"main_backup"); }catch(e){ console.warn("Backup write skipped", e); }
+
+      tlLocalSave();
+      tlStatus("Live connected","live");
+      if(showAlert) alert("Saved live successfully. Other browsers and phones should see the update after refresh.");
+      return true;
+    }catch(e){
+      console.error(e);
+      tlStatus("Live save failed: run FULL SQL setup","bad");
+      if(showAlert) alert("Live save failed. Run the FULL SQL setup file in Supabase, then publish again.");
+      return false;
+    }finally{
+      tlPushBusy=false;
+    }
+  };
+
+  window.initSupabase = async function(){
+    const client=await tlClient();
+    if(!client) return;
+    try{
+      tlStatus("Connecting live...","warn");
+      await trueLivePull(true,false);
+
+      // If stable table is empty but this browser has the correct data, create the live database.
+      try{
+        const loaded=await tlLoadStableItems();
+        if((!loaded || loaded.empty) && tlHasImportantData(state)){
+          await trueLivePush(false);
+        }
+      }catch(e){}
+
+      try{
+        if(tlChannel) await client.removeChannel(tlChannel);
+      }catch(e){}
+      try{
+        tlChannel = client.channel("isaacs-true-live-stable-items-v18")
+          .on("postgres_changes",{event:"*",schema:"public",table:"stable_items"},payload=>{
+            clearTimeout(tlRealtimeTimer);
+            tlRealtimeTimer=setTimeout(async()=>{
+              if(tlPushBusy) return;
+              await trueLivePull(true,true);
+            },650);
+          })
+          .subscribe(s=>{ if(s==="SUBSCRIBED") tlStatus("Live connected","live"); });
+      }catch(e){ console.warn("Realtime subscription skipped", e); }
+
+      tlStatus("Live connected","live");
+    }catch(e){
+      console.error(e);
+      tlStatus("Supabase error: run FULL SQL setup","bad");
+    }
+  };
+
+  window.pushRemote = async function(){ return await trueLivePush(false); };
+  window.stablePullRemote = async function(mergeLocal=true){ return await trueLivePull(mergeLocal,false); };
+  window.stableWriteRemoteItems = async function(){ return await trueLivePush(false); };
+  window.stableLoadRemoteItems = async function(){ return await tlLoadStableItems(); };
+  window.stableMigrateMedia = async function(){ return await tlMigrateMedia(); };
+
+  window.save = function(){
+    try{ if(typeof normalize==="function") normalize(); }catch(e){}
+    tlEnsureState();
+    tlLocalSave();
+    if(sb && !applyingRemote){
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(()=>trueLivePush(false),650);
+    }
+  };
+
+  window.trueLiveTest = async function(){
+    try{
+      await tlClient();
+      const loaded=await tlLoadStableItems();
+      const c=tlCounts(loaded?.state || {});
+      alert(`Supabase true live is connected.\nStudents online: ${c.students}\nQuizzes online: ${c.quizzes}\nQuiz submissions online: ${c.submissions}\nScanned assignments online: ${c.docAssignments}\nScanned submissions online: ${c.docSubmissions}\nPublished reports online: ${c.reports}`);
+    }catch(e){
+      console.error(e);
+      alert("Supabase true live test failed. Run the FULL SQL setup file in Supabase first.");
+    }
+  };
+
+  window.trueLiveRepairPanelHTML = function(){
+    const c=tlCounts(state);
+    return `<div class="trueLiveSyncPanel" id="trueLiveSyncPanel">
+      <h2>True Supabase Live Sync</h2>
+      <p>This fixes the situation where updates show only on your browser. It uses the stable live database and storage so students on different phones/browsers can see published work.</p>
+      <div class="trueLiveSyncActions">
+        <button class="btn green" onclick="trueLiveTest()">Test True Live</button>
+        <button class="btn light" onclick="trueLivePull(true,true)">Load Online Data</button>
+        <button class="btn gold" onclick="trueLivePush(true)">Publish This Browser Live</button>
+      </div>
+      <div class="trueLiveStats">
+        <span class="good">Students: ${c.students}</span>
+        <span>Quizzes: ${c.quizzes}</span>
+        <span>Quiz submissions: ${c.submissions}</span>
+        <span>Scanned assignments: ${c.docAssignments}</span>
+        <span>Scanned submissions: ${c.docSubmissions}</span>
+        <span class="good">Published reports: ${c.reports}</span>
+      </div>
+    </div>`;
+  };
+  window.injectTrueLiveRepairPanel = function(){
+    if(role!=="admin") return;
+    const view=document.getElementById("view");
+    if(!view || document.getElementById("trueLiveSyncPanel")) return;
+    view.insertAdjacentHTML("afterbegin", trueLiveRepairPanelHTML());
+  };
+
+  const oldRenderShellTL = window.renderShell;
+  if(typeof oldRenderShellTL==="function"){
+    window.renderShell=function(){
+      const r=oldRenderShellTL.apply(this,arguments);
+      setTimeout(()=>{ if(["dashboard","settings","reports","quizzes","review"].includes(route)) injectTrueLiveRepairPanel(); },120);
+      return r;
+    };
+  }
+  const oldDashboardTL = window.dashboard;
+  if(typeof oldDashboardTL==="function"){
+    window.dashboard=function(){
+      const r=oldDashboardTL.apply(this,arguments);
+      setTimeout(injectTrueLiveRepairPanel,120);
+      return r;
+    };
+  }
+
+  try{
+    eval("stableStatus=window.stableStatus; initSupabase=window.initSupabase; pushRemote=window.pushRemote; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; stableLoadRemoteItems=window.stableLoadRemoteItems; stableMigrateMedia=window.stableMigrateMedia; save=window.save; trueLivePull=window.trueLivePull; trueLivePush=window.trueLivePush; trueLiveTest=window.trueLiveTest; trueLiveRepairPanelHTML=window.trueLiveRepairPanelHTML; injectTrueLiveRepairPanel=window.injectTrueLiveRepairPanel; renderShell=window.renderShell; dashboard=window.dashboard;");
   }catch(e){}
 })();
 
