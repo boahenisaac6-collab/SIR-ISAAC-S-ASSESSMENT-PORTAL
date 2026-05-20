@@ -29673,6 +29673,781 @@ async function initSupabase(){
 
 
 
+/* ===== GLOBAL PASSWORD OFF SYNC + FIRST-OPEN REFRESH GATE V4 =====
+   Fixes student phones keeping old password settings by:
+   - Making the newest password setting authoritative during remote/local merge.
+   - Saving password ON/OFF immediately to Supabase without waiting for a delayed sync.
+   - Re-checking remote settings before student login/password checks.
+   - Showing a first-open Refresh App screen so students load the newest hosted file and live data.
+*/
+(function(){
+  const FP_BUILD = "password-sync-refresh-v4-2026-05-20";
+  const FP_REFRESH_KEY = "AMEST_REFRESH_CONFIRMED_" + FP_BUILD;
+  const FP_MODE_KEYS = ["requireStudentPassword","passwordFreeUntil","passwordFreeStartedAt","passwordFreeDurationHours","studentPasswordModeUpdatedAt","passwordSettingsUpdatedAt"];
+  let fpPulling = false;
+  let fpLastPull = 0;
+
+  function fpEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? "").replace(/[&<>\"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[c])); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function fpNowISO(){ return new Date().toISOString(); }
+  function fpTs(obj){
+    const raw = obj && (obj.studentPasswordModeUpdatedAt || obj.passwordSettingsUpdatedAt || obj.updatedAt || obj.modifiedAt || "");
+    const t = raw ? new Date(raw).getTime() : 0;
+    return Number.isFinite(t) ? t : 0;
+  }
+  function fpEnsureSettings(){
+    state.settings = state.settings || {};
+    if(typeof state.settings.requireStudentPassword !== "boolean") state.settings.requireStudentPassword = true;
+  }
+  function fpPasswordFreeActive(){
+    try{
+      const until = state.settings?.passwordFreeUntil || "";
+      const t = until ? new Date(until).getTime() : 0;
+      return Number.isFinite(t) && t > Date.now();
+    }catch(e){ return false; }
+  }
+  function fpCanOpenWithoutPassword(studentId){
+    try{
+      fpEnsureSettings();
+      if(state.settings.requireStudentPassword === false) return true;
+      if(fpPasswordFreeActive()) return true;
+      if(typeof pwActiveShare === "function" && pwActiveShare(studentId)) return true;
+      if(typeof rgActiveShare === "function" && rgActiveShare(studentId)) return true;
+      if(typeof spActiveShare === "function" && spActiveShare(studentId)) return true;
+    }catch(e){}
+    return false;
+  }
+  function fpStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students || []).find(s => String(s.id) === String(id)) || null;
+  }
+  function fpOpenStudent(id){
+    currentStudentId = id;
+    window.currentStudentId = id;
+    role = "student";
+    window.role = "student";
+    route = "studentHome";
+    window.route = "studentHome";
+    if(typeof renderShell === "function") renderShell();
+    else if(typeof render === "function") render();
+  }
+
+  // 1. Make the latest password setting win during sync.
+  try{
+    if(typeof stableMergeStates === "function" && !stableMergeStates._fpPasswordPatched){
+      const oldStableMergeStates = stableMergeStates;
+      stableMergeStates = function(remoteState, localState){
+        const merged = oldStableMergeStates(remoteState, localState);
+        try{
+          merged.settings = merged.settings || {};
+          const rSet = (remoteState && remoteState.settings) || {};
+          const lSet = (localState && localState.settings) || {};
+          const rt = fpTs(rSet);
+          const lt = fpTs(lSet);
+          // Phones must obey the newest teacher/admin setting. If there is no timestamp,
+          // prefer the online setting because it represents the shared classroom state.
+          const chosen = (lt > rt) ? lSet : rSet;
+          FP_MODE_KEYS.forEach(k=>{
+            if(chosen && Object.prototype.hasOwnProperty.call(chosen,k)) merged.settings[k] = chosen[k];
+          });
+          if(typeof chosen.requireStudentPassword === "boolean") merged.settings.requireStudentPassword = chosen.requireStudentPassword;
+        }catch(e){}
+        return merged;
+      };
+      stableMergeStates._fpPasswordPatched = true;
+      try{ window.stableMergeStates = stableMergeStates; }catch(e){}
+    }
+  }catch(e){ console.warn("Password merge patch skipped", e); }
+
+  async function fpDirectSavePasswordMode(){
+    fpEnsureSettings();
+    const stamp = fpNowISO();
+    state.settings.studentPasswordModeUpdatedAt = state.settings.studentPasswordModeUpdatedAt || stamp;
+    state.settings.passwordSettingsUpdatedAt = stamp;
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); else localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+
+    // Write immediately. Do not pull first here, because a stale old online setting could cancel the teacher's new switch.
+    try{
+      if(typeof sb !== "undefined" && sb && typeof stableWriteRemoteItems === "function"){
+        if(typeof stableStatus === "function") stableStatus("Saving password mode live...", "warn");
+        await stableWriteRemoteItems();
+        try{
+          if(typeof stableCoreState === "function"){
+            const backup = stableCoreState(state);
+            await sb.from("app_state").upsert({id:"main_backup", data:backup, updated_at:new Date().toISOString()}, {onConflict:"id"});
+          }
+        }catch(e){}
+        if(typeof stableStatus === "function") stableStatus("Password mode updated live", "live");
+      }else if(typeof pushRemote === "function"){
+        await pushRemote();
+      }else if(typeof save === "function"){
+        save();
+      }
+    }catch(e){
+      console.warn("Immediate password-mode online save failed", e);
+      try{ if(typeof save === "function") save(); }catch(x){}
+    }
+  }
+
+  // 2. Strong ON/OFF buttons for admin.
+  window.turnStudentPasswordOff = async function(){
+    fpEnsureSettings();
+    state.settings.requireStudentPassword = false;
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings.studentPasswordModeUpdatedAt = fpNowISO();
+    await fpDirectSavePasswordMode();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Password is now OFF and has been pushed live. Students should click Refresh App once, then open their portal without password.");
+  };
+  window.turnStudentPasswordOn = async function(){
+    fpEnsureSettings();
+    state.settings.requireStudentPassword = true;
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings.studentPasswordModeUpdatedAt = fpNowISO();
+    await fpDirectSavePasswordMode();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Password is now ON and has been pushed live. Students will need their password again.");
+  };
+  window.startPasswordFreeWindow = async function(){
+    fpEnsureSettings();
+    const hours = Math.max(1, Math.min(24, parseInt(document.getElementById("passwordFreeHours")?.value || "1", 10)));
+    state.settings.requireStudentPassword = true;
+    state.settings.passwordFreeStartedAt = fpNowISO();
+    state.settings.passwordFreeUntil = new Date(Date.now() + hours * 3600000).toISOString();
+    state.settings.passwordFreeDurationHours = hours;
+    state.settings.studentPasswordModeUpdatedAt = fpNowISO();
+    await fpDirectSavePasswordMode();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert(`Temporary no-password access has started for ${hours} hour${hours>1?"s":""} and has been pushed live.`);
+  };
+  window.stopPasswordFreeWindow = async function(){
+    fpEnsureSettings();
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings.studentPasswordModeUpdatedAt = fpNowISO();
+    await fpDirectSavePasswordMode();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Temporary no-password access has been stopped and pushed live.");
+  };
+
+  async function fpPullLatestSettings(force=false){
+    const now = Date.now();
+    if(fpPulling) return;
+    if(!force && now - fpLastPull < 2500) return;
+    fpPulling = true;
+    try{
+      if(typeof sb !== "undefined" && sb && typeof stablePullRemote === "function"){
+        if(typeof stableStatus === "function") stableStatus("Checking live settings...", "warn");
+        await stablePullRemote(true);
+        if(typeof stableStatus === "function") stableStatus("Live settings updated", "live");
+      }else if(typeof pullRemote === "function"){
+        await pullRemote();
+      }
+      fpLastPull = Date.now();
+    }catch(e){ console.warn("Latest password setting refresh skipped", e); }
+    finally{ fpPulling = false; }
+  }
+
+  function fpUpdateLoginUI(){
+    try{
+      const off = fpCanOpenWithoutPassword(currentStudentId || "");
+      const view = document.getElementById("view");
+      if(!view) return;
+      const noticeId = "fpPasswordLiveNotice";
+      const old = document.getElementById(noticeId);
+      if(old) old.remove();
+      if(!state.settings?.requireStudentPassword || fpPasswordFreeActive()){
+        const msg = !state.settings?.requireStudentPassword ? "Password is OFF. Students can open their portal directly." : "Temporary no-password access is active. Students can open their portal directly.";
+        view.insertAdjacentHTML("afterbegin", `<div id="${noticeId}" class="passwordFreeNotice"><h3>Student Portal Open</h3><p>${fpEsc(msg)} Click <b>Refresh App</b> if your phone still asks for password.</p></div>`);
+        view.querySelectorAll(".studentInlineLoginBox input, .studentInlineLoginBox .inlineViewPassBtn, .studentInlineLoginHint").forEach(el=>{ el.style.display = "none"; });
+        view.querySelectorAll(".openLine").forEach(el=>{ el.textContent = "Password is OFF. Click Open Portal directly."; });
+      }
+    }catch(e){}
+  }
+
+  // 3. Strong refresh button used by students.
+  window.studentPortalHardRefresh = async function(){
+    const btn = document.getElementById("studentPortalRefreshBtn") || document.getElementById("fpFloatingRefreshBtn");
+    const oldText = btn ? btn.textContent : "";
+    if(btn) btn.textContent = "Refreshing latest app...";
+    await fpPullLatestSettings(true);
+    try{
+      if(typeof saveLocal === "function") saveLocal();
+      if(typeof renderShell === "function") renderShell();
+      else if(typeof render === "function") render();
+      setTimeout(fpUpdateLoginUI, 120);
+    }catch(e){}
+    if(btn) setTimeout(()=>{ btn.textContent = oldText || "Refresh App"; }, 900);
+  };
+
+  // 4. Final student login checks: always pull the latest password mode before requiring a password.
+  window.studentCardLogin = async function(studentId){
+    const s = fpStudent(studentId);
+    if(!s) return alert("Student not found.");
+    currentStudentId = studentId;
+    window.currentStudentId = studentId;
+    await fpPullLatestSettings();
+    if(fpCanOpenWithoutPassword(studentId)) return fpOpenStudent(studentId);
+    const input = document.getElementById("inlinePass_" + studentId) || document.getElementById("stuPass");
+    const typed = (input?.value || "").trim();
+    if(!typed){ if(input) input.focus(); return alert("Please type your password first."); }
+    if(typed !== String(s.password || "")){ if(input){ input.value=""; input.focus(); } return alert("Wrong password. Please check the password and try again."); }
+    return fpOpenStudent(studentId);
+  };
+  window.selectStudentLogin = async function(id){
+    currentStudentId = id; window.currentStudentId = id;
+    await fpPullLatestSettings();
+    if(fpCanOpenWithoutPassword(id)) return fpOpenStudent(id);
+    const input = document.getElementById("inlinePass_" + id);
+    if(input) input.focus();
+  };
+  window.quickOpenStudentPortal = window.selectStudentLogin;
+  window.finishStudentLogin = async function(){
+    const s = fpStudent(currentStudentId);
+    if(!s) return alert("Student record not found.");
+    await fpPullLatestSettings();
+    if(fpCanOpenWithoutPassword(s.id)) return fpOpenStudent(s.id);
+    const input = document.getElementById("stuPass") || document.getElementById("studentPass") || document.getElementById("inlinePass_" + s.id);
+    if((input?.value || "").trim() !== String(s.password || "")) return alert("Wrong password.");
+    return fpOpenStudent(s.id);
+  };
+  window.openClassMemberPortal = async function(studentId){
+    const s = fpStudent(studentId);
+    if(!s) return alert("Student record not found.");
+    currentStudentId = studentId; window.currentStudentId = studentId;
+    await fpPullLatestSettings();
+    if(fpCanOpenWithoutPassword(studentId)) return fpOpenStudent(studentId);
+    let box = document.getElementById("classMemberPasswordBox");
+    if(!box){
+      const view = document.getElementById("view");
+      if(view){ view.insertAdjacentHTML("afterbegin", `<div id="classMemberPasswordBox"></div>`); box = document.getElementById("classMemberPasswordBox"); }
+    }
+    if(!box) return alert("Enter your password from Student Login.");
+    box.innerHTML = `<div class="classMemberPasswordBox"><h3>${fpEsc(s.name)}</h3><p>Enter your password to open your portal.</p><div class="classMemberPasswordGrid"><input id="classMemberPassInput" type="password" placeholder="Type password here" onkeydown="if(event.key==='Enter')finishClassMemberPortalLogin()"><button class="green" onclick="finishClassMemberPortalLogin()">Open Portal</button><button class="light" onclick="toggleClassMemberPasswordView && toggleClassMemberPasswordView()">View</button></div></div>`;
+    setTimeout(()=>document.getElementById("classMemberPassInput")?.focus(), 80);
+    box.scrollIntoView({behavior:"smooth", block:"start"});
+  };
+  window.finishClassMemberPortalLogin = async function(){
+    const s = fpStudent(currentStudentId);
+    if(!s) return alert("Student record not found.");
+    await fpPullLatestSettings();
+    if(fpCanOpenWithoutPassword(s.id)) return fpOpenStudent(s.id);
+    const typed = document.getElementById("classMemberPassInput")?.value || "";
+    if(typed !== String(s.password || "")) return alert("Wrong password.");
+    return fpOpenStudent(s.id);
+  };
+
+  // 5. Improve student login page and add a permanent refresh button.
+  const oldStudentLoginFP = window.studentLogin;
+  if(typeof oldStudentLoginFP === "function"){
+    window.studentLogin = function(){
+      const result = oldStudentLoginFP.apply(this, arguments);
+      try{
+        const hero = document.querySelector(".studentSearchHeroBox");
+        if(hero && !document.getElementById("studentPortalRefreshBtn")){
+          const row = hero.querySelector(".bigStudentSearchRow") || hero;
+          row.insertAdjacentHTML("beforeend", `<button id="studentPortalRefreshBtn" class="studentRefreshBtn" onclick="studentPortalHardRefresh()">Refresh App</button>`);
+        }
+      }catch(e){}
+      setTimeout(fpUpdateLoginUI, 100);
+      setTimeout(()=>fpPullLatestSettings().then(fpUpdateLoginUI), 300);
+      return result;
+    };
+  }
+  const oldRenderShellFP = window.renderShell;
+  if(typeof oldRenderShellFP === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellFP.apply(this, arguments);
+      setTimeout(fpUpdateLoginUI, 80);
+      setTimeout(fpInjectFloatingRefresh, 120);
+      return result;
+    };
+  }
+
+  function fpInjectFloatingRefresh(){
+    try{
+      if(document.getElementById("fpFloatingRefreshBtn")) return;
+      if(document.body){
+        document.body.insertAdjacentHTML("beforeend", `<button id="fpFloatingRefreshBtn" class="fpFloatingRefresh" onclick="studentPortalHardRefresh()">↻ Refresh App</button>`);
+      }
+    }catch(e){}
+  }
+  function fpStyle(){
+    if(document.getElementById("fpPasswordRefreshStyle")) return;
+    document.head.insertAdjacentHTML("beforeend", `<style id="fpPasswordRefreshStyle">
+      .fpFloatingRefresh{position:fixed;left:12px;bottom:12px;z-index:2147482600;border:0;border-radius:999px;background:#f4c430;color:#071f3d;font-weight:950;padding:10px 13px;box-shadow:0 10px 26px rgba(7,31,61,.22)}
+      .fpRefreshGate{position:fixed;inset:0;z-index:2147483600;background:linear-gradient(135deg,rgba(7,31,61,.96),rgba(4,18,37,.98));display:grid;place-items:center;padding:18px;color:#fff}
+      .fpRefreshCard{width:min(620px,100%);background:#fff;color:#101828;border-radius:28px;padding:24px;border:1px solid #d9e7f3;box-shadow:0 28px 90px rgba(0,0,0,.35);text-align:center}
+      .fpRefreshLogo{width:78px;height:78px;border-radius:50%;margin:0 auto 12px;background:#071f3d;color:#f4c430;border:4px solid #f4c430;display:grid;place-items:center;font-weight:950;font-size:21px}
+      .fpRefreshCard h2{margin:0 0 8px;color:#071f3d;font-size:26px;line-height:1.15}.fpRefreshCard p{color:#475467;line-height:1.5;font-weight:750}.fpRefreshCard button{border:0;border-radius:16px;background:#0f7b4f;color:#fff;font-weight:950;font-size:17px;min-height:52px;padding:13px 18px;width:100%;margin-top:10px}.fpRefreshCard small{display:block;color:#667085;margin-top:10px;line-height:1.35}
+      @media(max-width:700px){.fpFloatingRefresh{left:8px;bottom:8px;padding:8px 11px;font-size:12px}.fpRefreshCard{padding:18px;border-radius:20px}.fpRefreshCard h2{font-size:22px}}
+    </style>`);
+  }
+  async function fpClearBrowserCaches(){
+    try{
+      if("caches" in window){
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k=>caches.delete(k)));
+      }
+    }catch(e){}
+  }
+  window.confirmFirstAppRefresh = async function(){
+    try{ sessionStorage.setItem(FP_REFRESH_KEY, "yes"); }catch(e){}
+    const btn = document.getElementById("fpFirstRefreshBtn");
+    if(btn) btn.textContent = "Refreshing latest version...";
+    await fpClearBrowserCaches();
+    try{ await fpPullLatestSettings(true); }catch(e){}
+    const url = new URL(window.location.href);
+    url.searchParams.set("appRefresh", Date.now().toString());
+    window.location.replace(url.toString());
+  };
+  function fpShowFirstRefreshGate(){
+    fpStyle();
+    fpInjectFloatingRefresh();
+    try{
+      if(sessionStorage.getItem(FP_REFRESH_KEY) === "yes") return;
+    }catch(e){}
+    if(document.getElementById("fpRefreshGate")) return;
+    document.body.insertAdjacentHTML("beforeend", `<div id="fpRefreshGate" class="fpRefreshGate">
+      <div class="fpRefreshCard">
+        <div class="fpRefreshLogo">AM</div>
+        <h2>Refresh App Before You Continue</h2>
+        <p>This makes your phone load the newest settings from Sir Isaac, including whether student password is ON or OFF, new exercises, reset permissions, and latest results.</p>
+        <button id="fpFirstRefreshBtn" onclick="confirmFirstAppRefresh()">Refresh / Update App Now</button>
+        <small>After this refresh, you can search for your name and open the student portal. If the teacher later changes access, tap the yellow Refresh App button.</small>
+      </div>
+    </div>`);
+  }
+
+  try{
+    eval("turnStudentPasswordOff=window.turnStudentPasswordOff; turnStudentPasswordOn=window.turnStudentPasswordOn; startPasswordFreeWindow=window.startPasswordFreeWindow; stopPasswordFreeWindow=window.stopPasswordFreeWindow; studentPortalHardRefresh=window.studentPortalHardRefresh; studentCardLogin=window.studentCardLogin; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; finishStudentLogin=window.finishStudentLogin; openClassMemberPortal=window.openClassMemberPortal; finishClassMemberPortalLogin=window.finishClassMemberPortalLogin; studentLogin=window.studentLogin; renderShell=window.renderShell; confirmFirstAppRefresh=window.confirmFirstAppRefresh;");
+  }catch(e){}
+
+  document.addEventListener("DOMContentLoaded", function(){ setTimeout(fpShowFirstRefreshGate, 250); });
+  setTimeout(fpShowFirstRefreshGate, 900);
+  setTimeout(()=>fpPullLatestSettings(true).then(fpUpdateLoginUI), 1800);
+})();
+
+
+/* ===== GLOBAL LIVE ASSIGNMENT SYNC + AUTHORITATIVE STUDENT ASSIGNMENT VIEW V5 =====
+   Fixes some students seeing zero assignments by:
+   - Making teacher-controlled assignment records from Supabase win over stale phone copies.
+   - Pulling latest live data before student Home, My Quizzes, and Start Exercise.
+   - Matching classes safely even when spaces/capitalisation differ.
+   - Refreshing password, assignments, reset permissions, submitted work, and results together.
+*/
+(function(){
+  const AS_BUILD = "assignment-live-sync-v5-2026-05-20";
+  const AS_REFRESH_KEY = "AMEST_ASSIGNMENT_REFRESH_CONFIRMED_" + AS_BUILD;
+  let asPulling = false;
+  let asLastPull = 0;
+  let asRerendering = false;
+
+  function asEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? "").replace(/[&<>\"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[c])); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function asNowISO(){ return new Date().toISOString(); }
+  function asTimeValue(item){
+    const raw = item && (item.assignmentSyncUpdatedAt || item.teacherUpdatedAt || item.updatedAt || item.publishedAt || item._stableRemoteUpdatedAt || item.createdAt || item.submittedAtISO || item.startedAtISO || item.createdAtISO || "");
+    const t = raw ? Date.parse(raw) : 0;
+    return Number.isFinite(t) ? t : 0;
+  }
+  function asItemId(key,item,index){
+    if(!item) return key + "_" + index;
+    if(item.id) return String(item.id);
+    if(item.quizId && item.studentId) return String(item.quizId) + "_" + String(item.studentId);
+    if(item.assignmentId && item.studentId) return String(item.assignmentId) + "_" + String(item.studentId);
+    return key + "_" + index;
+  }
+  function asNorm(v){ return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+  function asSameClass(a,b){ return String(a||"") === String(b||"") || asNorm(a) === asNorm(b); }
+  function asListHasClass(list, cls){ return (list||[]).some(c => asSameClass(c, cls) || asNorm(c)==="ALL"); }
+  function asStudent(studentId){
+    try{ if(typeof student === "function") return student(studentId); }catch(e){}
+    return (state.students||[]).find(s => String(s.id) === String(studentId)) || null;
+  }
+  function asSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls) || ""; }catch(e){}
+    const cNorm = asNorm(cls);
+    const item = (state.subjects||[]).find(x => (x.classes||[]).some(c => asNorm(c) === cNorm));
+    return item ? item.name : "";
+  }
+  function asIsDeleted(item){
+    return !!(item && (item.deleted || item.isDeleted || item._deletedHidden || String(item.status||"").toLowerCase()==="deleted"));
+  }
+  function asQuizById(id){ return (state.quizzes||[]).find(q => String(q.id) === String(id)) || null; }
+  function asDocById(id){ return (state.docAssignments||[]).find(a => String(a.id) === String(id)) || null; }
+  function asSubmission(studentId, quizId){
+    return (state.submissions||[]).find(s => String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId)) || null;
+  }
+  function asActiveReset(studentId, quizId){
+    return (state.quizResets||[]).find(r => String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active) || null;
+  }
+  function asLatestRequest(studentId, quizId){
+    return (state.quizResetRequests||[])
+      .filter(r => String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId))
+      .sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")))[0] || null;
+  }
+  function asRequestBadge(req){
+    if(!req) return `<span class="asReqBadge none">No reset request</span>`;
+    const s = String(req.status || "Pending");
+    const cls = s.toLowerCase();
+    return `<span class="asReqBadge ${asEsc(cls)}">${asEsc(s)}</span>${req.reason?`<small class="asReqReason">${asEsc(req.reason)}</small>`:""}`;
+  }
+  function asResetButton(studentId, quizId){
+    const req = asLatestRequest(studentId, quizId);
+    if(req && req.status === "Pending") return `<div class="asResetStatus pending"><b>Reset request pending.</b> Wait for Sir Isaac to grant or deny it.</div>`;
+    if(req && req.status === "Granted") return `<div class="asResetStatus granted"><b>Fresh attempt granted.</b> Start only when you are ready. Your fresh submission will update the old record.</div>`;
+    if(req && req.status === "Denied") return `<div class="asResetStatus denied"><b>Request denied.</b> ${asEsc(req.adminNote || "The teacher did not grant a new attempt.")}</div><button class="asStudentResetBtn" onclick="requestQuizReset && requestQuizReset('${asEsc(quizId)}',true)">Send New Reset Request</button>`;
+    return `<button class="asStudentResetBtn" onclick="requestQuizReset && requestQuizReset('${asEsc(quizId)}')">Request Reset / Resubmission</button>`;
+  }
+  function asAssignedQuiz(q, s){
+    if(!q || !s || asIsDeleted(q)) return false;
+    const classes = Array.isArray(q.classNames) ? q.classNames : (q.className ? [q.className] : []);
+    const classMatch = asListHasClass(classes, s.className);
+    const subj = asSubjectForClass(s.className);
+    const subjectMatch = q.subject ? String(q.subject) === String(subj) : true;
+    // Class match is the strongest rule. Subject match is used when a quiz has no class list.
+    return classMatch || (!classes.length && subjectMatch);
+  }
+  function asAssignedDoc(a, s){
+    if(!a || !s || asIsDeleted(a)) return false;
+    const classes = Array.isArray(a.classNames) ? a.classNames : (a.className ? [a.className] : []);
+    const classMatch = asListHasClass(classes, s.className);
+    const subj = asSubjectForClass(s.className);
+    const subjectMatch = a.subject ? String(a.subject) === String(subj) : true;
+    return classMatch || (!classes.length && subjectMatch);
+  }
+  function asAllAssignedQuizzes(studentId){
+    const s = asStudent(studentId);
+    if(!s) return [];
+    const activeResetIds = new Set((state.quizResets||[]).filter(r => String(r.studentId) === String(s.id) && r.active).map(r => String(r.quizId)));
+    const seen = new Set();
+    return (state.quizzes||[])
+      .filter(q => asAssignedQuiz(q, s))
+      .filter(q => q.status === "Published" || activeResetIds.has(String(q.id)) || (q.resetAvailableFor||[]).map(String).includes(String(s.id)))
+      .sort((a,b) => asTimeValue(b) - asTimeValue(a))
+      .filter(q => { const id=String(q.id); if(seen.has(id)) return false; seen.add(id); return true; });
+  }
+  function asAllAssignedDocs(studentId){
+    const s = asStudent(studentId);
+    if(!s) return [];
+    const seen = new Set();
+    return (state.docAssignments||[])
+      .filter(a => asAssignedDoc(a, s) && a.status === "Published")
+      .sort((a,b) => asTimeValue(b) - asTimeValue(a))
+      .filter(a => { const id=String(a.id); if(seen.has(id)) return false; seen.add(id); return true; });
+  }
+  function asCanAttempt(studentId, quizId){ return !asSubmission(studentId, quizId) || !!asActiveReset(studentId, quizId); }
+  function asOpenQuizzes(studentId){ return asAllAssignedQuizzes(studentId).filter(q => asCanAttempt(studentId, q.id)); }
+  function asClosedQuizzes(studentId){ return asAllAssignedQuizzes(studentId).filter(q => !asCanAttempt(studentId, q.id)); }
+
+  // Make published assignments from the online database win over stale phone copies.
+  try{
+    if(typeof stableMergeStates === "function" && !stableMergeStates._assignmentAuthoritativePatchedV5){
+      const oldStableMerge = stableMergeStates;
+      stableMergeStates = function(remoteState, localState){
+        const merged = oldStableMerge(remoteState, localState);
+        try{
+          ["quizzes","docAssignments","assignmentNotifications"].forEach(key => {
+            const remoteArr = Array.isArray(remoteState && remoteState[key]) ? remoteState[key] : [];
+            const currentArr = Array.isArray(merged[key]) ? merged[key] : [];
+            const map = new Map();
+            currentArr.forEach((item,i)=>map.set(asItemId(key,item,i), item));
+            remoteArr.forEach((remoteItem,i)=>{
+              if(!remoteItem) return;
+              const id = asItemId(key, remoteItem, i);
+              const existing = map.get(id) || {};
+              const rt = asTimeValue(remoteItem);
+              const lt = asTimeValue(existing);
+              const chosen = lt > rt ? existing : remoteItem;
+              map.set(id, Object.assign({}, existing, chosen));
+            });
+            merged[key] = Array.from(map.values());
+          });
+          // These are teacher/admin controlled, so the shared online copy should be trusted.
+          if(remoteState && Array.isArray(remoteState.subjects) && remoteState.subjects.length) merged.subjects = remoteState.subjects;
+          if(remoteState && Array.isArray(remoteState.classes) && remoteState.classes.length) merged.classes = remoteState.classes;
+        }catch(e){ console.warn("Assignment authoritative merge skipped", e); }
+        return merged;
+      };
+      stableMergeStates._assignmentAuthoritativePatchedV5 = true;
+      try{ window.stableMergeStates = stableMergeStates; }catch(e){}
+    }
+  }catch(e){ console.warn("Could not patch assignment merge", e); }
+
+  function asMarkTeacherUpdate(kind, id){
+    const stamp = asNowISO();
+    state.assignmentSyncUpdatedAt = stamp;
+    if(kind === "quiz"){
+      const q = asQuizById(id);
+      if(q){ q.assignmentSyncUpdatedAt = stamp; q.teacherUpdatedAt = stamp; if(q.status === "Published") q.publishedAt = q.publishedAt || stamp; }
+    }else if(kind === "doc"){
+      const a = asDocById(id);
+      if(a){ a.assignmentSyncUpdatedAt = stamp; a.teacherUpdatedAt = stamp; if(a.status === "Published") a.publishedAt = a.publishedAt || stamp; }
+    }else{
+      (state.quizzes||[]).forEach(q => { if(q && !q.assignmentSyncUpdatedAt) q.assignmentSyncUpdatedAt = stamp; });
+      (state.docAssignments||[]).forEach(a => { if(a && !a.assignmentSyncUpdatedAt) a.assignmentSyncUpdatedAt = stamp; });
+    }
+  }
+  async function asPushAssignmentsNow(){
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof stableWriteRemoteItems === "function"){
+        if(typeof stableStatus === "function") stableStatus("Saving assignment update live...", "warn");
+        await stableWriteRemoteItems();
+        if(typeof stableStatus === "function") stableStatus("Assignment update live", "live");
+      }else if(typeof pushRemote === "function") await pushRemote();
+      else if(typeof save === "function") save();
+    }catch(e){ console.warn("Assignment immediate save skipped", e); }
+  }
+
+  // Stamp assignment changes so admin updates win during merge.
+  ["qToggle","adminPublishExercise","saveQuiz","saveDocAssignment","toggleDocAssignment"].forEach(fnName => {
+    const oldFn = window[fnName];
+    if(typeof oldFn === "function" && !oldFn._assignmentStampedV5){
+      window[fnName] = function(){
+        const beforeIds = new Set([...(state.quizzes||[]).map(q=>String(q.id)), ...(state.docAssignments||[]).map(a=>String(a.id))]);
+        const result = oldFn.apply(this, arguments);
+        try{
+          if(fnName === "qToggle" || fnName === "adminPublishExercise") asMarkTeacherUpdate("quiz", arguments[0]);
+          else if(fnName === "toggleDocAssignment") asMarkTeacherUpdate("doc", arguments[0]);
+          else{
+            (state.quizzes||[]).forEach(q => { if(!beforeIds.has(String(q.id))) asMarkTeacherUpdate("quiz", q.id); });
+            (state.docAssignments||[]).forEach(a => { if(!beforeIds.has(String(a.id))) asMarkTeacherUpdate("doc", a.id); });
+            asMarkTeacherUpdate("all");
+          }
+          asPushAssignmentsNow();
+        }catch(e){ console.warn("Could not stamp assignment update", e); }
+        return result;
+      };
+      window[fnName]._assignmentStampedV5 = true;
+    }
+  });
+
+  async function asPullLatest(force=false){
+    const now = Date.now();
+    if(asPulling) return true;
+    if(!force && now - asLastPull < 1800) return true;
+    if(window.quizTakingActive || document.body.classList.contains("quizInProgress")) return false;
+    asPulling = true;
+    try{
+      if(typeof stableStatus === "function") stableStatus("Refreshing latest assignments...", "warn");
+      if(typeof sb !== "undefined" && sb && typeof stablePullRemote === "function"){
+        await stablePullRemote(true);
+      }else if(typeof pullRemote === "function"){
+        await pullRemote();
+      }
+      try{ if(typeof normalize === "function") normalize(); }catch(e){}
+      try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+      asLastPull = Date.now();
+      if(typeof stableStatus === "function") stableStatus("Assignments updated", "live");
+      return true;
+    }catch(e){
+      console.warn("Assignment refresh skipped", e);
+      if(typeof stableStatus === "function") stableStatus("Assignment refresh failed", "bad");
+      return false;
+    }finally{
+      asPulling = false;
+    }
+  }
+
+  window.refreshLatestAssignmentsNow = async function(force=true, rerender=true){
+    const btn = document.getElementById("studentPortalRefreshBtn") || document.getElementById("fpFloatingRefreshBtn") || document.getElementById("asFloatingRefreshBtn");
+    const oldText = btn ? btn.textContent : "";
+    if(btn) btn.textContent = "Refreshing latest work...";
+    await asPullLatest(force);
+    try{
+      if(rerender){
+        if(typeof renderShell === "function") renderShell();
+        else if(typeof render === "function") render();
+      }
+    }catch(e){}
+    if(btn) setTimeout(()=>{ btn.textContent = oldText || "↻ Refresh App"; }, 1000);
+  };
+
+  // A Refresh App click now pulls live data first. It no longer leaves a student on stale phone data.
+  window.studentPortalHardRefresh = async function(){
+    if(window.quizTakingActive || document.body.classList.contains("quizInProgress")){
+      return alert("You are currently doing an exercise. Submit the exercise before refreshing the app.");
+    }
+    await window.refreshLatestAssignmentsNow(true, true);
+  };
+
+  window.availableQuizzes = function(){
+    const s = asStudent(currentStudentId);
+    return s ? asOpenQuizzes(s.id) : [];
+  };
+  window.availableDocAssignments = function(){
+    const s = asStudent(currentStudentId);
+    return s ? asAllAssignedDocs(s.id) : [];
+  };
+
+  function asRenderStudentHome(){
+    const s = asStudent(currentStudentId);
+    const view = document.getElementById("view");
+    if(!view || !s) return;
+    const openCount = asOpenQuizzes(s.id).length + asAllAssignedDocs(s.id).length;
+    const submittedCount = (state.submissions||[]).filter(x => String(x.studentId) === String(s.id)).length + (state.docSubmissions||[]).filter(x => String(x.studentId) === String(s.id)).length;
+    let reportOpen = false;
+    try{ reportOpen = typeof isReportPublished === "function" ? isReportPublished(s.id) : false; }catch(e){}
+    let photo = "";
+    try{ photo = typeof photoHTML === "function" ? photoHTML(s) : ""; }catch(e){}
+    view.innerHTML = `<div class="asLivePanel"><h2>Live Student Portal</h2><p>This page uses the latest online data from Sir Isaac. Tap Refresh App whenever assignments, passwords, reset permissions, or results are changed.</p><button onclick="studentPortalHardRefresh()">↻ Refresh App / Assignments</button></div>
+      <div class="card">
+        <div class="studentHead">${photo}<div><h2>${asEsc(s.name)}</h2><p>${asEsc(s.className)} • ${asEsc(asSubjectForClass(s.className))}</p></div></div>
+        <div class="cards"><div class="card stat"><span>Available Assignments / Quizzes</span><b>${openCount}</b></div><div class="card stat"><span>Submitted Work</span><b>${submittedCount}</b></div><div class="card stat"><span>Report Card</span><b>${reportOpen ? "Open" : "Locked"}</b></div></div>
+        <div class="toolbar"><button class="btn green" onclick="setRoute('studentQuizzes')">Open Assignments / Quizzes</button><button class="btn light" onclick="setRoute('studentResults')">View Scores / Report</button><button class="btn gold" onclick="studentPortalHardRefresh()">Refresh Latest</button></div>
+      </div>`;
+  }
+
+  function asRenderStudentQuizzes(){
+    const s = asStudent(currentStudentId);
+    const view = document.getElementById("view");
+    if(!view || !s) return;
+    const openQs = asOpenQuizzes(s.id);
+    const closedQs = asClosedQuizzes(s.id);
+    const docs = asAllAssignedDocs(s.id);
+    const nowText = new Date().toLocaleString();
+    view.innerHTML = `<div class="studentAssignmentHero asAssignmentHero">
+        <h2>Assignments / Quizzes</h2>
+        <p>Latest online check: <b>${asEsc(nowText)}</b>. If the teacher has just added work, tap Refresh App.</p>
+        <button class="btn gold" onclick="studentPortalHardRefresh()">↻ Refresh App / Assignments</button>
+      </div>
+      <div class="studentAssignmentSection"><h2>Available Timed Exercises</h2>
+        ${openQs.map(q => `<div class="quizCard"><h3>${asEsc(q.title)}</h3><p>${asEsc((q.questions||[]).length)} question(s) • ${Number(q.durationMinutes)||30} minutes</p>${asActiveReset(s.id,q.id)?`<div class="asResetStatus granted"><b>Fresh attempt granted.</b> Your new submission will update the old submitted record.</div>`:""}<button class="btn green" onclick="takeQuiz('${asEsc(q.id)}')">Start Exercise</button></div>`).join("") || `<div class="empty">No new timed exercise available now. Tap Refresh App if Sir Isaac has just uploaded work.</div>`}
+      </div>
+      <div class="studentAssignmentSection"><h2>Locked / Submitted Exercises</h2><p>Exercises you have already attempted remain locked. You may request reset/resubmission access.</p>
+        ${closedQs.map(q => { const sub=asSubmission(s.id,q.id)||{}; return `<div class="quizClosedCard"><h3>${asEsc(q.title)}</h3><p>${asEsc(sub.startedOnly ? "You started/opened this exercise, so your one attempt has been consumed." : "You have submitted or attempted this exercise.")}</p><p>Recorded: ${asEsc(sub.submittedAt || sub.startedAt || "")}</p><span class="quizClosedBadge">Locked — admin reset required</span><div class="rrClosedCardActions">${asResetButton(s.id,q.id)}</div></div>`; }).join("") || `<div class="empty">No locked exercise yet.</div>`}
+      </div>
+      <div class="studentAssignmentSection"><h2>Scan and Upload Written Work</h2>
+        ${docs.map(a => `<div class="docAssignmentCard"><h3>${asEsc(a.title)}</h3><p>${asEsc(a.instructions || "Scan your work and upload the pages here.")}</p><p>Maximum score: ${asEsc(a.maxScore ?? "-")}</p><button class="btn green" onclick="openDocSubmit('${asEsc(a.id)}')">Upload Scanned Pages</button></div>`).join("") || `<div class="empty">No document-upload assignment available now. Tap Refresh App if Sir Isaac has just uploaded work.</div>`}
+      </div>`;
+  }
+
+  const oldStudentHomeAS = window.studentHome;
+  window.studentHome = function(){
+    if(asRerendering) return asRenderStudentHome();
+    asRenderStudentHome();
+    asPullLatest(false).then(()=>{
+      if(role === "student" && route === "studentHome"){
+        asRerendering = true; try{ asRenderStudentHome(); }finally{ asRerendering = false; }
+      }
+    });
+  };
+
+  window.studentQuizzes = async function(){
+    const view = document.getElementById("view");
+    if(view) view.innerHTML = `<div class="asLivePanel"><h2>Refreshing Latest Assignments...</h2><p>Please wait while the app checks the live online data so your phone does not show old assignments.</p></div>`;
+    await asPullLatest(true);
+    asRenderStudentQuizzes();
+  };
+
+  const oldTakeQuizAS = window.takeQuiz;
+  if(typeof oldTakeQuizAS === "function"){
+    window.takeQuiz = async function(id){
+      await asPullLatest(true);
+      const s = asStudent(currentStudentId);
+      if(!s) return alert("Please select your name and log in first.");
+      const q = asQuizById(id);
+      if(!q || !asAssignedQuiz(q,s) || (q.status !== "Published" && !asActiveReset(s.id,id))){
+        alert("This exercise is not currently available to your portal. Tap Refresh App and try again.");
+        if(route === "studentQuizzes") asRenderStudentQuizzes();
+        return;
+      }
+      if(!asCanAttempt(s.id, id)){
+        alert("This exercise is already locked for you. Request reset/resubmission if you need another attempt.");
+        if(route === "studentQuizzes") asRenderStudentQuizzes();
+        return;
+      }
+      return oldTakeQuizAS.apply(this, arguments);
+    };
+  }
+
+  function asStyle(){
+    if(document.getElementById("assignmentLiveSyncV5Style")) return;
+    document.head.insertAdjacentHTML("beforeend", `<style id="assignmentLiveSyncV5Style">
+      .asLivePanel{background:#fff;border:2px solid #d9e7f3;border-left:8px solid #0f7b4f;border-radius:20px;padding:14px;margin:0 0 14px;box-shadow:0 10px 26px rgba(7,31,61,.08)}
+      .asLivePanel h2{margin:0 0 6px;color:#071f3d}.asLivePanel p{margin:0 0 10px;color:#667085;line-height:1.45;font-weight:750}.asLivePanel button,.asAssignmentHero button{border:0;border-radius:14px;background:#f4c430;color:#071f3d;font-weight:950;min-height:42px;padding:10px 14px;cursor:pointer}
+      .asFloatingRefresh{position:fixed;right:12px;bottom:12px;z-index:2147482601;border:0;border-radius:999px;background:#0f7b4f;color:#fff;font-weight:950;padding:10px 13px;box-shadow:0 10px 26px rgba(7,31,61,.24)}
+      .asReqBadge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:950;border:1px solid #d9e7f3;background:#eef5fc;color:#071f3d}.asReqBadge.pending{background:#fff7d1;border-color:#f4c430;color:#6b5300}.asReqBadge.granted{background:#ecfdf3;border-color:#bce8ce;color:#0f6b47}.asReqBadge.denied{background:#fff1f0;border-color:#ffd4d0;color:#b42318}.asReqReason{display:block;color:#667085;margin-top:4px;font-weight:750;line-height:1.35}
+      .asStudentResetBtn{border:0;border-radius:11px;background:#f4c430;color:#071f3d;min-height:36px;padding:8px 11px;font-weight:900;cursor:pointer;margin-top:8px}.asResetStatus{margin-top:8px;border-radius:12px;padding:9px 10px;font-size:13px;line-height:1.4;font-weight:850}.asResetStatus.pending{background:#fff7d1;border:1px solid #f4c430;color:#6b5300}.asResetStatus.granted{background:#ecfdf3;border:1px solid #bce8ce;color:#0f6b47}.asResetStatus.denied{background:#fff1f0;border:1px solid #ffd4d0;color:#b42318}
+      .asRefreshGate{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(135deg,rgba(7,31,61,.97),rgba(4,18,37,.98));display:grid;place-items:center;padding:18px;color:#fff}.asRefreshCard{width:min(640px,100%);background:#fff;color:#101828;border-radius:28px;padding:24px;border:1px solid #d9e7f3;box-shadow:0 28px 90px rgba(0,0,0,.35);text-align:center}.asRefreshLogo{width:78px;height:78px;border-radius:50%;margin:0 auto 12px;background:#071f3d;color:#f4c430;border:4px solid #f4c430;display:grid;place-items:center;font-weight:950;font-size:21px}.asRefreshCard h2{margin:0 0 8px;color:#071f3d;font-size:26px;line-height:1.15}.asRefreshCard p{color:#475467;line-height:1.5;font-weight:750}.asRefreshCard button{border:0;border-radius:16px;background:#0f7b4f;color:#fff;font-weight:950;font-size:17px;min-height:52px;padding:13px 18px;width:100%;margin-top:10px}.asRefreshCard small{display:block;color:#667085;margin-top:10px;line-height:1.35}
+      @media(max-width:700px){.asFloatingRefresh{right:8px;bottom:54px;padding:8px 11px;font-size:12px}.asRefreshCard{padding:18px;border-radius:20px}.asRefreshCard h2{font-size:22px}}
+    </style>`);
+  }
+  function asFloating(){
+    try{
+      if(document.getElementById("asFloatingRefreshBtn")) return;
+      document.body.insertAdjacentHTML("beforeend", `<button id="asFloatingRefreshBtn" class="asFloatingRefresh" onclick="studentPortalHardRefresh()">↻ Refresh Assignments</button>`);
+    }catch(e){}
+  }
+  async function asClearCaches(){
+    try{ if("caches" in window){ const keys = await caches.keys(); await Promise.all(keys.map(k => caches.delete(k))); } }catch(e){}
+  }
+  function asClearStaleStudentLocks(){
+    // Stale local delete/cleanup registries on student phones can hide assignments. The live database remains the authority.
+    try{
+      Object.keys(localStorage).forEach(k => {
+        const key = String(k).toLowerCase();
+        if(key.includes("deleted_registry") || key.includes("delete_locks") || key.includes("final_clean_registry") || key.includes("smart_cleanup_locks")){
+          localStorage.removeItem(k);
+        }
+      });
+    }catch(e){}
+  }
+  window.confirmAssignmentAppRefresh = async function(){
+    try{ sessionStorage.setItem(AS_REFRESH_KEY, "yes"); }catch(e){}
+    const btn = document.getElementById("asFirstRefreshBtn");
+    if(btn) btn.textContent = "Refreshing latest assignments...";
+    asClearStaleStudentLocks();
+    await asClearCaches();
+    await asPullLatest(true);
+    const url = new URL(window.location.href);
+    url.searchParams.set("assignmentRefresh", Date.now().toString());
+    window.location.replace(url.toString());
+  };
+  function asShowRefreshGate(){
+    asStyle(); asFloating();
+    try{ if(sessionStorage.getItem(AS_REFRESH_KEY) === "yes") return; }catch(e){}
+    if(document.getElementById("asRefreshGate")) return;
+    document.body.insertAdjacentHTML("beforeend", `<div id="asRefreshGate" class="asRefreshGate">
+      <div class="asRefreshCard">
+        <div class="asRefreshLogo">AM</div>
+        <h2>Refresh Latest Assignments Before You Continue</h2>
+        <p>This prevents your phone from showing old data or zero assignments. It updates password access, exercises, scanned-work assignments, reset permissions, submitted work, and results.</p>
+        <button id="asFirstRefreshBtn" onclick="confirmAssignmentAppRefresh()">Refresh / Update App Now</button>
+        <small>After the refresh, search for your name and open your portal. Tap the green Refresh Assignments button anytime Sir Isaac makes a change.</small>
+      </div>
+    </div>`);
+  }
+
+  const oldRenderShellAS = window.renderShell;
+  if(typeof oldRenderShellAS === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellAS.apply(this, arguments);
+      setTimeout(()=>{ asStyle(); asFloating(); }, 80);
+      return result;
+    };
+  }
+
+  try{
+    eval("availableQuizzes=window.availableQuizzes; availableDocAssignments=window.availableDocAssignments; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; takeQuiz=window.takeQuiz; studentPortalHardRefresh=window.studentPortalHardRefresh; refreshLatestAssignmentsNow=window.refreshLatestAssignmentsNow; confirmAssignmentAppRefresh=window.confirmAssignmentAppRefresh; qToggle=window.qToggle; adminPublishExercise=window.adminPublishExercise; saveQuiz=window.saveQuiz; saveDocAssignment=window.saveDocAssignment; toggleDocAssignment=window.toggleDocAssignment; renderShell=window.renderShell;");
+  }catch(e){}
+
+  document.addEventListener("DOMContentLoaded", function(){ setTimeout(asShowRefreshGate, 350); setTimeout(()=>asPullLatest(true), 1500); });
+  setTimeout(asShowRefreshGate, 1000);
+  setTimeout(()=>asPullLatest(true), 2200);
+})();
+
+
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(render);
