@@ -9959,6 +9959,197 @@ html,body{
   .resetRequestActions button{width:100%}
 }
 
+
+/* ===== STUDENT PORTAL RESULTS, REPORT, SCANNED ASSIGNMENT CONTROL ===== */
+.portalControlPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#ffffff,#fffdf0);
+  color:#071f3d;
+  border-radius:24px;
+  padding:16px;
+  margin:0 0 16px;
+  box-shadow:0 12px 32px rgba(7,31,61,.10);
+}
+.portalControlPanel h2,.portalControlPanel h3{
+  margin:0 0 7px;
+  color:#071f3d;
+}
+.portalControlPanel p{
+  margin:0 0 10px;
+  color:#475467;
+  font-weight:850;
+  line-height:1.45;
+}
+.portalControlGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:12px;
+}
+.portalControlCard{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:18px;
+  padding:12px;
+  box-shadow:0 7px 20px rgba(7,31,61,.06);
+}
+.portalControlCard h3{font-size:16px}
+.portalControlActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.portalControlActions button,.portalControlActions label{
+  min-height:38px;
+  border-radius:12px!important;
+  padding:8px 11px!important;
+  font-weight:950!important;
+  cursor:pointer;
+}
+.portalControlFields{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:9px;
+  margin-top:10px;
+}
+.portalControlFields label{
+  display:block;
+  font-size:11px;
+  color:#667085;
+  text-transform:uppercase;
+  font-weight:950;
+  margin-bottom:4px;
+}
+.portalControlFields input,.portalControlFields select,.portalControlFields textarea{
+  width:100%;
+  min-height:40px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:850;
+  color:#071f3d;
+  background:#fff;
+}
+.portalControlFields textarea{
+  min-height:74px;
+  resize:vertical;
+}
+.portalBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:950;
+  margin:2px 5px 8px 0;
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+}
+.portalBadge.green{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}
+.portalBadge.gold{background:#fff8db;color:#8a6100;border-color:#f4c430}
+.portalBadge.red{background:#fff1f0;color:#b42318;border-color:#ffcdc9}
+.studentResultHub{
+  display:grid;
+  gap:14px;
+}
+.studentResultGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:12px;
+}
+.studentResultCard{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:20px;
+  padding:14px;
+  box-shadow:0 8px 22px rgba(7,31,61,.06);
+}
+.studentResultCard h3{
+  margin:0 0 8px;
+  color:#071f3d;
+}
+.studentResultCard p{
+  margin:0 0 8px;
+  color:#475467;
+  font-weight:820;
+  line-height:1.42;
+}
+.studentResultScore{
+  font-size:28px;
+  font-weight:1000;
+  color:#0f7b4f;
+  line-height:1;
+}
+.studentReportActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:10px 0;
+}
+.studentReportActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+}
+.smartReviewList{
+  display:grid;
+  gap:10px;
+}
+.smartReviewItem{
+  border:1px solid #d9e7f3;
+  background:#fff;
+  border-radius:18px;
+  padding:12px;
+  box-shadow:0 7px 20px rgba(7,31,61,.06);
+}
+.smartReviewItem h3{margin:0 0 7px;color:#071f3d}
+.smartReviewFiles{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px;
+  margin:10px 0;
+}
+.smartReviewFile{
+  border:1px solid #d9e7f3;
+  border-radius:14px;
+  background:#f8fbff;
+  padding:10px;
+}
+.smartReviewFile img{
+  width:100%;
+  max-height:190px;
+  object-fit:contain;
+  border-radius:10px;
+  border:1px solid #d9e7f3;
+  background:#fff;
+}
+.studentMarkedGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+.studentMarkedBox{
+  border:1px solid #d9e7f3;
+  background:#f8fbff;
+  border-radius:14px;
+  padding:10px;
+}
+.studentMarkedBox img{
+  width:100%;
+  max-height:250px;
+  object-fit:contain;
+  border-radius:10px;
+  border:1px solid #d9e7f3;
+  background:#fff;
+}
+@media(max-width:760px){
+  .portalControlFields{grid-template-columns:1fr}
+  .portalControlActions button,.portalControlActions label{width:100%;text-align:center}
+}
+
 </style>
 </head>
 <body>
@@ -31624,7 +31815,7 @@ async function initSupabase(){
     "classes","subjects","students","quizzes","submissions","components","scores",
     "publishedReports","reportScores","reportComments","academicYears","semesters",
     "docAssignments","docSubmissions","announcements","studentAnnouncements",
-    "attemptResets","resetRequests"
+    "attemptResets","resetRequests","publishedComponentResults"
   ];
 
   function lrClone(x){
@@ -33363,6 +33554,571 @@ with check (true);`;
 
   try{
     eval("normalize=window.normalize; renderAvailableAssignmentsNow=window.renderAvailableAssignmentsNow; studentQuizzes=window.studentQuizzes; forceOpenAvailableAssignmentsNow=window.forceOpenAvailableAssignmentsNow; forceOpenAvailableAssignments=window.forceOpenAvailableAssignments; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; studentResults=window.studentResults; startTimedQuiz=window.startTimedQuiz; submitQuiz=window.submitQuiz; openDocSubmitSimple=window.openDocSubmitSimple; openDocSubmit=window.openDocSubmit; submitDocAssignmentSimple=window.submitDocAssignmentSimple; submitDocAssignment=window.submitDocAssignment; setRoute=window.setRoute; logout=window.logout; openResetRequestModal=window.openResetRequestModal; closeResetRequestModal=window.closeResetRequestModal; submitResetRequest=window.submitResetRequest; adminResetRequestsPanelHTML=window.adminResetRequestsPanelHTML; injectAdminResetRequestsPanel=window.injectAdminResetRequestsPanel; grantStudentResetRequest=window.grantStudentResetRequest; denyStudentResetRequest=window.denyStudentResetRequest; dashboard=window.dashboard; review=window.review; renderShell=window.renderShell;");
+  }catch(e){}
+})();
+
+
+
+/* ===== STUDENT PORTAL RESULTS, REPORT, SCANNED ASSIGNMENT CONTROL V17 =====
+   Adds smart admin-to-student publishing:
+   - Students see View Results and View Report Card.
+   - Published report cards appear in Student Portal and can be printed.
+   - Published CA/assessment components appear to students.
+   - Published quiz/exercise results appear to students.
+   - Published scanned/theory marked work appears to students.
+   - Admin can create, publish, hide, edit/replace, and delete scanned assignments.
+   - Admin can download/open student submitted work and use existing pen marking board.
+   - Existing layout and live Supabase safe merge are preserved.
+*/
+(function(){
+  if(window.__studentPortalResultsReportScannedControlV17) return;
+  window.__studentPortalResultsReportScannedControlV17 = true;
+
+  function pcEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function pcText(v, fallback=""){
+    if(v===undefined || v===null) return fallback;
+    if(typeof v==="object"){
+      if(v.title) return String(v.title);
+      if(v.name) return String(v.name);
+      if(v.label) return String(v.label);
+      return fallback;
+    }
+    return String(v);
+  }
+  function pcUid(prefix){
+    try{ if(typeof uid === "function") return uid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
+  }
+  function pcNow(){
+    try{ if(typeof now === "function") return now(); }catch(e){}
+    return new Date().toLocaleString();
+  }
+  function pcSave(){
+    try{ if(typeof save === "function") return save(); }catch(e){}
+    try{ if(typeof safeSaveAll === "function") return safeSaveAll(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+  }
+  function pcEnsure(){
+    state.docAssignments = Array.isArray(state.docAssignments) ? state.docAssignments : [];
+    state.docSubmissions = Array.isArray(state.docSubmissions) ? state.docSubmissions : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.scores = Array.isArray(state.scores) ? state.scores : [];
+    state.components = Array.isArray(state.components) ? state.components : [];
+    state.publishedReports = Array.isArray(state.publishedReports) ? state.publishedReports : [];
+    state.publishedComponentResults = Array.isArray(state.publishedComponentResults) ? state.publishedComponentResults : [];
+    state.settings = state.settings || {};
+    if(state.settings.publishAllComponentResults === undefined) state.settings.publishAllComponentResults = false;
+  }
+  const oldNormalizePC = window.normalize;
+  if(typeof oldNormalizePC === "function"){
+    window.normalize = function(){
+      const r = oldNormalizePC.apply(this, arguments);
+      pcEnsure();
+      return r;
+    };
+    try{ eval("normalize=window.normalize;"); }catch(e){}
+  }
+
+  function pcStudent(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students||[]).find(s=>String(s.id)===String(id));
+  }
+  function pcQuiz(id){
+    try{ if(typeof quiz === "function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>String(q.id)===String(id));
+  }
+  function pcDoc(id){ return (state.docAssignments||[]).find(a=>String(a.id)===String(id)); }
+  function pcSubjectForClass(cls){
+    try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
+    const sub = (state.subjects||[]).find(s=>(s.classes||[]).includes(cls));
+    return sub ? sub.name : "";
+  }
+  function pcClassesForSubject(subj){
+    try{ if(typeof classesForSubject === "function") return classesForSubject(subj); }catch(e){}
+    const sub = (state.subjects||[]).find(s=>s.name===subj);
+    return sub?.classes || state.classes || [];
+  }
+  function pcComponentLabel(key){
+    const c = (state.components||[]).find(x=>String(x.id)===String(key) || String(x.key)===String(key));
+    return c ? (c.name || c.label || key) : (key || "Assessment");
+  }
+  function pcComponentOptions(selected){
+    return (state.components||[]).map(c=>{
+      const id = c.id || c.key || c.name;
+      return `<option value="${pcEsc(id)}" ${String(selected)===String(id)?"selected":""}>${pcEsc(c.name || c.label || id)}</option>`;
+    }).join("");
+  }
+  function pcScoreFor(studentId, compId){
+    return (state.scores||[]).find(s=>String(s.studentId)===String(studentId) && String(s.componentId)===String(compId));
+  }
+  function pcSetScore(studentId, compId, value){
+    pcEnsure();
+    let row = pcScoreFor(studentId, compId);
+    if(!row){
+      row = {id:pcUid("score"), studentId, componentId:compId, value:0};
+      state.scores.push(row);
+    }
+    row.value = Number(value)||0;
+    row.updatedAt = pcNow();
+  }
+  function pcIsReportPublished(studentId){
+    try{ if(typeof isReportPublished === "function") return isReportPublished(studentId); }catch(e){}
+    return (state.publishedReports||[]).includes(studentId);
+  }
+  function pcIsComponentPublished(compId, studentId){
+    return !!(state.settings.publishAllComponentResults || pcIsReportPublished(studentId) || (state.publishedComponentResults||[]).includes(compId));
+  }
+  function pcVisibleDoc(a, st){
+    if(!a || !st) return false;
+    if(String(a.status||"").toLowerCase() !== "published") return false;
+    const subj = pcSubjectForClass(st.className);
+    const subjectOk = !a.subject || !subj || a.subject === subj;
+    const classOk = !Array.isArray(a.classNames) || !a.classNames.length || a.classNames.includes(st.className);
+    return subjectOk && classOk;
+  }
+  function pcReadFile(file){
+    return new Promise(resolve=>{
+      if(!file) return resolve(null);
+      const r = new FileReader();
+      r.onload = ()=>resolve({name:file.name,type:file.type,data:r.result,savedAt:pcNow()});
+      r.onerror = ()=>resolve(null);
+      r.readAsDataURL(file);
+    });
+  }
+
+  window.toggleComponentPublish = function(compId){
+    pcEnsure();
+    compId = String(compId);
+    if((state.publishedComponentResults||[]).includes(compId)){
+      state.publishedComponentResults = state.publishedComponentResults.filter(x=>String(x)!==compId);
+      alert("This component result is now hidden from students.");
+    }else{
+      state.publishedComponentResults.push(compId);
+      alert("This component result is now visible to students.");
+    }
+    pcSave();
+    try{ renderShell(); }catch(e){}
+  };
+  window.publishAllComponentResults = function(show){
+    pcEnsure();
+    state.settings.publishAllComponentResults = !!show;
+    pcSave();
+    alert(show ? "All assessment component results are now visible to students." : "All component results are now hidden unless individually published.");
+    try{ renderShell(); }catch(e){}
+  };
+  window.publishReportsByClass = function(cls, show){
+    pcEnsure();
+    const ids = (state.students||[]).filter(s=>cls==="ALL" || s.className===cls).map(s=>s.id);
+    if(show){
+      ids.forEach(id=>{ if(!state.publishedReports.includes(id)) state.publishedReports.push(id); });
+    }else{
+      state.publishedReports = state.publishedReports.filter(id=>!ids.includes(id));
+    }
+    pcSave();
+    alert(show ? "Report cards published." : "Report cards hidden.");
+    try{ renderShell(); }catch(e){}
+  };
+
+  window.smartPortalControlHTML = function(){
+    pcEnsure();
+    const classOptions = [`<option value="ALL">All Classes</option>`].concat((state.classes||[]).map(c=>`<option value="${pcEsc(c)}">${pcEsc(c)}</option>`)).join("");
+    const pendingDocs = (state.docSubmissions||[]).filter(s=>!s.published).length;
+    return `<div class="portalControlPanel" id="smartPortalControlPanel">
+      <h2>Smart Student Portal Control Centre</h2>
+      <p>Control exactly what students can see: report cards, assessment results, scanned assignments, uploaded work, marks and feedback.</p>
+      <div class="portalControlGrid">
+        <div class="portalControlCard">
+          <h3>Report Card Publishing</h3>
+          <p>Publish or hide report cards for a class or all students. Published report cards appear in Student Portal with a print button.</p>
+          <select id="pcReportClass" class="select">${classOptions}</select>
+          <div class="portalControlActions">
+            <button class="btn green" onclick="publishReportsByClass(document.getElementById('pcReportClass').value,true)">Publish Report Cards</button>
+            <button class="btn light" onclick="publishReportsByClass(document.getElementById('pcReportClass').value,false)">Hide Report Cards</button>
+          </div>
+        </div>
+        <div class="portalControlCard">
+          <h3>Assessment Result Publishing</h3>
+          <p>Choose which assessment components students can view in their results page.</p>
+          <span class="portalBadge ${state.settings.publishAllComponentResults?'green':'gold'}">${state.settings.publishAllComponentResults?'All results visible':'Selected results only'}</span>
+          <div class="portalControlActions">
+            <button class="btn green" onclick="publishAllComponentResults(true)">Publish All Results</button>
+            <button class="btn light" onclick="publishAllComponentResults(false)">Use Selected Only</button>
+          </div>
+          <div style="margin-top:8px">${(state.components||[]).map(c=>{const id=c.id||c.key||c.name; const on=(state.publishedComponentResults||[]).includes(id); return `<button class="btn ${on?'green':'light'}" style="margin:3px" onclick="toggleComponentPublish('${pcEsc(id)}')">${on?'Visible':'Hidden'}: ${pcEsc(c.name||c.label||id)}</button>`}).join("") || `<div class="empty">No component has been created yet.</div>`}</div>
+        </div>
+        <div class="portalControlCard">
+          <h3>Scanned Work Communication</h3>
+          <p>Pending scanned submissions waiting for marking: <b>${pendingDocs}</b></p>
+          <div class="portalControlActions">
+            <button class="btn gold" onclick="setRoute('quizzes')">Create / Manage Assignments</button>
+            <button class="btn navy" onclick="setRoute('review')">Review / Mark Submissions</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  window.injectSmartPortalControl = function(){
+    if(role !== "admin") return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("smartPortalControlPanel")) return;
+    view.insertAdjacentHTML("afterbegin", smartPortalControlHTML());
+  };
+
+  function pcAssignmentEditorHTML(a){
+    const comp = a.assessmentComponent || state.components?.[0]?.id || "";
+    return `<div class="portalControlCard" id="docCard_${pcEsc(a.id)}">
+      <span class="portalBadge ${a.status==="Published"?'green':a.status==="Deleted"?'red':'gold'}">${pcEsc(a.status||"Draft")}</span>
+      <h3>${pcEsc(a.title||"Scanned Assignment")}</h3>
+      <p>${pcEsc(a.subject||"")} • ${pcEsc((a.classNames||[]).join(", ") || "No class selected")} • Max: ${pcEsc(a.maxScore||"")}</p>
+      ${a.questionFile?.data ? `<p><a class="btn light" href="${a.questionFile.data}" target="_blank">Open Question Paper</a></p>` : `<p class="notice">No question paper attached yet.</p>`}
+      <details>
+        <summary><b>Edit / Replace This Assignment</b></summary>
+        <div class="portalControlFields">
+          <div><label>Title</label><input id="editDocTitle_${pcEsc(a.id)}" value="${pcEsc(a.title||"")}"></div>
+          <div><label>Status</label><select id="editDocStatus_${pcEsc(a.id)}"><option ${a.status==="Draft"?"selected":""}>Draft</option><option ${a.status==="Published"?"selected":""}>Published</option><option ${a.status==="Hidden"?"selected":""}>Hidden</option></select></div>
+          <div><label>Maximum Score</label><input type="number" id="editDocMax_${pcEsc(a.id)}" value="${pcEsc(a.maxScore||10)}"></div>
+          <div><label>Component</label><select id="editDocComp_${pcEsc(a.id)}">${pcComponentOptions(comp)}</select></div>
+          <div><label>Replace Question Paper</label><input type="file" id="editDocFile_${pcEsc(a.id)}" accept="image/*,.pdf"></div>
+          <div style="grid-column:1/-1"><label>Instructions</label><textarea id="editDocInstructions_${pcEsc(a.id)}">${pcEsc(a.instructions||"")}</textarea></div>
+        </div>
+      </details>
+      <div class="portalControlActions">
+        <button class="btn green" onclick="saveExistingDocAssignment('${pcEsc(a.id)}')">Save Changes</button>
+        <button class="btn ${a.status==="Published"?'light':'green'}" onclick="toggleDocAssignment('${pcEsc(a.id)}')">${a.status==="Published"?'Hide From Students':'Publish To Students'}</button>
+        <button class="btn gold" onclick="publishDocResults('${pcEsc(a.id)}')">Publish Marks</button>
+        <button class="btn red" onclick="deleteDocAssignmentSafe('${pcEsc(a.id)}')">Delete From Student Portal</button>
+      </div>
+    </div>`;
+  }
+
+  window.smartDocAssignmentControlHTML = function(){
+    pcEnsure();
+    const subj = state.subjects?.[0]?.name || "Mathematics";
+    const comp = state.components?.[0]?.id || "";
+    return `<div class="portalControlPanel" id="smartDocAssignmentControl">
+      <h2>Scanned Assignment / Theory Work Control</h2>
+      <p>Upload a question paper, assign it to classes, publish it to students, edit it, replace it, hide it or delete it from the student portal.</p>
+      <div class="portalControlFields">
+        <div><label>Assignment Title</label><input id="docTitle" placeholder="Example: Exercise 3 Written Work"></div>
+        <div><label>Subject</label><select id="docSubject" onchange="refreshDocClasses()">${subjectOptions(subj)}</select></div>
+        <div><label>Status</label><select id="docStatus"><option>Draft</option><option>Published</option></select></div>
+        <div><label>Maximum Score</label><input id="docMax" type="number" value="10"></div>
+        <div><label>Component</label><select id="docComponent">${pcComponentOptions(comp)}</select></div>
+        <div><label>Question Paper / PDF</label><input id="docQuestionFile" type="file" accept="image/*,.pdf"></div>
+        <div style="grid-column:1/-1"><label>Instructions to Students</label><textarea id="docInstructions" placeholder="Open the question paper, solve in your exercise book, scan and upload your answer."></textarea></div>
+      </div>
+      <div><label class="label">Assign Classes</label><div id="docClasses" class="grid two"></div></div>
+      <div class="portalControlActions"><button class="btn green" onclick="saveDocAssignmentSmart()">Save / Publish Assignment</button></div>
+      <h3 style="margin-top:16px">Existing Scanned Assignments</h3>
+      <div class="portalControlGrid">${(state.docAssignments||[]).filter(a=>a.status!=="Deleted").map(pcAssignmentEditorHTML).join("") || `<div class="empty">No scanned assignment has been created yet.</div>`}</div>
+    </div>`;
+  };
+
+  window.refreshDocClasses = function(){
+    const subj = document.getElementById("docSubject")?.value || state.subjects?.[0]?.name || "";
+    const box = document.getElementById("docClasses");
+    if(!box) return;
+    box.innerHTML = pcClassesForSubject(subj).map(c=>`<label class="notice"><input type="checkbox" value="${pcEsc(c)}"> ${pcEsc(c)}</label>`).join("");
+  };
+
+  window.saveDocAssignmentSmart = async function(){
+    pcEnsure();
+    const title = (document.getElementById("docTitle")?.value || "").trim();
+    if(!title) return alert("Type assignment title.");
+    const subj = document.getElementById("docSubject")?.value || "";
+    const classes = [...document.querySelectorAll("#docClasses input:checked")].map(x=>x.value);
+    if(!classes.length) return alert("Select at least one class.");
+    const file = document.getElementById("docQuestionFile")?.files?.[0] || null;
+    const questionFile = await pcReadFile(file);
+    state.docAssignments.push({
+      id:pcUid("doc"),
+      title,
+      subject:subj,
+      classNames:classes,
+      status:document.getElementById("docStatus")?.value || "Draft",
+      createdAt:pcNow(),
+      updatedAt:pcNow(),
+      instructions:document.getElementById("docInstructions")?.value || "Open the question paper, solve, scan and upload your answer.",
+      maxScore:Number(document.getElementById("docMax")?.value)||10,
+      assessmentComponent:document.getElementById("docComponent")?.value || "",
+      questionFile
+    });
+    pcSave();
+    alert("Scanned assignment saved. If Published, students will see it immediately after live sync.");
+    try{ quizzes(); }catch(e){ renderShell(); }
+  };
+
+  window.saveDocAssignment = window.saveDocAssignmentSmart;
+
+  window.saveExistingDocAssignment = async function(id){
+    const a = pcDoc(id);
+    if(!a) return alert("Assignment not found.");
+    a.title = document.getElementById("editDocTitle_"+id)?.value || a.title;
+    a.status = document.getElementById("editDocStatus_"+id)?.value || a.status;
+    a.maxScore = Number(document.getElementById("editDocMax_"+id)?.value)||a.maxScore||10;
+    a.assessmentComponent = document.getElementById("editDocComp_"+id)?.value || a.assessmentComponent || "";
+    a.instructions = document.getElementById("editDocInstructions_"+id)?.value || "";
+    a.updatedAt = pcNow();
+    const file = document.getElementById("editDocFile_"+id)?.files?.[0] || null;
+    const qf = await pcReadFile(file);
+    if(qf) a.questionFile = qf;
+    pcSave();
+    alert("Assignment updated.");
+    try{ quizzes(); }catch(e){ renderShell(); }
+  };
+
+  window.toggleDocAssignment = function(id){
+    const a = pcDoc(id);
+    if(!a) return;
+    a.status = a.status === "Published" ? "Hidden" : "Published";
+    a.updatedAt = pcNow();
+    pcSave();
+    alert(a.status === "Published" ? "Assignment published to students." : "Assignment hidden from students.");
+    try{ quizzes(); }catch(e){ renderShell(); }
+  };
+
+  window.deleteDocAssignmentSafe = function(id){
+    const a = pcDoc(id);
+    if(!a) return;
+    if(!confirm("Remove this assignment from the student portal? Existing submitted work will be preserved for your records.")) return;
+    a.status = "Deleted";
+    a.deletedAt = pcNow();
+    pcSave();
+    alert("Assignment removed from the student portal. Submitted work is preserved.");
+    try{ quizzes(); }catch(e){ renderShell(); }
+  };
+  window.deleteDocAssignment = window.deleteDocAssignmentSafe;
+
+  window.publishDocResults = function(id){
+    const subs = (state.docSubmissions||[]).filter(s=>String(s.assignmentId)===String(id));
+    if(!subs.length) return alert("No scanned submission yet.");
+    const a = pcDoc(id) || {};
+    subs.forEach(s=>{
+      s.published = true;
+      const comp = a.assessmentComponent;
+      if(comp){
+        const max = Number(a.maxScore||100);
+        const sc = Number(s.score||0);
+        pcSetScore(s.studentId, comp, max ? Math.round((sc/max)*10000)/100 : sc);
+      }
+    });
+    pcSave();
+    alert("Marked scanned-work results have been published to students.");
+    try{ quizzes(); }catch(e){ renderShell(); }
+  };
+
+  const oldQuizzesPC = window.quizzes;
+  if(typeof oldQuizzesPC === "function"){
+    window.quizzes = function(){
+      oldQuizzesPC.apply(this, arguments);
+      const view = document.getElementById("view");
+      if(view){
+        document.getElementById("smartDocAssignmentControl")?.remove();
+        view.insertAdjacentHTML("beforeend", smartDocAssignmentControlHTML());
+        setTimeout(refreshDocClasses,50);
+      }
+    };
+  }
+
+  function pcSmartReviewItem(ds){
+    const st = pcStudent(ds.studentId) || {};
+    const a = pcDoc(ds.assignmentId) || {};
+    return `<div class="smartReviewItem">
+      <span class="portalBadge ${ds.published?'green':'gold'}">${ds.published?'Published to Student':'Not Published'}</span>
+      <h3>${pcEsc(st.name||"Student")} — ${pcEsc(a.title||"Scanned Work")}</h3>
+      <p>${pcEsc(st.className||"")} • Submitted: ${pcEsc(ds.submittedAt||"")} • Score: ${pcEsc(ds.score ?? "-")} / ${pcEsc(a.maxScore ?? "-")}</p>
+      <div class="smartReviewFiles">${(ds.files||[]).map((f,i)=>`<div class="smartReviewFile">
+        ${String(f.type||"").startsWith("image/")?`<img src="${f.data}" alt="">`:`<p><b>${pcEsc(f.name||"Uploaded file")}</b></p>`}
+        <p>${pcEsc(f.name||"Uploaded file")}</p>
+        <div class="portalControlActions">
+          <a class="btn light" href="${f.data}" download="${pcEsc(f.name||"student_work")}" target="_blank">Download / Open</a>
+          ${String(f.type||"").startsWith("image/")?`<button class="btn gold" onclick="openDigitalMarker('${pcEsc(ds.id)}',${i})">Open Pen Marking</button>`:`<span class="notice">PDF opens in a new tab. Image scans support pen marking.</span>`}
+        </div>
+        ${ds.markedFiles?.[i]?.data?`<div class="studentMarkedBox"><b>Marked copy saved</b><br><a class="btn green" href="${ds.markedFiles[i].data}" download="${pcEsc(ds.markedFiles[i].name||"marked_work.png")}" target="_blank">Download Marked Copy</a></div>`:""}
+      </div>`).join("")}</div>
+      <div class="portalControlFields">
+        <div><label>Score</label><input type="number" id="smartDocScore_${pcEsc(ds.id)}" value="${pcEsc(ds.score ?? "")}" onchange="setDocScore('${pcEsc(ds.id)}',this.value)"></div>
+        <div><label>Feedback</label><input id="smartDocFeedback_${pcEsc(ds.id)}" value="${pcEsc(ds.feedback||"")}" onchange="setDocFeedback('${pcEsc(ds.id)}',this.value)"></div>
+      </div>
+      <div class="portalControlActions">
+        <button class="btn green" onclick="smartPublishScannedSubmission('${pcEsc(ds.id)}')">${ds.published?'Update Published Mark':'Publish Marked Work'}</button>
+        <button class="btn light" onclick="smartHideScannedSubmission('${pcEsc(ds.id)}')">Hide From Student</button>
+      </div>
+    </div>`;
+  }
+
+  window.smartReviewCommunicationHTML = function(){
+    pcEnsure();
+    const docs = (state.docSubmissions||[]).slice().reverse();
+    return `<div class="portalControlPanel" id="smartReviewCommunicationPanel">
+      <h2>Smart Student Portal Communication Centre</h2>
+      <p>All scanned/theory submissions from students appear here. Download/open their work, mark image pages with pen tools, assign marks, add feedback and publish to their portals.</p>
+      <div class="smartReviewList">${docs.map(pcSmartReviewItem).join("") || `<div class="empty">No scanned/theory submission has been uploaded yet.</div>`}</div>
+    </div>`;
+  };
+
+  window.injectSmartReviewCommunication = function(){
+    if(role !== "admin") return;
+    const view = document.getElementById("view");
+    if(!view || document.getElementById("smartReviewCommunicationPanel")) return;
+    view.insertAdjacentHTML("afterbegin", smartReviewCommunicationHTML());
+  };
+
+  window.setDocScore = function(id,v){
+    const ds = (state.docSubmissions||[]).find(x=>String(x.id)===String(id));
+    if(ds){ ds.score = Number(v)||0; pcSave(); }
+  };
+  window.setDocFeedback = function(id,v){
+    const ds = (state.docSubmissions||[]).find(x=>String(x.id)===String(id));
+    if(ds){ ds.feedback = v; pcSave(); }
+  };
+  window.smartPublishScannedSubmission = function(id){
+    const ds = (state.docSubmissions||[]).find(x=>String(x.id)===String(id));
+    if(!ds) return;
+    const a = pcDoc(ds.assignmentId) || {};
+    const scInput = document.getElementById("smartDocScore_"+id);
+    const fbInput = document.getElementById("smartDocFeedback_"+id);
+    if(scInput) ds.score = Number(scInput.value)||0;
+    if(fbInput) ds.feedback = fbInput.value||"";
+    ds.published = true;
+    ds.publishedAt = pcNow();
+    if(a.assessmentComponent){
+      const max = Number(a.maxScore||100);
+      pcSetScore(ds.studentId, a.assessmentComponent, max ? Math.round((Number(ds.score||0)/max)*10000)/100 : Number(ds.score||0));
+    }
+    pcSave();
+    alert("Marked work published to the student portal.");
+    try{ renderShell(); }catch(e){}
+  };
+  window.smartHideScannedSubmission = function(id){
+    const ds = (state.docSubmissions||[]).find(x=>String(x.id)===String(id));
+    if(!ds) return;
+    ds.published = false;
+    pcSave();
+    alert("Marked work hidden from the student portal.");
+    try{ renderShell(); }catch(e){}
+  };
+  window.publishDocSubmission = function(id){ smartPublishScannedSubmission(id); };
+  window.publishDocSubmissionSimple = function(id){ smartPublishScannedSubmission(id); };
+
+  const oldReviewPC = window.review;
+  if(typeof oldReviewPC === "function"){
+    window.review = function(){
+      oldReviewPC.apply(this, arguments);
+      setTimeout(injectSmartReviewCommunication,60);
+    };
+  }
+
+  function pcStudentResultComponentsHTML(st){
+    const rows = (state.components||[]).filter(c=>pcIsComponentPublished(c.id||c.key||c.name, st.id));
+    if(!rows.length) return `<div class="empty">No assessment component result has been published yet.</div>`;
+    return `<div class="studentResultGrid">${rows.map(c=>{
+      const id = c.id || c.key || c.name;
+      const sc = pcScoreFor(st.id,id);
+      const raw = sc ? Number(sc.value)||0 : 0;
+      const max = Number(c.max)||100;
+      const weight = Number(c.weight)||0;
+      const weighted = max ? Math.round((raw/max)*weight*100)/100 : 0;
+      return `<div class="studentResultCard"><h3>${pcEsc(c.name||c.label||id)}</h3><div class="studentResultScore">${pcEsc(raw)} / ${pcEsc(max)}</div><p>Weight: ${pcEsc(weight)}% • Weighted score: ${pcEsc(weighted)}%</p></div>`;
+    }).join("")}</div>`;
+  }
+
+  function pcStudentQuizResultsHTML(st){
+    const rows = (state.submissions||[]).filter(s=>String(s.studentId)===String(st.id) && s.published);
+    if(!rows.length) return `<div class="empty">No quiz/exercise result has been published yet.</div>`;
+    return `<div class="studentResultGrid">${rows.map(s=>{
+      const q = pcQuiz(s.quizId)||{};
+      const score = s.teacherScore ?? s.autoScore ?? "";
+      return `<div class="studentResultCard"><h3>${pcEsc(q.title||"Quiz / Exercise")}</h3><div class="studentResultScore">${pcEsc(score)} / ${pcEsc(s.maxScore ?? "")}</div><p>Submitted: ${pcEsc(s.submittedAt||"")}</p><p>${pcEsc(s.feedback||"")}</p></div>`;
+    }).join("")}</div>`;
+  }
+
+  function pcStudentScannedResultsHTML(st){
+    const rows = (state.docSubmissions||[]).filter(s=>String(s.studentId)===String(st.id) && s.published);
+    if(!rows.length) return `<div class="empty">No scanned/theory work result has been published yet.</div>`;
+    return `<div class="studentResultGrid">${rows.map(ds=>{
+      const a = pcDoc(ds.assignmentId)||{};
+      return `<div class="studentResultCard"><h3>${pcEsc(a.title||"Scanned / Theory Work")}</h3><div class="studentResultScore">${pcEsc(ds.score ?? "")} / ${pcEsc(a.maxScore ?? "")}</div><p>Submitted: ${pcEsc(ds.submittedAt||"")}</p><p>${pcEsc(ds.feedback||"")}</p>
+        ${(ds.markedFiles||[]).filter(f=>f&&f.data).length?`<div class="studentMarkedGrid">${(ds.markedFiles||[]).filter(f=>f&&f.data).map(f=>`<div class="studentMarkedBox">${String(f.type||"").startsWith("image/")?`<img src="${f.data}" alt="">`:""}<a class="btn green" href="${f.data}" download="${pcEsc(f.name||"marked_work.png")}" target="_blank">Download Marked Script</a></div>`).join("")}</div>`:""}
+      </div>`;
+    }).join("")}</div>`;
+  }
+
+  window.studentResults = function(){
+    pcEnsure();
+    const st = pcStudent(currentStudentId);
+    if(!st){ role="guest"; route="studentLogin"; return renderShell(); }
+    const reportReady = pcIsReportPublished(st.id);
+    document.getElementById("view").innerHTML = `<div class="studentResultHub">
+      <div class="cleanStudentHero">
+        <h2>My Results and Report Card</h2>
+        <p>${pcEsc(st.name)} • ${pcEsc(st.className)}. Results appear here only after the admin publishes them.</p>
+        <span class="portalBadge ${reportReady?'green':'gold'}">${reportReady?'Report card ready':'Report card not yet published'}</span>
+      </div>
+      <div class="card">
+        <h2>Assessment Component Results</h2>
+        <p>Published examination, class exercise, assignment, project work and other component results appear below.</p>
+        ${pcStudentResultComponentsHTML(st)}
+      </div>
+      <div class="card">
+        <h2>Quiz / Exercise Results</h2>
+        ${pcStudentQuizResultsHTML(st)}
+      </div>
+      <div class="card">
+        <h2>Scanned / Theory Work Results</h2>
+        ${pcStudentScannedResultsHTML(st)}
+      </div>
+      <div class="card">
+        <h2>My Report Card</h2>
+        ${reportReady ? `<div class="studentReportActions"><button class="btn navy" onclick="printReportCard()">Print / Save Report Card as PDF</button></div><div id="reportPrintArea">${reportCardHTML(st.id,false)}</div>` : `<div class="notice">Your report card has not been published yet.</div>`}
+      </div>
+    </div>`;
+  };
+
+  const oldStudentHomePC = window.studentHome;
+  window.studentHome = function(){
+    oldStudentHomePC.apply(this, arguments);
+    const st = pcStudent(currentStudentId);
+    const view = document.getElementById("view");
+    if(!st || !view) return;
+    const reportReady = pcIsReportPublished(st.id);
+    const box = view.querySelector(".cleanStudentActions");
+    if(box && !document.getElementById("reportActionCard")){
+      box.insertAdjacentHTML("beforeend", `<div class="cleanActionCard" id="reportActionCard"><h3>Report Card</h3><p>${reportReady?"Your report card has been published. You can view, print, or save it as PDF.":"Your report card will appear here when Sir Isaac publishes it."}</p><button class="btn ${reportReady?'navy':'light'}" onclick="setRoute('studentResults')">${reportReady?'View / Print Report Card':'Check Report Card Status'}</button></div>`);
+    }
+  };
+
+  // Put admin portal-control panel on dashboard, reports, components and quizzes without replacing layout.
+  const oldDashboardPC = window.dashboard;
+  if(typeof oldDashboardPC === "function"){
+    window.dashboard = function(){ const r=oldDashboardPC.apply(this, arguments); setTimeout(injectSmartPortalControl,80); return r; };
+  }
+  const oldReportsPC = window.reports;
+  if(typeof oldReportsPC === "function"){
+    window.reports = function(){ const r=oldReportsPC.apply(this, arguments); setTimeout(injectSmartPortalControl,80); return r; };
+  }
+  const oldComponentsPC = window.components;
+  if(typeof oldComponentsPC === "function"){
+    window.components = function(){ const r=oldComponentsPC.apply(this, arguments); setTimeout(injectSmartPortalControl,80); return r; };
+  }
+  const oldRenderShellPC = window.renderShell;
+  if(typeof oldRenderShellPC === "function"){
+    window.renderShell = function(){
+      const r = oldRenderShellPC.apply(this, arguments);
+      setTimeout(()=>{
+        if(["dashboard","reports","components"].includes(route)) injectSmartPortalControl();
+        if(route==="review") injectSmartReviewCommunication();
+      },100);
+      return r;
+    };
+  }
+
+  try{
+    eval("normalize=window.normalize; toggleComponentPublish=window.toggleComponentPublish; publishAllComponentResults=window.publishAllComponentResults; publishReportsByClass=window.publishReportsByClass; smartPortalControlHTML=window.smartPortalControlHTML; injectSmartPortalControl=window.injectSmartPortalControl; smartDocAssignmentControlHTML=window.smartDocAssignmentControlHTML; refreshDocClasses=window.refreshDocClasses; saveDocAssignmentSmart=window.saveDocAssignmentSmart; saveDocAssignment=window.saveDocAssignment; saveExistingDocAssignment=window.saveExistingDocAssignment; toggleDocAssignment=window.toggleDocAssignment; deleteDocAssignmentSafe=window.deleteDocAssignmentSafe; deleteDocAssignment=window.deleteDocAssignment; publishDocResults=window.publishDocResults; quizzes=window.quizzes; smartReviewCommunicationHTML=window.smartReviewCommunicationHTML; injectSmartReviewCommunication=window.injectSmartReviewCommunication; setDocScore=window.setDocScore; setDocFeedback=window.setDocFeedback; smartPublishScannedSubmission=window.smartPublishScannedSubmission; smartHideScannedSubmission=window.smartHideScannedSubmission; publishDocSubmission=window.publishDocSubmission; publishDocSubmissionSimple=window.publishDocSubmissionSimple; review=window.review; studentResults=window.studentResults; studentHome=window.studentHome; dashboard=window.dashboard; reports=window.reports; components=window.components; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
