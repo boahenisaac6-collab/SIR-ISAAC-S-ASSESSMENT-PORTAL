@@ -9386,6 +9386,22 @@ html,body{
   .studentGateActions button{width:100%}
 }
 
+
+/* ===== CLICK ACTION REPAIR FINAL ===== */
+.clickRepairNotice{
+  border:2px solid #bce8ce;
+  border-left:10px solid #0f7b4f;
+  background:#ecfdf3;
+  color:#071f3d;
+  border-radius:16px;
+  padding:10px 12px;
+  margin:8px 0;
+  font-weight:850;
+}
+button[onclick], .nav button, .studentQuickAssignmentButtons button, .submissionWorkCard button, .quizCard button, .docAssignmentCard button, .oneAttemptClosedCard button{
+  pointer-events:auto!important;
+}
+
 </style>
 </head>
 <body>
@@ -30456,6 +30472,183 @@ async function initSupabase(){
 
   try{
     eval("renderStart=window.renderStart; openStudentPortal=window.openStudentPortal; showStudentPortalEntry=window.showStudentPortalEntry; verifyStudentPortalEntry=window.verifyStudentPortalEntry; openStudentPortalDirect=window.openStudentPortalDirect; wgCloseEntryPanel=window.wgCloseEntryPanel; openGuestMode=window.openGuestMode; renderGuestShell=window.renderGuestShell; setGuestRoute=window.setGuestRoute; guestOverview=window.guestOverview; guestClasses=window.guestClasses; guestAssignments=window.guestAssignments; guestDesign=window.guestDesign; settings=window.settings; injectStudentPortalGateSettings=window.injectStudentPortalGateSettings; saveStudentPortalGatePassword=window.saveStudentPortalGatePassword; turnStudentPortalGateOn=window.turnStudentPortalGateOn; turnStudentPortalGateOff=window.turnStudentPortalGateOff;");
+  }catch(e){}
+})();
+
+
+
+/* ===== CLICK ACTION REPAIR FINAL V1 =====
+   This fixes buttons that show on the page but do not respond after the welcome/password/guest update.
+   It does not change the app data or design. It only repairs click execution for existing buttons.
+*/
+(function(){
+  if(window.__clickActionRepairFinalV1) return;
+  window.__clickActionRepairFinalV1 = true;
+
+  function crText(el){
+    return String(el?.textContent || "").replace(/\s+/g," ").trim();
+  }
+  function crAttr(el,name){
+    return String(el?.getAttribute?.(name) || "");
+  }
+  function crSafeCall(name,args){
+    try{
+      const fn = window[name] || (typeof globalThis !== "undefined" ? globalThis[name] : null);
+      if(typeof fn === "function"){
+        return fn.apply(window,args || []);
+      }
+    }catch(e){
+      console.warn("Click repair call failed:", name, e);
+      alert("The button action could not open. Please refresh the page and try again.");
+    }
+  }
+  function crRunInline(el, ev){
+    const code = crAttr(el,"onclick");
+    if(!code) return false;
+    try{
+      // Run the same inline action manually and stop the browser from losing it.
+      const fn = new Function("event", code);
+      fn.call(el, ev);
+      return true;
+    }catch(e){
+      console.warn("Inline click repair failed:", code, e);
+      return false;
+    }
+  }
+  function crParseArg(code, fnName){
+    const re = new RegExp(fnName + "\\\\(\\\\s*['\\\"]([^'\\\"]+)['\\\"]");
+    const m = String(code||"").match(re);
+    return m ? m[1] : "";
+  }
+
+  window.repairClickableActions = function(){
+    try{
+      document.querySelectorAll("button[onclick], a[onclick], [role='button'][onclick]").forEach(el=>{
+        el.style.pointerEvents = "auto";
+        el.style.cursor = "pointer";
+        if(!el.dataset.clickRepairReady) el.dataset.clickRepairReady = "1";
+      });
+    }catch(e){}
+  };
+
+  document.addEventListener("click", function(ev){
+    const el = ev.target.closest && ev.target.closest("button, a, [role='button'], [onclick]");
+    if(!el) return;
+
+    // Do not disturb file inputs, drawing canvas, or normal external links without onclick.
+    if(el.tagName === "A" && !el.getAttribute("onclick")) return;
+
+    const code = crAttr(el,"onclick");
+    const text = crText(el);
+    let handled = false;
+
+    // Strong direct fixes for student-side buttons.
+    try{
+      if(code.includes("openStudentAssignmentsAndQuizzes") || /view available assignments|assignments.*quizzes/i.test(text)){
+        ev.preventDefault(); ev.stopImmediatePropagation();
+        handled = true;
+        crSafeCall("openStudentAssignmentsAndQuizzes",[]);
+      }else if(code.includes("openStudentSubmittedWork") || /submitted work|marked scripts/i.test(text)){
+        ev.preventDefault(); ev.stopImmediatePropagation();
+        handled = true;
+        if(typeof window.openStudentSubmittedWork === "function") crSafeCall("openStudentSubmittedWork",[]);
+        else { try{ route="studentResults"; studentResults(); }catch(e){ crSafeCall("studentResults",[]); } }
+      }else if(code.includes("studentHome") || /refresh my portal/i.test(text)){
+        ev.preventDefault(); ev.stopImmediatePropagation();
+        handled = true;
+        crSafeCall("studentHome",[]);
+      }else if(code.includes("takeQuiz")){
+        const id = crParseArg(code,"takeQuiz");
+        if(id){
+          ev.preventDefault(); ev.stopImmediatePropagation();
+          handled = true;
+          crSafeCall("takeQuiz",[id]);
+        }
+      }else if(code.includes("openDocSubmitSimple")){
+        const id = crParseArg(code,"openDocSubmitSimple");
+        if(id){
+          ev.preventDefault(); ev.stopImmediatePropagation();
+          handled = true;
+          crSafeCall("openDocSubmitSimple",[id]);
+        }
+      }else if(code.includes("openDocSubmit")){
+        const id = crParseArg(code,"openDocSubmit");
+        if(id){
+          ev.preventDefault(); ev.stopImmediatePropagation();
+          handled = true;
+          crSafeCall("openDocSubmit",[id]);
+        }
+      }else if(code.includes("openStudentSubmittedList")){
+        const id = crParseArg(code,"openStudentSubmittedList");
+        if(id){
+          ev.preventDefault(); ev.stopImmediatePropagation();
+          handled = true;
+          crSafeCall("openStudentSubmittedList",[id]);
+        }
+      }else if(code.includes("openStudentClassMembers")){
+        const id = crParseArg(code,"openStudentClassMembers");
+        if(id){
+          ev.preventDefault(); ev.stopImmediatePropagation();
+          handled = true;
+          crSafeCall("openStudentClassMembers",[id]);
+        }
+      }else if(code.includes("setRoute")){
+        const id = crParseArg(code,"setRoute");
+        if(id){
+          ev.preventDefault(); ev.stopImmediatePropagation();
+          handled = true;
+          crSafeCall("setRoute",[id]);
+        }
+      }
+    }catch(e){
+      console.warn("Direct click repair failed", e);
+    }
+
+    if(handled) return;
+
+    // Generic repair for all other inline app buttons in admin/student mode.
+    // This covers buttons such as Save, Review, Publish, Reset, Print, Settings, etc.
+    if(code && el.dataset.clickRepairRunning !== "1"){
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      el.dataset.clickRepairRunning = "1";
+      const ok = crRunInline(el, ev);
+      setTimeout(()=>{ delete el.dataset.clickRepairRunning; }, 80);
+      if(!ok){
+        // Common fallback: if the page has just rendered but wrappers were not attached, re-render current route.
+        try{
+          if(typeof renderShell === "function") setTimeout(()=>repairClickableActions(),120);
+        }catch(e){}
+      }
+    }
+  }, true);
+
+  const oldRenderShellCR = window.renderShell;
+  if(typeof oldRenderShellCR === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellCR.apply(this, arguments);
+      setTimeout(repairClickableActions,120);
+      return result;
+    };
+    try{ eval("renderShell=window.renderShell;"); }catch(e){}
+  }
+
+  const oldRenderStartCR = window.renderStart;
+  if(typeof oldRenderStartCR === "function"){
+    window.renderStart = function(){
+      const result = oldRenderStartCR.apply(this, arguments);
+      setTimeout(repairClickableActions,120);
+      return result;
+    };
+    try{ eval("renderStart=window.renderStart;"); }catch(e){}
+  }
+
+  // Re-attach periodically because many screens are drawn dynamically.
+  setInterval(repairClickableActions, 1200);
+  setTimeout(repairClickableActions, 500);
+
+  try{
+    eval("repairClickableActions=window.repairClickableActions;");
   }catch(e){}
 })();
 
