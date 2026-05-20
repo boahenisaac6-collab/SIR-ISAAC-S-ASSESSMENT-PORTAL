@@ -10222,7 +10222,7 @@ html,body{
 
 <script>
 const $ = (id)=>document.getElementById(id);
-const KEY = "ISAACS_ASSESSMENT_PORTAL_REDESIGNED_V1";
+const KEY = "ISAACS_HEAVY_FIREBASE_STABLE_205_V3";
 
 function uid(prefix="id"){return prefix+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8)}
 function esc(v){return String(v ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -34696,7 +34696,7 @@ with check (true);`;
   window.__complexFirebaseDirectLiveV1 = true;
 
   const FB_COLLECTION = "portal_live_state";
-  const FB_DOC = "main";
+  const FB_DOC = "main_205_stable_heavy_v3";
   let fbDb = null;
   let fbUnsub = null;
   let fbBusy = false;
@@ -34924,180 +34924,193 @@ with check (true);`;
 
 
 
-/* ===== STUDENT VIEW 205 STUDENTS FORCE-FIX =====
-   This repair makes the full 205 seeded students appear in Student Portal immediately.
-   It also protects against old browser localStorage or old Firebase data replacing the class list with an empty list.
+/* ===== HEAVY FIREBASE STABLE 205 V3: STUDENT + DATA PROTECTION ENGINE =====
+   Purpose:
+   1. Keep the original 8.5MB complex interface.
+   2. Prevent old localStorage or old Firebase documents from wiping the 205 students.
+   3. Automatically import useful old localStorage/Firebase data where still available.
+   4. Keep everything live without asking the teacher to click manual backup/sync buttons.
 */
 (function(){
-  if(window.__studentView205ForceFixV2) return;
-  window.__studentView205ForceFixV2 = true;
+  if(window.__heavyFirebaseStable205V3) return;
+  window.__heavyFirebaseStable205V3 = true;
 
-  function fxClone(x){ try{return JSON.parse(JSON.stringify(x||{}));}catch(e){return x;} }
-  function fxText(v,d=""){ return (v===undefined || v===null) ? d : String(v); }
-  function fxEsc(s){
-    return fxText(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+  const NEW_DOC = "main_205_stable_heavy_v3";
+  const OLD_DOCS = ["main", "main_205_stable_v2", "main_205_stable_heavy_v2"];
+  const OLD_LOCAL_KEYS = [
+    "ISAACS_ASSESSMENT_PORTAL_REDESIGNED_V1",
+    "ISAACS_ASSESSMENT_PORTAL_STUDENT_PORTAL_RESULTS_REPORT_SCANNED_CONTROL_V17",
+    "ISAACS_ASSESSMENT_PORTAL_TRUE_LIVE_SUPABASE_STABLE_SYNC_FINAL",
+    "SIR_ISAAC_FIREBASE_FULL_LIVE_READY_V1",
+    "SIR_ISAAC_SUPABASE_STUDENTS_SEEDED_V2_LOCAL",
+    "SIR_ISAAC_SUPABASE_FRESH_START_V1_LOCAL"
+  ];
+
+  function v3Clone(x){ try{return JSON.parse(JSON.stringify(x||{}));}catch(e){return x;} }
+  function v3Text(v){ return (v===undefined || v===null) ? "" : String(v); }
+  function v3Esc(s){ return v3Text(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m])); }
+  function v3Seed(){ try{return v3Clone(SEEDED_DEFAULT_STATE);}catch(e){ try{return defaultState();}catch(_){return {};}} }
+  function v3Key(key,item,index){
+    if(item && typeof item==="object" && item.id) return String(item.id);
+    if(key==="students") return v3Text(item?.name).toUpperCase()+"|"+v3Text(item?.className).toUpperCase();
+    if(key==="submissions") return v3Text(item?.studentId)+"|"+v3Text(item?.quizId)+"|"+v3Text(item?.submittedAt||index);
+    if(key==="docSubmissions") return v3Text(item?.studentId)+"|"+v3Text(item?.assignmentId)+"|"+v3Text(item?.submittedAt||index);
+    if(key==="publishedReports" || key==="publishedComponentResults") return String(item);
+    return JSON.stringify(item||{}).slice(0,180)+"|"+index;
   }
-  function fxSeedState(){
-    try{
-      if(typeof SEEDED_DEFAULT_STATE !== "undefined" && SEEDED_DEFAULT_STATE && Array.isArray(SEEDED_DEFAULT_STATE.students)){
-        return fxClone(SEEDED_DEFAULT_STATE);
-      }
-    }catch(e){}
-    try{ if(typeof defaultState==="function") return fxClone(defaultState()); }catch(e){}
-    return {};
-  }
-  function fxKeyForStudent(s,i){
-    return fxText(s.id) || (fxText(s.name).toUpperCase()+"|"+fxText(s.className).toUpperCase()) || ("student_"+i);
-  }
-  function fxRestoreStudents(){
-    const seed = fxSeedState();
-    if(!window.state || typeof state !== "object") window.state = {};
-    if(!Array.isArray(state.students)) state.students = [];
-
-    const seedStudents = Array.isArray(seed.students) ? seed.students : [];
-    const map = new Map();
-
-    seedStudents.forEach((s,i)=>{
-      if(!s) return;
-      map.set(fxKeyForStudent(s,i), fxClone(s));
-    });
-
-    state.students.forEach((s,i)=>{
-      if(!s) return;
-      const k = fxKeyForStudent(s,i);
-      const base = map.get(k) || {};
-      map.set(k, {...base, ...fxClone(s)});
-    });
-
-    state.students = [...map.values()].map((s,i)=>({
-      id: s.id || ("stu_fix_"+String(i+1).padStart(3,"0")),
-      code: s.code || s.password || ("STU-"+String(i+1).padStart(3,"0")),
-      name: s.name || ("STUDENT "+(i+1)),
-      className: s.className || "1 G3B",
-      status: s.status || "Active",
-      guardian: s.guardian || "",
-      phone: s.phone || "",
-      password: s.password || s.code || ("STU-"+String(i+1).padStart(3,"0")),
-      photo: s.photo || "",
-      ...s
-    }));
-
-    const fixedClasses = ["1 AGRIC","1 SCIENCE","1H2A","1 G3B"];
-    state.classes = fixedClasses;
-
-    if(!Array.isArray(state.subjects) || !state.subjects.length || typeof state.subjects[0] === "string"){
-      state.subjects = [
-        {name:"Additional Mathematics", classes:["1 AGRIC","1 SCIENCE"]},
-        {name:"Mathematics", classes:["1H2A","1 G3B"]}
-      ];
-    }else{
-      let add = state.subjects.find(x=>fxText(x.name||x)==="Additional Mathematics");
-      let mat = state.subjects.find(x=>fxText(x.name||x)==="Mathematics");
-      if(!add){ add={name:"Additional Mathematics",classes:["1 AGRIC","1 SCIENCE"]}; state.subjects.unshift(add); }
-      if(!mat){ mat={name:"Mathematics",classes:["1H2A","1 G3B"]}; state.subjects.push(mat); }
-      add.classes = ["1 AGRIC","1 SCIENCE"];
-      mat.classes = ["1H2A","1 G3B"];
+  function v3Obj(remote, local){
+    if(local===undefined || local===null) return v3Clone(remote);
+    if(remote===undefined || remote===null) return v3Clone(local);
+    if(Array.isArray(remote) || Array.isArray(local)) return v3Clone(local);
+    if(typeof remote==="object" && typeof local==="object"){
+      const out = {...v3Clone(remote), ...v3Clone(local)};
+      ["photo","questionFile","files","markedFiles","answers","feedback","score","published","password","phone","resetStatus","teacherScore","autoScore","docFile","file","url","data"].forEach(k=>{
+        const empty = (out[k]===undefined || out[k]===null || out[k]==="" || (Array.isArray(out[k]) && !out[k].length));
+        if(empty && remote[k]!==undefined) out[k]=remote[k];
+        const empty2 = (out[k]===undefined || out[k]===null || out[k]==="" || (Array.isArray(out[k]) && !out[k].length));
+        if(empty2 && local[k]!==undefined) out[k]=local[k];
+      });
+      return out;
     }
-
-    if(!state.settings || typeof state.settings !== "object") state.settings = {};
-    state.settings.school = state.settings.school || "AKUSE METHODIST SENIOR HIGH TECHNICAL SCHOOL";
-    state.settings.teacherName = state.settings.teacherName || "Sir Isaac Boahen";
-    state.settings.adminPass = state.settings.adminPass || "@amest";
-
-    return state.students.length;
+    return v3Clone(local);
+  }
+  function v3Arr(remoteArr, localArr, key){
+    const map = new Map();
+    (Array.isArray(remoteArr)?remoteArr:[]).forEach((item,i)=>map.set(v3Key(key,item,i), v3Clone(item)));
+    (Array.isArray(localArr)?localArr:[]).forEach((item,i)=>{
+      const id=v3Key(key,item,i);
+      map.set(id, map.has(id)?v3Obj(map.get(id), item):v3Clone(item));
+    });
+    return [...map.values()];
+  }
+  function v3Merge(remote, local){
+    const seed=v3Seed();
+    const r={...seed, ...(v3Clone(remote)||{})};
+    const l=v3Clone(local)||{};
+    const out={...r, ...l, settings:{...(r.settings||{}), ...(l.settings||{})}};
+    const arrays=["classes","subjects","students","quizzes","submissions","docAssignments","docSubmissions","components","scores","publishedReports","publishedComponentResults","reportScores","reportComments","academicYears","semesters","announcements","studentAnnouncements","attemptResets","resetRequests","passwordShares","assignmentNotifications","quizResets","messages","chatMessages","chatThreads","classMessages","teacherMessages","studentMessages"];
+    arrays.forEach(k=>{
+      if(k==="classes") out[k]=[...new Set([...(seed[k]||[]),...(r[k]||[]),...(l[k]||[])])];
+      else out[k]=v3Arr(v3Arr(seed[k]||[], r[k]||[], k), l[k]||[], k);
+    });
+    return v3Restore(out, false);
+  }
+  function v3Restore(target, saveIt=true){
+    const seed=v3Seed();
+    const st=target || state || {};
+    const seedStudents=Array.isArray(seed.students)?seed.students:[];
+    const map=new Map();
+    seedStudents.forEach((s,i)=>map.set(v3Key("students",s,i), v3Clone(s)));
+    (Array.isArray(st.students)?st.students:[]).forEach((s,i)=>{
+      if(!s) return;
+      const k=v3Key("students",s,i);
+      const base=map.get(k)||{};
+      map.set(k,{...base,...v3Clone(s), deleted:false, status:(s.status||"Active")});
+    });
+    st.students=[...map.values()];
+    st.classes=["1 AGRIC","1 SCIENCE","1H2A","1 G3B"];
+    st.subjects=[{name:"Additional Mathematics",classes:["1 AGRIC","1 SCIENCE"]},{name:"Mathematics",classes:["1H2A","1 G3B"]}];
+    if(!st.settings || typeof st.settings!=="object") st.settings={};
+    st.settings.adminPass=st.settings.adminPass||"@amest";
+    st.settings.teacherName=st.settings.teacherName||"Sir Isaac Boahen";
+    st.settings.school=st.settings.school||"AKUSE METHODIST SENIOR HIGH TECHNICAL SCHOOL";
+    if(saveIt){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
+    return st;
+  }
+  function v3ImportOldLocal(){
+    try{
+      let base = state || v3Seed();
+      OLD_LOCAL_KEYS.forEach(k=>{
+        if(k===KEY) return;
+        const raw=localStorage.getItem(k);
+        if(!raw) return;
+        try{ base=v3Merge(JSON.parse(raw), base); }catch(e){}
+      });
+      state=v3Restore(base,true);
+    }catch(e){ console.warn(e); }
   }
 
-  const oldNormalize = window.normalize || (typeof normalize === "function" ? normalize : null);
-  window.normalize = function(){
-    let r;
-    try{ if(oldNormalize) r = oldNormalize.apply(this, arguments); }catch(e){ console.warn(e); }
-    fxRestoreStudents();
+  const oldNormalize = (typeof normalize==="function") ? normalize : null;
+  window.normalize=function(){
+    let r; try{ if(oldNormalize) r=oldNormalize.apply(this,arguments); }catch(e){ console.warn(e); }
+    try{ state=v3Restore(state,false); }catch(e){ console.warn(e); }
     return r;
   };
-
-  const oldLoadLocal = window.loadLocal || (typeof loadLocal === "function" ? loadLocal : null);
-  window.loadLocal = function(){
-    try{ if(oldLoadLocal) oldLoadLocal.apply(this, arguments); }catch(e){ console.warn(e); }
-    fxRestoreStudents();
-    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+  const oldLoadLocal = (typeof loadLocal==="function") ? loadLocal : null;
+  window.loadLocal=function(){
+    try{ const raw=localStorage.getItem(KEY); if(raw) state=JSON.parse(raw); }catch(e){}
+    try{ v3ImportOldLocal(); }catch(e){}
+    try{ if(oldLoadLocal && !localStorage.getItem(KEY)) oldLoadLocal.apply(this,arguments); }catch(e){}
+    try{ state=v3Restore(state,true); }catch(e){}
+  };
+  const oldSaveLocal = (typeof saveLocal==="function") ? saveLocal : null;
+  window.saveLocal=function(){
+    try{ state=v3Restore(state,false); }catch(e){}
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
   };
 
-  const oldSaveLocal = window.saveLocal || (typeof saveLocal === "function" ? saveLocal : null);
-  window.saveLocal = function(){
-    fxRestoreStudents();
-    try{ if(oldSaveLocal) return oldSaveLocal.apply(this, arguments); }catch(e){ console.warn(e); }
-  };
-
-  window.studentLogin = function(){
-    try{ if(typeof normalize === "function") normalize(); }catch(e){}
-    fxRestoreStudents();
-
-    const oldSubj = document.getElementById("loginSubj")?.value || "ALL";
-    const subj = oldSubj || "ALL";
-    const oldCls = document.getElementById("loginClass")?.value || "ALL";
-    const cls = oldCls || "ALL";
+  // Strong student portal renderer: all students first, no hidden default class.
+  window.studentLogin=function(){
+    try{ state=v3Restore(state,true); }catch(e){}
+    const subj = document.getElementById("loginSubj")?.value || "ALL";
+    const cls = document.getElementById("loginClass")?.value || "ALL";
     const q = (document.getElementById("loginSearch")?.value || "").toLowerCase();
-
-    const allSubjects = Array.isArray(state.subjects) ? state.subjects.map(s=>fxText(s.name || s)).filter(Boolean) : [];
-    let classList = state.classes || ["1 AGRIC","1 SCIENCE","1H2A","1 G3B"];
-    if(subj !== "ALL" && typeof classesForSubject === "function"){
-      classList = classesForSubject(subj);
-    }
-
-    const list = (state.students || []).filter(s=>{
-      const sSubj = typeof subjectForClass === "function" ? subjectForClass(s.className) : "";
-      const subjOk = subj === "ALL" || sSubj === subj;
-      const clsOk = cls === "ALL" || s.className === cls;
-      const hay = (fxText(s.name)+" "+fxText(s.code)+" "+fxText(s.phone)+" "+fxText(s.className)).toLowerCase();
-      const qOk = !q || hay.includes(q);
-      return subjOk && clsOk && qOk && !s.deleted;
+    const subjects=["ALL","Additional Mathematics","Mathematics"];
+    const classes=(subj==="Additional Mathematics")?["1 AGRIC","1 SCIENCE"]:(subj==="Mathematics"?["1H2A","1 G3B"]:["1 AGRIC","1 SCIENCE","1H2A","1 G3B"]);
+    const list=(state.students||[]).filter(s=>{
+      const subject=(s.className==="1 AGRIC"||s.className==="1 SCIENCE")?"Additional Mathematics":"Mathematics";
+      return (subj==="ALL"||subject===subj) && (cls==="ALL"||s.className===cls) && (!q || (v3Text(s.name)+" "+v3Text(s.code)+" "+v3Text(s.phone)+" "+v3Text(s.className)).toLowerCase().includes(q));
     });
-
-    const subjectOptionsHTML = `<option value="ALL" ${subj==="ALL"?"selected":""}>All Subjects</option>` + allSubjects.map(name=>`<option value="${fxEsc(name)}" ${subj===name?'selected':''}>${fxEsc(name)}</option>`).join("");
-    const classOptionsHTML = `<option value="ALL" ${cls==="ALL"?"selected":""}>All Classes</option>` + classList.map(c=>`<option value="${fxEsc(c)}" ${cls===c?'selected':''}>${fxEsc(c)}</option>`).join("");
-
-    const view = document.getElementById("view");
-    if(!view) return;
-
-    view.innerHTML = `<div class="card">
-      <h2>Student Portal</h2>
-      <p>All students are shown first. You may search by name, code, phone, or filter by class.</p>
-      <div class="grid three">
-        <select id="loginSubj" class="select" onchange="studentLogin()">${subjectOptionsHTML}</select>
-        <select id="loginClass" class="select" onchange="studentLogin()">${classOptionsHTML}</select>
-        <input id="loginSearch" class="input" oninput="studentLogin()" value="${fxEsc(q)}" placeholder="Search your name, code, phone, or class">
-      </div>
-      <div class="toolbar" style="margin-top:10px">
-        <span class="badge good">Students loaded: ${state.students.length}</span>
-        <span class="badge">Showing: ${list.length}</span>
-        <span class="badge">Classes: ${(state.classes||[]).join(", ")}</span>
-      </div>
-    </div>
-    <div class="studentPickGrid">${list.map(s=>`<button class="studentPick dblHint" onclick="selectStudentLogin('${fxEsc(s.id)}')" ondblclick="quickOpenStudentPortal('${fxEsc(s.id)}')">
-      ${typeof photoHTML==="function" ? photoHTML(s) : ""}
-      <span><b>${fxEsc(s.name)}</b><small>${fxEsc(s.code || "")} • ${fxEsc(s.className || "")}</small><small class="dblText">Click your name to open your portal</small></span>
-    </button>`).join("") || `<div class="empty">No student found. Try All Subjects and All Classes, or press Ctrl + Shift + R.</div>`}</div><div id="studentPassBox"></div>`;
+    const view=document.getElementById("view"); if(!view) return;
+    view.innerHTML=`<div class="card"><h2>Student Portal</h2><p>All students are shown first. Search your name or choose a class.</p><div class="grid three">
+      <select id="loginSubj" class="select" onchange="studentLogin()">${subjects.map(s=>`<option value="${s}" ${subj===s?'selected':''}>${s==='ALL'?'All Subjects':s}</option>`).join("")}</select>
+      <select id="loginClass" class="select" onchange="studentLogin()"><option value="ALL" ${cls==='ALL'?'selected':''}>All Classes</option>${classes.map(c=>`<option value="${v3Esc(c)}" ${cls===c?'selected':''}>${v3Esc(c)}</option>`).join("")}</select>
+      <input id="loginSearch" class="input" oninput="studentLogin()" value="${v3Esc(q)}" placeholder="Search your name, code, phone, or class">
+    </div><div class="toolbar" style="margin-top:10px"><span class="badge good">Students loaded: ${state.students.length}</span><span class="badge">Showing: ${list.length}</span><span class="badge">Stable Firebase v3</span></div></div>
+    <div class="studentPickGrid">${list.map(s=>`<button class="studentPick dblHint" onclick="selectStudentLogin('${v3Esc(s.id)}')" ondblclick="quickOpenStudentPortal('${v3Esc(s.id)}')">${typeof photoHTML==="function"?photoHTML(s):""}<span><b>${v3Esc(s.name)}</b><small>${v3Esc(s.code||s.password||"")} • ${v3Esc(s.className||"")}</small><small class="dblText">Click your name to open your portal</small></span></button>`).join("") || `<div class="empty">No student found. Press Ctrl + Shift + R and choose All Classes.</div>`}</div><div id="studentPassBox"></div>`;
   };
 
-  try{
-    eval("normalize=window.normalize; loadLocal=window.loadLocal; saveLocal=window.saveLocal; studentLogin=window.studentLogin;");
-  }catch(e){}
+  async function v3FirebaseMigrateAndSeed(){
+    try{
+      if(!window.firebase || !window.FIREBASE_CONFIG) return;
+      if(!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
+      const db=firebase.firestore();
+      const ref=db.collection("portal_live_state").doc(NEW_DOC);
+      let merged = v3Restore(state||v3Seed(), false);
+      const fresh=await ref.get();
+      if(fresh.exists && fresh.data()?.data) merged=v3Merge(fresh.data().data, merged);
+      for(const d of OLD_DOCS){
+        try{
+          const old=await db.collection("portal_live_state").doc(d).get();
+          if(old.exists && old.data()?.data) merged=v3Merge(old.data().data, merged);
+        }catch(e){}
+      }
+      state=v3Restore(merged,true);
+      await ref.set({data:v3Clone(state), updatedAt:firebase.firestore.FieldValue.serverTimestamp(), stableVersion:"heavy_205_v3"},{merge:true});
+    }catch(e){ console.warn("Stable v3 Firebase migration skipped", e); }
+  }
 
-  setTimeout(function(){
+  // Re-bind globals.
+  try{ eval("normalize=window.normalize; loadLocal=window.loadLocal; saveLocal=window.saveLocal; studentLogin=window.studentLogin;"); }catch(e){}
+
+  // Protection timers: if remote or browser cache makes list empty, restore and repaint automatically.
+  [100,800,2000,5000,10000,20000,40000].forEach(ms=>setTimeout(()=>{
     try{
-      fxRestoreStudents();
-      if(typeof saveLocal === "function") saveLocal();
-      if(typeof role !== "undefined" && role === "guest" && typeof route !== "undefined" && route === "studentLogin" && typeof studentLogin === "function") studentLogin();
-    }catch(e){ console.warn(e); }
-  }, 100);
-  setTimeout(function(){
+      state=v3Restore(state,true);
+      if(typeof role!=="undefined" && role==="guest" && typeof route!=="undefined" && route==="studentLogin") studentLogin();
+    }catch(e){}
+  },ms));
+  setInterval(()=>{
     try{
-      fxRestoreStudents();
-      if(typeof save === "function") save();
-    }catch(e){ console.warn(e); }
-  }, 1800);
+      if(!state || !Array.isArray(state.students) || state.students.length<205){
+        state=v3Restore(state,true);
+        if(typeof role!=="undefined" && role==="guest" && typeof route!=="undefined" && route==="studentLogin") studentLogin();
+      }
+    }catch(e){}
+  },3000);
+  setTimeout(v3FirebaseMigrateAndSeed,2500);
+  setTimeout(v3FirebaseMigrateAndSeed,9000);
 })();
-
 
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
