@@ -9128,283 +9128,8 @@ html,body{
 }
 
 
-/* ===== WELCOME PAGE + STUDENT GATE + GUEST MODE ===== */
-.welcomeClassroomHero{
-  padding:34px 30px 28px;
-  background:
-    radial-gradient(circle at top right, rgba(244,196,48,.28), transparent 32%),
-    linear-gradient(135deg,#071f3d,#041225 68%,#0f7b4f);
-  color:#fff;
-  position:relative;
-  overflow:hidden;
-}
-.welcomeClassroomHero::after{
-  content:"∫  π  √x  f(x)  Σ  Δ";
-  position:absolute;
-  right:24px;
-  bottom:8px;
-  font-size:34px;
-  font-weight:950;
-  color:rgba(255,255,255,.08);
-  letter-spacing:.16em;
-}
-.welcomeIdentityRow{
-  display:flex;
-  gap:16px;
-  align-items:center;
-  position:relative;
-  z-index:2;
-}
-.welcomeSchoolLogo{
-  width:76px;
-  height:76px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:#fff;
-  color:#071f3d;
-  border:5px solid #f4c430;
-  box-shadow:0 10px 30px rgba(0,0,0,.28);
-  font-weight:1000;
-  font-size:23px;
-  letter-spacing:.03em;
-  flex:0 0 auto;
-}
-.welcomeSchoolLogo img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  border-radius:50%;
-}
-.welcomeClassroomHero h1{
-  margin:0 0 8px;
-  font-size:clamp(28px,4vw,46px);
-  line-height:1.1;
-  color:#fff;
-  letter-spacing:.02em;
-}
-.welcomeClassroomHero p{
-  margin:0;
-  color:#eaf2ff;
-  font-weight:850;
-  line-height:1.55;
-  max-width:820px;
-}
-.welcomeModeTile{
-  position:relative;
-  overflow:hidden;
-}
-.welcomeModeTile::before{
-  content:"";
-  position:absolute;
-  inset:0 auto 0 0;
-  width:7px;
-  background:#f4c430;
-}
-.welcomeModeTile h2{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.welcomeModeIcon{
-  width:34px;
-  height:34px;
-  border-radius:12px;
-  display:inline-grid;
-  place-items:center;
-  background:#eef5fc;
-  color:#071f3d;
-  font-size:18px;
-}
-.studentGatePanel{
-  background:#fff;
-  border:2px solid #f4c430;
-  border-radius:22px;
-  padding:16px;
-  box-shadow:0 10px 28px rgba(7,31,61,.12);
-}
-.studentGatePanel h2{
-  margin:0 0 8px;
-  color:#071f3d;
-}
-.studentGatePanel p{
-  margin:0 0 12px;
-  color:#475467;
-  font-weight:850;
-  line-height:1.45;
-}
-.studentGateActions{
-  display:grid;
-  grid-template-columns:1fr auto auto;
-  gap:8px;
-  align-items:end;
-}
-.studentGateActions input{
-  width:100%;
-  min-height:42px;
-  border:1px solid #cbd9e8;
-  border-radius:12px;
-  padding:8px 10px;
-  font-weight:850;
-  color:#071f3d;
-}
-.studentGateActions button{
-  min-height:42px;
-  border-radius:12px;
-  padding:8px 12px;
-  font-weight:950;
-  cursor:pointer;
-}
-.guestReadOnlyBanner{
-  border:2px solid #f4c430;
-  border-left:10px solid #071f3d;
-  background:linear-gradient(135deg,#ffffff,#fffdf0);
-  color:#071f3d;
-  border-radius:20px;
-  padding:14px;
-  margin-bottom:14px;
-  box-shadow:0 8px 24px rgba(7,31,61,.08);
-}
-.guestReadOnlyBanner h2{
-  margin:0 0 6px;
-  color:#071f3d;
-}
-.guestReadOnlyBanner p{
-  margin:0;
-  color:#475467;
-  font-weight:850;
-  line-height:1.45;
-}
-.guestPreviewGrid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
-  gap:14px;
-}
-.guestPreviewCard{
-  background:#fff;
-  border:1px solid #d9e7f3;
-  border-radius:22px;
-  padding:16px;
-  box-shadow:0 8px 24px rgba(7,31,61,.08);
-  color:#071f3d;
-}
-.guestPreviewCard h3{
-  margin:0 0 8px;
-  color:#071f3d;
-}
-.guestPreviewCard p{
-  margin:0 0 10px;
-  color:#475467;
-  font-weight:800;
-  line-height:1.45;
-}
-.guestPreviewBadge{
-  display:inline-flex;
-  border-radius:999px;
-  padding:5px 9px;
-  background:#eef5fc;
-  color:#071f3d;
-  border:1px solid #d9e7f3;
-  font-size:12px;
-  font-weight:950;
-  margin:4px 4px 4px 0;
-}
-.studentPortalGateSettings{
-  border:2px solid #f4c430;
-  border-left:10px solid #0f7b4f;
-  background:linear-gradient(135deg,#ffffff,#ecfdf3);
-  border-radius:22px;
-  padding:16px;
-  margin:0 0 14px;
-  box-shadow:0 10px 26px rgba(7,31,61,.10);
-  color:#071f3d;
-}
-.studentPortalGateSettings h2{
-  margin:0 0 6px;
-  color:#071f3d;
-}
-.studentPortalGateSettings p{
-  margin:0 0 12px;
-  color:#475467;
-  font-weight:850;
-}
-.studentPortalGateGrid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  gap:10px;
-  align-items:end;
-}
-.studentPortalGateGrid label{
-  display:block;
-  font-size:11px;
-  text-transform:uppercase;
-  color:#667085;
-  font-weight:950;
-  margin-bottom:5px;
-}
-.studentPortalGateGrid input{
-  width:100%;
-  min-height:42px;
-  border:1px solid #cbd9e8;
-  border-radius:12px;
-  padding:8px 10px;
-  color:#071f3d;
-  font-weight:850;
-  background:#fff;
-}
-.studentPortalGateGrid button{
-  min-height:42px;
-  border-radius:12px;
-  padding:8px 12px;
-  font-weight:950;
-  cursor:pointer;
-}
-.gateStatusOn{
-  display:inline-flex;
-  border-radius:999px;
-  background:#fff1f0;
-  color:#b42318;
-  border:1px solid #ffd4d0;
-  padding:6px 10px;
-  font-weight:950;
-  margin:4px 0 8px;
-}
-.gateStatusOff{
-  display:inline-flex;
-  border-radius:999px;
-  background:#ecfdf3;
-  color:#0f6b47;
-  border:1px solid #bce8ce;
-  padding:6px 10px;
-  font-weight:950;
-  margin:4px 0 8px;
-}
-@media(max-width:720px){
-  .welcomeIdentityRow{align-items:flex-start}
-  .welcomeSchoolLogo{width:60px;height:60px;font-size:18px}
-  .studentGateActions{grid-template-columns:1fr}
-  .studentGateActions button{width:100%}
-}
-
-
-/* ===== CLICK ACTION REPAIR FINAL ===== */
-.clickRepairNotice{
-  border:2px solid #bce8ce;
-  border-left:10px solid #0f7b4f;
-  background:#ecfdf3;
-  color:#071f3d;
-  border-radius:16px;
-  padding:10px 12px;
-  margin:8px 0;
-  font-weight:850;
-}
-button[onclick], .nav button, .studentQuickAssignmentButtons button, .submissionWorkCard button, .quizCard button, .docAssignmentCard button, .oneAttemptClosedCard button{
-  pointer-events:auto!important;
-}
-
-
-/* ===== STUDENT AVAILABLE WORK BUTTON REAL FIX ===== */
-.fixedAvailableWorkPanel{
+/* ===== RESTORE SUBMISSIONS + AVAILABLE WORK FINAL ===== */
+.restoreWorkPanel{
   border:2px solid #f4c430;
   border-left:10px solid #0f7b4f;
   background:linear-gradient(135deg,#ffffff,#fffdf0);
@@ -9414,22 +9139,10 @@ button[onclick], .nav button, .studentQuickAssignmentButtons button, .submission
   margin:0 0 14px;
   box-shadow:0 8px 24px rgba(7,31,61,.08);
 }
-.fixedAvailableWorkPanel h2{
-  margin:0 0 6px;
-  color:#071f3d;
-}
-.fixedAvailableWorkPanel p{
-  margin:0 0 10px;
-  color:#475467;
-  font-weight:850;
-  line-height:1.45;
-}
-.fixedAvailableWorkButtons{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.fixedAvailableWorkButtons button{
+.restoreWorkPanel h2{margin:0 0 6px;color:#071f3d}
+.restoreWorkPanel p{margin:0 0 10px;color:#475467;font-weight:850;line-height:1.45}
+.restoreWorkActions{display:flex;flex-wrap:wrap;gap:8px}
+.restoreWorkActions button{
   min-height:42px;
   border-radius:12px;
   padding:9px 12px;
@@ -9437,11 +9150,8 @@ button[onclick], .nav button, .studentQuickAssignmentButtons button, .submission
   cursor:pointer!important;
   pointer-events:auto!important;
 }
-.fixedAssignmentCentre{
-  display:grid;
-  gap:14px;
-}
-.fixedAssignmentHero{
+.restoreAssignmentCentre{display:grid;gap:14px}
+.restoreAssignmentHero{
   border:2px solid #f4c430;
   border-left:10px solid #071f3d;
   background:linear-gradient(135deg,#fff,#eef5fc);
@@ -9449,23 +9159,23 @@ button[onclick], .nav button, .studentQuickAssignmentButtons button, .submission
   border-radius:22px;
   padding:16px;
 }
-.fixedAssignmentHero h2{margin:0 0 6px;color:#071f3d}
-.fixedAssignmentHero p{margin:0;color:#475467;font-weight:850;line-height:1.45}
-.fixedWorkCards{
+.restoreAssignmentHero h2{margin:0 0 6px;color:#071f3d}
+.restoreAssignmentHero p{margin:0;color:#475467;font-weight:850;line-height:1.45}
+.restoreWorkCards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
   gap:12px;
 }
-.fixedWorkCard{
+.restoreWorkCard{
   background:#fff;
   border:1px solid #d9e7f3;
   border-radius:18px;
   padding:14px;
   box-shadow:0 6px 18px rgba(7,31,61,.06);
 }
-.fixedWorkCard h3{margin:0 0 8px;color:#071f3d}
-.fixedWorkCard p{margin:0 0 10px;color:#475467;font-weight:800;line-height:1.45}
-.fixedWorkCard button{
+.restoreWorkCard h3{margin:0 0 8px;color:#071f3d}
+.restoreWorkCard p{margin:0 0 10px;color:#475467;font-weight:800;line-height:1.45}
+.restoreWorkCard button{
   width:100%;
   min-height:42px;
   border-radius:12px;
@@ -9473,7 +9183,7 @@ button[onclick], .nav button, .studentQuickAssignmentButtons button, .submission
   cursor:pointer!important;
   pointer-events:auto!important;
 }
-.fixedOpenBadge,.fixedClosedBadge{
+.restoreOpenBadge,.restoreClosedBadge{
   display:inline-flex;
   border-radius:999px;
   padding:5px 9px;
@@ -9481,8 +9191,75 @@ button[onclick], .nav button, .studentQuickAssignmentButtons button, .submission
   font-weight:950;
   margin:2px 0 8px;
 }
-.fixedOpenBadge{background:#f4c430;color:#071f3d}
-.fixedClosedBadge{background:#0f7b4f;color:#fff}
+.restoreOpenBadge{background:#f4c430;color:#071f3d}
+.restoreClosedBadge{background:#0f7b4f;color:#fff}
+.restoreAdminPanel{
+  border:2px solid #f4c430;
+  border-left:10px solid #071f3d;
+  background:linear-gradient(135deg,#fff,#fffdf0);
+  border-radius:22px;
+  padding:16px;
+  margin:0 0 14px;
+  color:#071f3d;
+  box-shadow:0 10px 26px rgba(7,31,61,.10);
+}
+.restoreAdminPanel h2{margin:0 0 6px;color:#071f3d}
+.restoreAdminPanel p{margin:0 0 12px;color:#475467;font-weight:850;line-height:1.45}
+.restoreAdminGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  align-items:end;
+}
+.restoreAdminGrid label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  color:#667085;
+  font-weight:950;
+  margin-bottom:5px;
+}
+.restoreAdminGrid select,.restoreAdminGrid input{
+  width:100%;
+  min-height:42px;
+  border:1px solid #cbd9e8;
+  border-radius:12px;
+  padding:8px 10px;
+  color:#071f3d;
+  font-weight:850;
+  background:#fff;
+}
+.restoreAdminActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.restoreAdminActions button{
+  min-height:40px;
+  border-radius:12px;
+  padding:8px 12px;
+  font-weight:950;
+  cursor:pointer!important;
+}
+.restoreMiniBadge{
+  display:inline-flex;
+  border-radius:999px;
+  padding:5px 9px;
+  background:#eef5fc;
+  color:#071f3d;
+  border:1px solid #d9e7f3;
+  font-size:12px;
+  font-weight:950;
+  margin:6px 6px 0 0;
+}
+.restoreArchivePanel{
+  border:1px solid #d9e7f3;
+  border-radius:18px;
+  background:#fff;
+  padding:12px;
+  margin:14px 0;
+}
+.restoreArchivePanel summary{font-weight:950;cursor:pointer;color:#071f3d}
+@media(max-width:760px){
+  .restoreAdminGrid{grid-template-columns:1fr}
+  .restoreAdminActions button,.restoreWorkActions button{width:100%}
+}
 
 </style>
 </head>
@@ -30268,546 +30045,193 @@ async function initSupabase(){
 
 
 
-/* ===== WELCOME PAGE + STUDENT GATE + GUEST MODE V1 =====
-   Added without changing the working internal app:
-   - New welcome title: Welcome to Sir Isaac's Mathematics Classroom.
-   - School logo/seal shown on the first view.
-   - Student Portal entrance password gate, default password: osp.
-   - Admin can turn Student Portal entrance password ON/OFF in Settings.
-   - Guest Mode is read-only and cannot submit, edit, mark, reset, or save.
+/* ===== RESTORE SUBMISSIONS + AVAILABLE WORK FINAL V4 =====
+   Clean fix from the stable pre-guest version:
+   - Removes the guest-mode/button-repair changes by using this pre-guest base.
+   - Restores all submissions hidden by previous archive flags.
+   - Does not delete any submission.
+   - Uses a separate admin reset log instead of changing old submissions.
+   - View Available Assignments / Quizzes opens directly.
+   - Submitted-students list shows all active submitted students again.
 */
 (function(){
-  if(window.__welcomeStudentGateGuestModeV1) return;
-  window.__welcomeStudentGateGuestModeV1 = true;
+  if(window.__restoreSubmissionsAvailableWorkFinalV4) return;
+  window.__restoreSubmissionsAvailableWorkFinalV4 = true;
 
-  function wgEsc(v){
+  function rxEsc(v){
     try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
     catch(e){ return String(v ?? ""); }
   }
-  function wgEnsureSettings(){
-    state.settings = state.settings || {};
-    if(state.settings.studentPortalGateEnabled === undefined) state.settings.studentPortalGateEnabled = true;
-    if(!state.settings.studentPortalGatePassword) state.settings.studentPortalGatePassword = "osp";
-    return state.settings;
+  function rxUid(prefix){
+    try{ if(typeof uid === "function") return uid(prefix); }catch(e){}
+    try{ if(typeof exUid === "function") return exUid(prefix); }catch(e){}
+    try{ if(typeof sqUid === "function") return sqUid(prefix); }catch(e){}
+    return prefix+"_"+Date.now()+"_"+Math.random().toString(16).slice(2);
   }
-  function wgSave(){
-    try{ if(typeof save === "function") return save(); }catch(e){}
-    try{ if(typeof saveLocal === "function") return saveLocal(); }catch(e){}
+  function rxNowText(){
+    try{ if(typeof now === "function") return now(); }catch(e){}
+    return new Date().toLocaleString();
   }
-  function wgLogoHTML(){
-    const logo = state.settings?.schoolLogo || state.settings?.logo || state.settings?.logoUrl || "";
-    if(logo) return `<div class="welcomeSchoolLogo"><img src="${wgEsc(logo)}" alt="School Logo"></div>`;
-    return `<div class="welcomeSchoolLogo">AM</div>`;
+  function rxNowMs(){ return Date.now(); }
+  function rxTime(x){
+    if(!x) return 0;
+    if(typeof x === "number") return x;
+    const t = new Date(x).getTime();
+    return Number.isFinite(t) ? t : 0;
   }
-  function wgHideLoginPanel(){
-    const p = document.getElementById("loginPanel");
-    if(p) p.classList.add("hidden");
-  }
-
-  window.renderStart = function(){
-    wgEnsureSettings();
-    document.getElementById("app").innerHTML = `<div class="start">
-      <div class="startCard">
-        <div class="welcomeClassroomHero">
-          <div class="welcomeIdentityRow">
-            ${wgLogoHTML()}
-            <div>
-              <h1>Welcome to Sir Isaac's Mathematics Classroom</h1>
-              <p>Professional assessment system for Mathematics and Additional Mathematics. Live quiz submission, scanned work upload, student records, continuous assessment, reports, and teacher review.</p>
-            </div>
-          </div>
-        </div>
-        <div class="startBody">
-          <div class="portalTile welcomeModeTile">
-            <h2><span class="welcomeModeIcon">🔐</span>Teacher Admin Mode</h2>
-            <p>Manage students, classes, quizzes, marks, reports, settings, resets, and submissions.</p>
-            <button class="btn navy full" onclick="showAdminLogin()">Enter Admin Mode</button>
-          </div>
-          <div class="portalTile welcomeModeTile">
-            <h2><span class="welcomeModeIcon">🎓</span>Student Portal</h2>
-            <p>Students enter the classroom portal, select their name, and access assigned work.</p>
-            <button class="btn gold full" onclick="showStudentPortalEntry()">Open Student Portal</button>
-          </div>
-          <div class="portalTile welcomeModeTile">
-            <h2><span class="welcomeModeIcon">👁️</span>Guest Mode</h2>
-            <p>Explore the beauty and structure of the app in read-only mode. No editing, no submission, no marking.</p>
-            <button class="btn light full" onclick="openGuestMode()">Explore as Guest</button>
-          </div>
-        </div>
-        <div id="loginPanel" class="loginPanel hidden"></div>
-      </div>
-    </div>`;
-  };
-
-  window.showStudentPortalEntry = function(){
-    const s = wgEnsureSettings();
-    if(s.studentPortalGateEnabled === false){
-      return openStudentPortalDirect();
-    }
-    const panel = document.getElementById("loginPanel");
-    if(!panel) return;
-    panel.classList.remove("hidden");
-    panel.innerHTML = `<div class="studentGatePanel">
-      <h2>Student Portal Password</h2>
-      <p>Enter the student portal entrance password to open the student side of the classroom.</p>
-      <div class="studentGateActions">
-        <input id="studentPortalEntryPass" type="password" placeholder="Enter student portal password" onkeydown="if(event.key==='Enter')verifyStudentPortalEntry()">
-        <button class="btn green" onclick="verifyStudentPortalEntry()">Open Portal</button>
-        <button class="btn light" onclick="wgCloseEntryPanel()">Cancel</button>
-      </div>
-    </div>`;
-    setTimeout(()=>document.getElementById("studentPortalEntryPass")?.focus(), 60);
-  };
-
-  window.wgCloseEntryPanel = function(){
-    const p = document.getElementById("loginPanel");
-    if(p){
-      p.innerHTML = "";
-      p.classList.add("hidden");
-    }
-  };
-
-  window.verifyStudentPortalEntry = function(){
-    const s = wgEnsureSettings();
-    const typed = (document.getElementById("studentPortalEntryPass")?.value || "").trim();
-    const pass = String(s.studentPortalGatePassword || "osp").trim();
-    if(typed !== pass){
-      return alert("Wrong student portal password.");
-    }
-    openStudentPortalDirect();
-  };
-
-  window.openStudentPortalDirect = function(){
-    wgHideLoginPanel();
-    role = "guest";
-    route = "studentLogin";
-    renderShell();
-  };
-
-  // Keep original name, but pass through the new gate.
-  window.openStudentPortal = function(){
-    return showStudentPortalEntry();
-  };
-
-  function wgClassCounts(){
-    const map = new Map();
-    (state.students||[]).forEach(st=>{
-      const c = st.className || "Unassigned";
-      map.set(c,(map.get(c)||0)+1);
-    });
-    return [...map.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]), undefined, {numeric:true, sensitivity:"base"}));
-  }
-  function wgPublishedQuizzes(){
-    return (state.quizzes||[]).filter(q=>String(q.status||"").toLowerCase()==="published");
-  }
-  function wgPublishedDocs(){
-    return (state.docAssignments||[]).filter(a=>String(a.status||"").toLowerCase()==="published");
-  }
-
-  window.openGuestMode = function(){
-    role = "guestPreview";
-    route = "guestOverview";
-    renderGuestShell();
-  };
-
-  window.setGuestRoute = function(r){
-    route = r;
-    renderGuestShell();
-  };
-
-  window.renderGuestShell = function(){
-    const items = [["guestOverview","Overview"],["guestClasses","Classes"],["guestAssignments","Assignments"],["guestDesign","Design Preview"]];
-    const pageTitle = ({guestOverview:"Guest Overview",guestClasses:"Class Preview",guestAssignments:"Assignment Preview",guestDesign:"Creative Design Preview"})[route] || "Guest Mode";
-    document.getElementById("app").innerHTML = `<div class="appShell">
-      <aside class="side">
-        <div class="brand"><div class="logoCircle">AM</div><div><h2>Sir Isaac's Mathematics Classroom</h2><small>Guest Read-Only Mode</small></div></div>
-        <nav class="nav">
-          ${items.map(([r,t])=>`<button class="${route===r?'active':''}" onclick="setGuestRoute('${r}')">${t}</button>`).join("")}
-          <button onclick="logout()">Exit Guest Mode</button>
-        </nav>
-      </aside>
-      <main class="main">
-        <div class="topbar"><div><h1>${wgEsc(pageTitle)}</h1><p>Read-only exploration • No editing • No submission • No marking</p></div><div><button class="btn gold" onclick="logout()">Back Home</button></div></div>
-        <div id="view"></div>
-      </main>
-    </div>`;
-    const fn = {guestOverview,guestClasses,guestAssignments,guestDesign}[route] || guestOverview;
-    fn();
-    try{ if(typeof typeset==="function") typeset(); }catch(e){}
-  };
-
-  window.guestOverview = function(){
-    const classes = wgClassCounts();
-    const published = wgPublishedQuizzes().length + wgPublishedDocs().length;
-    const submissions = (state.submissions||[]).length + (state.docSubmissions||[]).length;
-    document.getElementById("view").innerHTML = `<div class="guestReadOnlyBanner">
-      <h2>Guest Mode: Read-Only Exploration</h2>
-      <p>You can explore the classroom design and app structure, but you cannot submit work, edit data, mark scripts, reset attempts, or change settings.</p>
-    </div>
-    <div class="cards">
-      <div class="card stat"><span>Total Students</span><b>${(state.students||[]).length}</b></div>
-      <div class="card stat"><span>Classes</span><b>${classes.length}</b></div>
-      <div class="card stat"><span>Published Work</span><b>${published}</b></div>
-      <div class="card stat"><span>Captured Submissions</span><b>${submissions}</b></div>
-    </div>
-    <div class="guestPreviewGrid" style="margin-top:14px">
-      <div class="guestPreviewCard"><h3>Student Portal</h3><p>Students select their subject, class, and name to access assigned work.</p><span class="guestPreviewBadge">Read-only preview</span></div>
-      <div class="guestPreviewCard"><h3>Assessment Tools</h3><p>Supports quizzes, scanned exercises, review, marking, and report preparation.</p><span class="guestPreviewBadge">No action allowed</span></div>
-      <div class="guestPreviewCard"><h3>Classroom Branding</h3><p>Designed for Sir Isaac's Mathematics Classroom with a clean professional school style.</p><span class="guestPreviewBadge">Professional view</span></div>
-    </div>`;
-  };
-
-  window.guestClasses = function(){
-    const rows = wgClassCounts();
-    document.getElementById("view").innerHTML = `<div class="guestReadOnlyBanner"><h2>Class Preview</h2><p>This page shows class totals only. Guest users cannot open private student portals or submit work.</p></div>
-    <div class="guestPreviewGrid">
-      ${rows.map(([c,n])=>`<div class="guestPreviewCard"><h3>${wgEsc(c)}</h3><p>${n} student(s) registered.</p><span class="guestPreviewBadge">Read only</span></div>`).join("") || `<div class="empty">No class available.</div>`}
-    </div>`;
-  };
-
-  window.guestAssignments = function(){
-    const quizzes = wgPublishedQuizzes();
-    const docs = wgPublishedDocs();
-    document.getElementById("view").innerHTML = `<div class="guestReadOnlyBanner"><h2>Assignment Preview</h2><p>Guest users can see the kind of work available, but cannot start, submit, mark, or reset any work.</p></div>
-    <div class="card"><h2>Published Quizzes / Exercises</h2>${quizzes.map(q=>`<div class="guestPreviewCard" style="margin:10px 0"><h3>${wgEsc(q.title)}</h3><p>${(q.questions||[]).length} question(s) • ${wgEsc(q.subject||"")}</p><span class="guestPreviewBadge">Preview only</span></div>`).join("") || `<div class="empty">No published quiz available.</div>`}</div>
-    <div class="card" style="margin-top:14px"><h2>Published Scanned / Theory Work</h2>${docs.map(a=>`<div class="guestPreviewCard" style="margin:10px 0"><h3>${wgEsc(a.title)}</h3><p>${wgEsc(a.instructions||"Scanned/theory assignment")}</p><span class="guestPreviewBadge">Preview only</span></div>`).join("") || `<div class="empty">No published scanned/theory work available.</div>`}</div>`;
-  };
-
-  window.guestDesign = function(){
-    document.getElementById("view").innerHTML = `<div class="guestReadOnlyBanner">
-      <h2>Creative Design Preview</h2>
-      <p>This preview displays the major design areas of the classroom application without allowing any real action.</p>
-    </div>
-    <div class="guestPreviewGrid">
-      <div class="guestPreviewCard"><h3>📚 Learning Work</h3><p>Quizzes, exercises, scanned work, and written submissions.</p><span class="guestPreviewBadge">Preview</span></div>
-      <div class="guestPreviewCard"><h3>✅ Submission Tracking</h3><p>Submitted work lists and one-attempt control for each assignment.</p><span class="guestPreviewBadge">Preview</span></div>
-      <div class="guestPreviewCard"><h3>🖊️ Marking</h3><p>Digital marking board and feedback area for teacher review.</p><span class="guestPreviewBadge">Preview</span></div>
-      <div class="guestPreviewCard"><h3>📊 Reports</h3><p>Continuous assessment, scores, and report preparation.</p><span class="guestPreviewBadge">Preview</span></div>
-    </div>`;
-  };
-
-  const oldSettingsStudentGate = window.settings;
-  if(typeof oldSettingsStudentGate === "function"){
-    window.settings = function(){
-      const result = oldSettingsStudentGate.apply(this, arguments);
-      injectStudentPortalGateSettings();
-      return result;
-    };
-  }
-
-  window.injectStudentPortalGateSettings = function(){
-    if(role !== "admin") return;
-    wgEnsureSettings();
-    const view = document.getElementById("view");
-    if(!view || document.getElementById("studentPortalGateSettings")) return;
-    const on = state.settings.studentPortalGateEnabled !== false;
-    view.insertAdjacentHTML("afterbegin", `<div id="studentPortalGateSettings" class="studentPortalGateSettings">
-      <h2>Student Portal Entrance Password</h2>
-      <span class="${on?'gateStatusOn':'gateStatusOff'}">${on?'Student Portal Password is ON':'Student Portal Password is OFF'}</span>
-      <p>This controls the first Student Portal button on the welcome page. Default password is <b>osp</b>. It is different from each student's personal password.</p>
-      <div class="studentPortalGateGrid">
-        <div>
-          <label>Current Entrance Password</label>
-          <input id="studentPortalGatePasswordInput" value="${wgEsc(state.settings.studentPortalGatePassword || 'osp')}">
-        </div>
-        <div><button class="btn green full" onclick="saveStudentPortalGatePassword()">Save Password</button></div>
-        <div><button class="btn navy full" onclick="turnStudentPortalGateOn()">Turn Portal Password ON</button></div>
-        <div><button class="btn light full" onclick="turnStudentPortalGateOff()">Turn Portal Password OFF</button></div>
-      </div>
-    </div>`);
-  };
-
-  window.saveStudentPortalGatePassword = function(){
-    wgEnsureSettings();
-    const v = (document.getElementById("studentPortalGatePasswordInput")?.value || "").trim();
-    if(!v) return alert("Type the student portal entrance password first.");
-    state.settings.studentPortalGatePassword = v;
-    wgSave();
-    settings();
-    alert("Student Portal entrance password saved.");
-  };
-  window.turnStudentPortalGateOn = function(){
-    wgEnsureSettings();
-    state.settings.studentPortalGateEnabled = true;
-    if(!state.settings.studentPortalGatePassword) state.settings.studentPortalGatePassword = "osp";
-    wgSave();
-    settings();
-    alert("Student Portal entrance password is now ON.");
-  };
-  window.turnStudentPortalGateOff = function(){
-    wgEnsureSettings();
-    state.settings.studentPortalGateEnabled = false;
-    wgSave();
-    settings();
-    alert("Student Portal entrance password is now OFF. Students can open the Student Portal directly.");
-  };
-
-  // Ensure default settings are present whenever app loads.
-  setTimeout(()=>{
-    try{
-      const before = JSON.stringify({enabled:state.settings?.studentPortalGateEnabled,password:state.settings?.studentPortalGatePassword});
-      wgEnsureSettings();
-      const after = JSON.stringify({enabled:state.settings?.studentPortalGateEnabled,password:state.settings?.studentPortalGatePassword});
-      if(before !== after) wgSave();
-    }catch(e){}
-  }, 800);
-
-  try{
-    eval("renderStart=window.renderStart; openStudentPortal=window.openStudentPortal; showStudentPortalEntry=window.showStudentPortalEntry; verifyStudentPortalEntry=window.verifyStudentPortalEntry; openStudentPortalDirect=window.openStudentPortalDirect; wgCloseEntryPanel=window.wgCloseEntryPanel; openGuestMode=window.openGuestMode; renderGuestShell=window.renderGuestShell; setGuestRoute=window.setGuestRoute; guestOverview=window.guestOverview; guestClasses=window.guestClasses; guestAssignments=window.guestAssignments; guestDesign=window.guestDesign; settings=window.settings; injectStudentPortalGateSettings=window.injectStudentPortalGateSettings; saveStudentPortalGatePassword=window.saveStudentPortalGatePassword; turnStudentPortalGateOn=window.turnStudentPortalGateOn; turnStudentPortalGateOff=window.turnStudentPortalGateOff;");
-  }catch(e){}
-})();
-
-
-
-/* ===== CLICK ACTION REPAIR FINAL V1 =====
-   This fixes buttons that show on the page but do not respond after the welcome/password/guest update.
-   It does not change the app data or design. It only repairs click execution for existing buttons.
-*/
-(function(){
-  if(window.__clickActionRepairFinalV1) return;
-  window.__clickActionRepairFinalV1 = true;
-
-  function crText(el){
-    return String(el?.textContent || "").replace(/\s+/g," ").trim();
-  }
-  function crAttr(el,name){
-    return String(el?.getAttribute?.(name) || "");
-  }
-  function crSafeCall(name,args){
-    try{
-      const fn = window[name] || (typeof globalThis !== "undefined" ? globalThis[name] : null);
-      if(typeof fn === "function"){
-        return fn.apply(window,args || []);
-      }
-    }catch(e){
-      console.warn("Click repair call failed:", name, e);
-      alert("The button action could not open. Please refresh the page and try again.");
-    }
-  }
-  function crRunInline(el, ev){
-    const code = crAttr(el,"onclick");
-    if(!code) return false;
-    try{
-      // Run the same inline action manually and stop the browser from losing it.
-      const fn = new Function("event", code);
-      fn.call(el, ev);
-      return true;
-    }catch(e){
-      console.warn("Inline click repair failed:", code, e);
-      return false;
-    }
-  }
-  function crParseArg(code, fnName){
-    const re = new RegExp(fnName + "\\\\(\\\\s*['\\\"]([^'\\\"]+)['\\\"]");
-    const m = String(code||"").match(re);
-    return m ? m[1] : "";
-  }
-
-  window.repairClickableActions = function(){
-    try{
-      document.querySelectorAll("button[onclick], a[onclick], [role='button'][onclick]").forEach(el=>{
-        el.style.pointerEvents = "auto";
-        el.style.cursor = "pointer";
-        if(!el.dataset.clickRepairReady) el.dataset.clickRepairReady = "1";
-      });
-    }catch(e){}
-  };
-
-  document.addEventListener("click", function(ev){
-    const el = ev.target.closest && ev.target.closest("button, a, [role='button'], [onclick]");
-    if(!el) return;
-
-    // Do not disturb file inputs, drawing canvas, or normal external links without onclick.
-    if(el.tagName === "A" && !el.getAttribute("onclick")) return;
-
-    const code = crAttr(el,"onclick");
-    const text = crText(el);
-    let handled = false;
-
-    // Strong direct fixes for student-side buttons.
-    try{
-      if(code.includes("openStudentAssignmentsAndQuizzes") || /view available assignments|assignments.*quizzes/i.test(text)){
-        ev.preventDefault(); ev.stopImmediatePropagation();
-        handled = true;
-        crSafeCall("openStudentAssignmentsAndQuizzes",[]);
-      }else if(code.includes("openStudentSubmittedWork") || /submitted work|marked scripts/i.test(text)){
-        ev.preventDefault(); ev.stopImmediatePropagation();
-        handled = true;
-        if(typeof window.openStudentSubmittedWork === "function") crSafeCall("openStudentSubmittedWork",[]);
-        else { try{ route="studentResults"; studentResults(); }catch(e){ crSafeCall("studentResults",[]); } }
-      }else if(code.includes("studentHome") || /refresh my portal/i.test(text)){
-        ev.preventDefault(); ev.stopImmediatePropagation();
-        handled = true;
-        crSafeCall("studentHome",[]);
-      }else if(code.includes("takeQuiz")){
-        const id = crParseArg(code,"takeQuiz");
-        if(id){
-          ev.preventDefault(); ev.stopImmediatePropagation();
-          handled = true;
-          crSafeCall("takeQuiz",[id]);
-        }
-      }else if(code.includes("openDocSubmitSimple")){
-        const id = crParseArg(code,"openDocSubmitSimple");
-        if(id){
-          ev.preventDefault(); ev.stopImmediatePropagation();
-          handled = true;
-          crSafeCall("openDocSubmitSimple",[id]);
-        }
-      }else if(code.includes("openDocSubmit")){
-        const id = crParseArg(code,"openDocSubmit");
-        if(id){
-          ev.preventDefault(); ev.stopImmediatePropagation();
-          handled = true;
-          crSafeCall("openDocSubmit",[id]);
-        }
-      }else if(code.includes("openStudentSubmittedList")){
-        const id = crParseArg(code,"openStudentSubmittedList");
-        if(id){
-          ev.preventDefault(); ev.stopImmediatePropagation();
-          handled = true;
-          crSafeCall("openStudentSubmittedList",[id]);
-        }
-      }else if(code.includes("openStudentClassMembers")){
-        const id = crParseArg(code,"openStudentClassMembers");
-        if(id){
-          ev.preventDefault(); ev.stopImmediatePropagation();
-          handled = true;
-          crSafeCall("openStudentClassMembers",[id]);
-        }
-      }else if(code.includes("setRoute")){
-        const id = crParseArg(code,"setRoute");
-        if(id){
-          ev.preventDefault(); ev.stopImmediatePropagation();
-          handled = true;
-          crSafeCall("setRoute",[id]);
-        }
-      }
-    }catch(e){
-      console.warn("Direct click repair failed", e);
-    }
-
-    if(handled) return;
-
-    // Generic repair for all other inline app buttons in admin/student mode.
-    // This covers buttons such as Save, Review, Publish, Reset, Print, Settings, etc.
-    if(code && el.dataset.clickRepairRunning !== "1"){
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      el.dataset.clickRepairRunning = "1";
-      const ok = crRunInline(el, ev);
-      setTimeout(()=>{ delete el.dataset.clickRepairRunning; }, 80);
-      if(!ok){
-        // Common fallback: if the page has just rendered but wrappers were not attached, re-render current route.
-        try{
-          if(typeof renderShell === "function") setTimeout(()=>repairClickableActions(),120);
-        }catch(e){}
-      }
-    }
-  }, true);
-
-  const oldRenderShellCR = window.renderShell;
-  if(typeof oldRenderShellCR === "function"){
-    window.renderShell = function(){
-      const result = oldRenderShellCR.apply(this, arguments);
-      setTimeout(repairClickableActions,120);
-      return result;
-    };
-    try{ eval("renderShell=window.renderShell;"); }catch(e){}
-  }
-
-  const oldRenderStartCR = window.renderStart;
-  if(typeof oldRenderStartCR === "function"){
-    window.renderStart = function(){
-      const result = oldRenderStartCR.apply(this, arguments);
-      setTimeout(repairClickableActions,120);
-      return result;
-    };
-    try{ eval("renderStart=window.renderStart;"); }catch(e){}
-  }
-
-  // Re-attach periodically because many screens are drawn dynamically.
-  setInterval(repairClickableActions, 1200);
-  setTimeout(repairClickableActions, 500);
-
-  try{
-    eval("repairClickableActions=window.repairClickableActions;");
-  }catch(e){}
-})();
-
-
-
-/* ===== STUDENT AVAILABLE WORK BUTTON REAL FIX V2 =====
-   Directly fixes the Student Portal "View Available Assignments / Quizzes" button.
-   The button now opens a self-contained available-work page, so it does not depend on older wrappers.
-*/
-(function(){
-  if(window.__studentAvailableWorkButtonRealFixV2) return;
-  window.__studentAvailableWorkButtonRealFixV2 = true;
-
-  function fwEsc(v){
-    try{ return typeof esc === "function" ? esc(v) : String(v ?? ""); }
-    catch(e){ return String(v ?? ""); }
-  }
-  function fwStudent(id){
+  function rxStudent(id){
     try{ if(typeof student === "function") return student(id); }catch(e){}
     return (state.students||[]).find(s=>String(s.id)===String(id));
   }
-  function fwSubjectForClass(cls){
+  function rxQuiz(id){
+    try{ if(typeof quiz === "function") return quiz(id); }catch(e){}
+    return (state.quizzes||[]).find(q=>String(q.id)===String(id));
+  }
+  function rxDoc(id){
+    return (state.docAssignments||[]).find(a=>String(a.id)===String(id));
+  }
+  function rxSubjectForClass(cls){
     try{ if(typeof subjectForClass === "function") return subjectForClass(cls); }catch(e){}
     const subj = (state.subjects||[]).find(x=>(x.classes||[]).includes(cls));
     return subj ? subj.name : "";
   }
-  function fwComponentLabel(key){
+  function rxComponentLabel(key){
     try{
-      if(typeof reportComponents === "function"){
-        const c = reportComponents().find(x=>x.key===key);
+      if(typeof reportComponents==="function"){
+        const c=reportComponents().find(x=>x.key===key);
         if(c) return c.label;
       }
     }catch(e){}
     return key || "Assessment";
   }
-  function fwIsArchived(x){
-    return !!(x && (x.adminReset || x._adminReset || x.resetReleased || x._resetArchived || x._oaArchivedDuplicate || x.archivedAttempt || x.archivedReason || x.resetAt));
+  function rxEnsure(){
+    state.attemptResets = Array.isArray(state.attemptResets) ? state.attemptResets : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.docSubmissions = Array.isArray(state.docSubmissions) ? state.docSubmissions : [];
   }
-  function fwQuizSubmitted(qid){
-    return (state.submissions||[]).some(s=>String(s.studentId)===String(currentStudentId) && String(s.quizId)===String(qid) && !fwIsArchived(s));
+
+  function rxClearBadArchiveFlags(item){
+    if(!item) return false;
+    const keys = ["adminReset","_adminReset","resetReleased","_resetArchived","_oaArchivedDuplicate","archivedAttempt","archivedReason","resetAt","archivedAt","resetScope","resetReason","resetBy","duplicateArchivedAt"];
+    let changed = false;
+    keys.forEach(k=>{
+      if(Object.prototype.hasOwnProperty.call(item,k)){
+        delete item[k];
+        changed = true;
+      }
+    });
+    return changed;
   }
-  function fwDocSubmitted(aid){
-    return (state.docSubmissions||[]).some(s=>String(s.studentId)===String(currentStudentId) && String(s.assignmentId)===String(aid) && !fwIsArchived(s));
+
+  window.restoreAllHiddenSubmissions = function(){
+    rxEnsure();
+    let changed = false;
+    state.submissions.forEach(s=>{ if(rxClearBadArchiveFlags(s)) changed = true; });
+    state.docSubmissions.forEach(s=>{ if(rxClearBadArchiveFlags(s)) changed = true; });
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return changed;
+  };
+
+  // Disable previous scripts that hid/deleted rows. Nothing is deleted.
+  window.oneAttemptDeleteRemoteDuplicates = async function(){
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return false;
+  };
+  window.oneAttemptCleanup = function(){
+    rxEnsure();
+    restoreAllHiddenSubmissions();
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    return false;
+  };
+
+  function rxSave(){
+    rxEnsure();
+    restoreAllHiddenSubmissions();
+    window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+    try{ if(typeof pushRemote === "function") return pushRemote(); }catch(e){}
+    try{ if(typeof save === "function") return save(); }catch(e){}
   }
-  function fwCanSee(item, st){
+  async function rxFresh(){
+    try{
+      if(typeof stablePullRemote === "function") await stablePullRemote(true);
+    }catch(e){ console.warn("Remote refresh skipped", e); }
+    restoreAllHiddenSubmissions();
+  }
+
+  function rxWorkType(type){ return type === "doc" ? "doc" : "quiz"; }
+  function rxLatestReset(type, workId, studentId){
+    rxEnsure();
+    type = rxWorkType(type);
+    let t = 0;
+    (state.attemptResets||[]).forEach(r=>{
+      if(!r || String(r.type)!==String(type) || String(r.workId)!==String(workId)) return;
+      if(String(r.studentId)===String(studentId) || r.studentId === "ALL"){
+        t = Math.max(t, Number(r.resetMs || 0), rxTime(r.resetAt));
+      }
+    });
+    return t;
+  }
+  function rxSubmissionTime(s){ return rxTime(s?.submittedAt) || 1; }
+  function rxActiveQuizSubmissions(qid, studentId){
+    rxEnsure();
+    return state.submissions
+      .filter(s=>String(s.quizId)===String(qid) && (!studentId || String(s.studentId)===String(studentId)))
+      .filter(s=>rxSubmissionTime(s) > rxLatestReset("quiz", qid, s.studentId))
+      .sort((a,b)=>rxSubmissionTime(a)-rxSubmissionTime(b));
+  }
+  function rxActiveDocSubmissions(aid, studentId){
+    rxEnsure();
+    return state.docSubmissions
+      .filter(s=>String(s.assignmentId)===String(aid) && (!studentId || String(s.studentId)===String(studentId)))
+      .filter(s=>rxSubmissionTime(s) > rxLatestReset("doc", aid, s.studentId))
+      .sort((a,b)=>rxSubmissionTime(a)-rxSubmissionTime(b));
+  }
+  function rxOfficialFirstPerStudent(rows, type){
+    const seen = new Map();
+    rows.forEach(s=>{
+      const sid = String(s.studentId||"");
+      if(!sid) return;
+      if(!seen.has(sid)) seen.set(sid, s);
+    });
+    return [...seen.values()];
+  }
+  function rxHasQuiz(studentId, qid){ return rxActiveQuizSubmissions(qid, studentId).length > 0; }
+  function rxHasDoc(studentId, aid){ return rxActiveDocSubmissions(aid, studentId).length > 0; }
+  function rxQuizSub(studentId, qid){ return rxActiveQuizSubmissions(qid, studentId)[0]; }
+  function rxDocSub(studentId, aid){ return rxActiveDocSubmissions(aid, studentId)[0]; }
+
+  window.hasSubmittedQuiz = function(studentId,qid){ return rxHasQuiz(studentId,qid); };
+  window.swQuizSubmitted = function(qid){ return rxHasQuiz(currentStudentId,qid); };
+  window.swDocSubmitted = function(aid){ return rxHasDoc(currentStudentId,aid); };
+
+  function rxVisibleWork(item, st){
     if(!item || !st) return false;
     const statusOk = String(item.status||"").toLowerCase() === "published";
-    const subj = fwSubjectForClass(st.className);
+    const subj = rxSubjectForClass(st.className);
     const subjectOk = !item.subject || !subj || item.subject === subj;
     const classOk = !Array.isArray(item.classNames) || !item.classNames.length || item.classNames.includes(st.className);
     return statusOk && subjectOk && classOk;
   }
-  function fwQuizzes(){
-    const st = fwStudent(currentStudentId);
+  function rxQuizzes(){
+    const st = rxStudent(currentStudentId);
     if(!st) return [];
-    return (state.quizzes||[]).filter(q=>fwCanSee(q,st));
+    return (state.quizzes||[]).filter(q=>rxVisibleWork(q,st));
   }
-  function fwDocs(){
-    const st = fwStudent(currentStudentId);
+  function rxDocs(){
+    const st = rxStudent(currentStudentId);
     if(!st) return [];
-    return (state.docAssignments||[]).filter(a=>fwCanSee(a,st));
-  }
-  async function fwFresh(){
-    try{
-      if(typeof stablePullRemote === "function") await stablePullRemote(true);
-      if(typeof oneAttemptCleanup === "function") oneAttemptCleanup();
-    }catch(e){ console.warn("Fresh assignment pull skipped", e); }
+    return (state.docAssignments||[]).filter(a=>rxVisibleWork(a,st));
   }
 
   window.fixedStudentQuickPanelHTML = function(){
-    const qNew = fwQuizzes().filter(q=>!fwQuizSubmitted(q.id)).length;
-    const dNew = fwDocs().filter(a=>!fwDocSubmitted(a.id)).length;
-    return `<div class="fixedAvailableWorkPanel" id="fixedAvailableWorkPanel">
+    const qOpen = rxQuizzes().filter(q=>!rxHasQuiz(currentStudentId,q.id)).length;
+    const dOpen = rxDocs().filter(a=>!rxHasDoc(currentStudentId,a.id)).length;
+    return `<div class="restoreWorkPanel" id="fixedAvailableWorkPanel">
       <h2>Assignments and Quizzes</h2>
       <p>Click below to view all available assignments, quizzes, exercises, and scanned/theory work assigned to your class.</p>
-      <div class="fixedAvailableWorkButtons">
-        <button type="button" class="btn green" data-open-available-work="1" onclick="forceOpenAvailableAssignments(); return false;">📚 View Available Assignments / Quizzes ${qNew+dNew?`(${qNew+dNew} open)`:""}</button>
+      <div class="restoreWorkActions">
+        <button type="button" class="btn green" onclick="forceOpenAvailableAssignments(); return false;">📚 View Available Assignments / Quizzes ${qOpen+dOpen?`(${qOpen+dOpen} open)`:""}</button>
         <button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">✅ View Submitted Work / Marked Scripts</button>
         <button type="button" class="btn gold" onclick="studentHome(); return false;">🔄 Refresh My Portal</button>
       </div>
@@ -30815,86 +30239,74 @@ async function initSupabase(){
   };
 
   window.forceRenderAvailableAssignments = function(){
-    const st = fwStudent(currentStudentId);
+    rxEnsure();
+    restoreAllHiddenSubmissions();
+    const st = rxStudent(currentStudentId);
     if(!st){
       role = "guest";
       route = "studentLogin";
-      if(typeof renderShell === "function") return renderShell();
-      return;
+      return renderShell();
     }
-
     route = "studentQuizzes";
-    const qs = fwQuizzes();
-    const docs = fwDocs();
-    const openCount = qs.filter(q=>!fwQuizSubmitted(q.id)).length + docs.filter(a=>!fwDocSubmitted(a.id)).length;
+    const qs = rxQuizzes();
+    const docs = rxDocs();
+    const openCount = qs.filter(q=>!rxHasQuiz(st.id,q.id)).length + docs.filter(a=>!rxHasDoc(st.id,a.id)).length;
     const closedCount = (qs.length + docs.length) - openCount;
 
     const qHTML = qs.map(q=>{
-      const done = fwQuizSubmitted(q.id);
-      return `<div class="fixedWorkCard ${done?'oneAttemptClosedCard':''}">
-        <h3>${fwEsc(q.title || "Exercise")}</h3>
-        <span class="${done?'fixedClosedBadge':'fixedOpenBadge'}">${done?'Submitted / Closed':'Available Now'}</span>
-        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${fwEsc(fwComponentLabel(q.assessmentComponent||""))}</p>
-        ${done ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Result</button>` : `<button type="button" class="btn green" data-take-quiz="${fwEsc(q.id)}" onclick="takeQuiz('${fwEsc(q.id)}'); return false;">Start Exercise</button>`}
+      const sub = rxQuizSub(st.id,q.id);
+      const closed = !!sub;
+      return `<div class="restoreWorkCard ${closed?'oneAttemptClosedCard':''}">
+        <h3>${rxEsc(q.title || "Exercise")}</h3>
+        <span class="${closed?'restoreClosedBadge':'restoreOpenBadge'}">${closed?'Submitted / Closed':'Available Now'}</span>
+        <p>${(q.questions||[]).length} question(s) • ${q.durationMinutes||30} minutes • ${rxEsc(rxComponentLabel(q.assessmentComponent||""))}</p>
+        ${closed ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Result</button>` : `<button type="button" class="btn green" onclick="takeQuiz('${rxEsc(q.id)}'); return false;">Start Exercise</button>`}
       </div>`;
     }).join("") || `<div class="empty">No multiple-choice quiz or exercise is available now.</div>`;
 
     const dHTML = docs.map(a=>{
-      const done = fwDocSubmitted(a.id);
-      const qFile = a.questionFile ? `<div class="studentQuestionPreview"><b>Question Paper:</b> ${fwEsc(a.questionFile.name||"Question paper")}
+      const sub = rxDocSub(st.id,a.id);
+      const closed = !!sub;
+      const qFile = a.questionFile ? `<div class="studentQuestionPreview"><b>Question Paper:</b> ${rxEsc(a.questionFile.name||"Question paper")}
         ${String(a.questionFile.type||"").startsWith("image/") || String(a.questionFile.data||"").startsWith("data:image") ? `<img src="${a.questionFile.data}" alt="Question paper">` : `<p><a class="studentDownloadBtn" href="${a.questionFile.data}" target="_blank">Open / Download Question Paper</a></p>`}
       </div>` : "";
-      return `<div class="fixedWorkCard ${done?'oneAttemptClosedCard':''}">
-        <h3>${fwEsc(a.title || "Scanned / Theory Work")}</h3>
-        <span class="${done?'fixedClosedBadge':'fixedOpenBadge'}">${done?'Submitted / Closed':'Available Now'}</span>
-        <p>${fwEsc(a.instructions || "Open the question paper, solve, scan and submit.")}</p>
-        <p>Maximum score: ${fwEsc(a.maxScore ?? "")} • ${fwEsc(fwComponentLabel(a.assessmentComponent||""))}</p>
+      return `<div class="restoreWorkCard ${closed?'oneAttemptClosedCard':''}">
+        <h3>${rxEsc(a.title || "Scanned / Theory Work")}</h3>
+        <span class="${closed?'restoreClosedBadge':'restoreOpenBadge'}">${closed?'Submitted / Closed':'Available Now'}</span>
+        <p>${rxEsc(a.instructions || "Open the question paper, solve, scan and submit.")}</p>
+        <p>Maximum score: ${rxEsc(a.maxScore ?? "")} • ${rxEsc(rxComponentLabel(a.assessmentComponent||""))}</p>
         ${qFile}
-        ${done ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Work</button>` : `<button type="button" class="btn green" data-open-doc-submit="${fwEsc(a.id)}" onclick="openDocSubmitSimple('${fwEsc(a.id)}'); return false;">Submit My Answer Script</button>`}
+        ${closed ? `<button type="button" class="btn light" onclick="openStudentSubmittedWork(); return false;">View Submitted Work</button>` : `<button type="button" class="btn green" onclick="openDocSubmitSimple('${rxEsc(a.id)}'); return false;">Submit My Answer Script</button>`}
       </div>`;
     }).join("") || `<div class="empty">No scanned/theory work is available now.</div>`;
 
     const view = document.getElementById("view");
     if(!view) return;
-    view.innerHTML = `<div class="fixedAssignmentCentre">
-      <div class="fixedAssignmentHero">
+    view.innerHTML = `<div class="restoreAssignmentCentre">
+      <div class="restoreAssignmentHero">
         <h2>Available Assignments and Quizzes</h2>
-        <p>${fwEsc(st.name || "Student")} • ${fwEsc(st.className || "")}. Select the work assigned to you. After you submit, that work closes for you unless the admin resets it.</p>
-        <div class="toolbar"><span class="fixedOpenBadge">${openCount} open</span><span class="fixedClosedBadge">${closedCount} submitted / closed</span><button type="button" class="btn light" onclick="forceOpenAvailableAssignments(); return false;">Refresh Available Work</button></div>
+        <p>${rxEsc(st.name || "Student")} • ${rxEsc(st.className || "")}. Select the work assigned to you. After you submit, that work closes for you unless the admin resets it.</p>
+        <div class="toolbar"><span class="restoreOpenBadge">${openCount} open</span><span class="restoreClosedBadge">${closedCount} submitted / closed</span><button type="button" class="btn light" onclick="forceOpenAvailableAssignments(); return false;">Refresh Available Work</button></div>
       </div>
-      <div class="card">
-        <h2>Multiple-Choice Exercises / Quizzes</h2>
-        <div class="fixedWorkCards">${qHTML}</div>
-      </div>
-      <div class="card">
-        <h2>Theory / Scanned Work</h2>
-        <div class="fixedWorkCards">${dHTML}</div>
-      </div>
+      <div class="card"><h2>Multiple-Choice Exercises / Quizzes</h2><div class="restoreWorkCards">${qHTML}</div></div>
+      <div class="card"><h2>Theory / Scanned Work</h2><div class="restoreWorkCards">${dHTML}</div></div>
     </div>`;
     try{ if(typeof typeset === "function") typeset(); }catch(e){}
   };
 
   window.forceOpenAvailableAssignments = async function(){
     route = "studentQuizzes";
-    await fwFresh();
+    await rxFresh();
     forceRenderAvailableAssignments();
     try{ if(typeof comm2InjectSide === "function") comm2InjectSide(); }catch(e){}
   };
+  window.openStudentAssignmentsAndQuizzes = function(){ return forceOpenAvailableAssignments(); };
+  window.studentQuizzes = function(){ return forceRenderAvailableAssignments(); };
 
-  // Replace the previous function with the direct working one.
-  window.openStudentAssignmentsAndQuizzes = function(){
-    return forceOpenAvailableAssignments();
-  };
-
-  // Replace studentQuizzes too, so navigation also works.
-  window.studentQuizzes = function(){
-    return forceRenderAvailableAssignments();
-  };
-
-  // Strengthen studentHome: always place a direct working panel at the top.
-  const oldStudentHomeFW = window.studentHome;
+  const oldStudentHomeRestore = window.studentHome;
   window.studentHome = function(){
-    const result = oldStudentHomeFW ? oldStudentHomeFW.apply(this, arguments) : undefined;
+    const result = oldStudentHomeRestore ? oldStudentHomeRestore.apply(this, arguments) : undefined;
+    restoreAllHiddenSubmissions();
     const view = document.getElementById("view");
     if(view){
       const oldFixed = document.getElementById("fixedAvailableWorkPanel");
@@ -30904,38 +30316,316 @@ async function initSupabase(){
     return result;
   };
 
-  // Click delegation backup for cases where inline onclick is blocked by older code.
+  const oldTakeQuizRestore = window.takeQuiz;
+  window.takeQuiz = async function(id){
+    await rxFresh();
+    if(rxHasQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. It is closed for you. Ask the admin to reset it if you must attempt again.");
+      route = "studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldTakeQuizRestore ? oldTakeQuizRestore.apply(this, arguments) : undefined;
+  };
+
+  const oldSubmitQuizRestore = window.submitQuiz;
+  window.submitQuiz = function(id, auto){
+    restoreAllHiddenSubmissions();
+    if(rxHasQuiz(currentStudentId,id)){
+      alert("You have already submitted this exercise. A second submission is not allowed.");
+      route = "studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldSubmitQuizRestore ? oldSubmitQuizRestore.apply(this, arguments) : undefined;
+  };
+
+  const oldOpenDocSubmitRestore = window.openDocSubmitSimple || window.openDocSubmit;
+  window.openDocSubmitSimple = async function(id){
+    await rxFresh();
+    if(rxHasDoc(currentStudentId,id)){
+      alert("You have already submitted this work. It is closed for you. Ask the admin to reset it if you must attempt again.");
+      route = "studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldOpenDocSubmitRestore ? oldOpenDocSubmitRestore.apply(this, arguments) : undefined;
+  };
+  window.openDocSubmit = window.openDocSubmitSimple;
+
+  const oldSubmitDocRestore = window.submitDocAssignmentSimple || window.submitDocAssignment;
+  window.submitDocAssignmentSimple = function(id){
+    restoreAllHiddenSubmissions();
+    if(rxHasDoc(currentStudentId,id)){
+      alert("You have already submitted this work. A second submission is not allowed.");
+      route = "studentQuizzes";
+      return studentQuizzes();
+    }
+    return oldSubmitDocRestore ? oldSubmitDocRestore.apply(this, arguments) : undefined;
+  };
+  window.submitDocAssignment = window.submitDocAssignmentSimple;
+
+  function rxWorks(){
+    const qs = (state.quizzes||[]).filter(q=>String(q.status||"").toLowerCase()==="published").map(q=>({type:"quiz",id:q.id,title:q.title||"Untitled Exercise",label:"Exercise / Quiz",subject:q.subject||"",classes:q.classNames||[],key:"quiz:"+q.id}));
+    const ds = (state.docAssignments||[]).filter(a=>String(a.status||"").toLowerCase()==="published").map(a=>({type:"doc",id:a.id,title:a.title||"Untitled Scanned Work",label:"Scanned / Theory Work",subject:a.subject||"",classes:a.classNames||[],key:"doc:"+a.id}));
+    return qs.concat(ds).sort((a,b)=>String(a.title).localeCompare(String(b.title), undefined, {sensitivity:"base"}));
+  }
+  function rxWorkByKey(key){
+    return rxWorks().find(w=>w.key===String(key)) || rxWorks()[0] || null;
+  }
+  function rxRowsForWork(key){
+    const w = rxWorkByKey(key);
+    if(!w) return [];
+    const raw = w.type === "quiz" ? rxActiveQuizSubmissions(w.id) : rxActiveDocSubmissions(w.id);
+    const official = rxOfficialFirstPerStudent(raw, w.type);
+    return official.map(s=>{
+      const st = rxStudent(s.studentId) || {};
+      return {student:st, sub:s, submittedAt:s.submittedAt||"", score:w.type==="quiz"?(s.teacherScore ?? s.autoScore ?? ""):(s.score ?? ""), status:s.published?"Published":"Submitted"};
+    }).filter(r=>r.student && r.student.id).sort((a,b)=>
+      String(a.student.className||"").localeCompare(String(b.student.className||""), undefined, {numeric:true,sensitivity:"base"}) ||
+      String(a.student.name||"").localeCompare(String(b.student.name||""), undefined, {sensitivity:"base"})
+    );
+  }
+
+  window.studentSubmissionOptions = function(){
+    restoreAllHiddenSubmissions();
+    const works = rxWorks().map(w=>({...w,count:rxRowsForWork(w.key).length}));
+    document.getElementById("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>Submitted Work Lists</h2>
+      <p>Select an assignment, exercise, quiz, or scanned work to view the students whose active submissions have been captured.</p>
+    </div>
+    <div class="submissionWorkGrid">
+      ${works.map(w=>`<div class="submissionWorkCard">
+        <span class="submissionBadge">${w.count} submitted</span>
+        <h3>${rxEsc(w.title)}</h3>
+        <p>${rxEsc(w.label)}<br>${rxEsc(w.subject)}<br>Classes: ${rxEsc((w.classes||[]).join(", ") || "All assigned classes")}</p>
+        <button class="btn green full" onclick="openStudentSubmittedList('${rxEsc(w.key)}')">View Submitted Students</button>
+      </div>`).join("") || `<div class="empty">No published assignment or quiz is available now.</div>`}
+    </div>`;
+  };
+
+  window.studentSubmittedList = function(){
+    restoreAllHiddenSubmissions();
+    const w = rxWorkByKey(window.publicWorkSelected || (typeof publicWorkSelected!=="undefined"?publicWorkSelected:""));
+    if(!w){
+      document.getElementById("view").innerHTML = `<div class="studentPublicHeader"><h2>Submitted Work List</h2><p>No published assignment or quiz is available now.</p></div>`;
+      return;
+    }
+    window.publicWorkSelected = w.key;
+    try{ publicWorkSelected = w.key; }catch(e){}
+    const rows = rxRowsForWork(w.key);
+    document.getElementById("view").innerHTML = `<div class="studentPublicHeader">
+      <h2>${rxEsc(w.title)}</h2>
+      <p>${rxEsc(w.label)} • ${rows.length} submitted record(s)</p>
+    </div>
+    <div class="studentViewToolbar">
+      <button class="navy" onclick="openStudentSubmissionOptions()">Back to Assignment Options</button>
+      <button class="gold" onclick="window.print()">Print List</button>
+    </div>
+    <div class="studentSubmissionTableWrap">
+      <table class="studentSubmissionTable">
+        <thead><tr><th>No.</th><th>Name</th><th>Class</th><th>Submission Status</th><th>Submitted At</th></tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${rxEsc(r.student.name)}</b></td><td>${rxEsc(r.student.className)}</td><td>${rxEsc(r.status)}</td><td>${rxEsc(r.submittedAt)}</td></tr>`).join("") || `<tr><td colspan="5">No submission has been captured for this work yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  window.openStudentSubmissionOptions = function(){
+    route = "studentSubmissionOptions";
+    renderShell();
+  };
+  window.openStudentSubmittedList = function(key){
+    window.publicWorkSelected = key;
+    try{ publicWorkSelected = key; }catch(e){}
+    route = "studentSubmittedList";
+    renderShell();
+  };
+
+  function rxResetPanelHTML(){
+    const works = rxWorks();
+    const selected = document.getElementById("resetWorkSelect")?.value || works[0]?.key || "";
+    const w = rxWorkByKey(selected);
+    const rows = rxRowsForWork(w?.key || selected);
+    return `<div class="restoreAdminPanel">
+      <h2>Admin Submission Reset Control</h2>
+      <p>Reset now works without touching or hiding old submissions. It simply records permission for the selected student(s) to attempt again.</p>
+      <div class="restoreAdminGrid">
+        <div><label>Select Assignment / Exercise</label><select id="resetWorkSelect" onchange="refreshAdminResetPanel()">${works.map(x=>`<option value="${rxEsc(x.key)}" ${x.key===(w?.key||"")?"selected":""}>${rxEsc(x.title)} — ${rxEsc(x.label)}</option>`).join("")}</select></div>
+        <div><label>Select Submitted Student</label><select id="resetStudentSelect">${rows.map(r=>`<option value="${rxEsc(r.student.id)}">${rxEsc(r.student.name)} — ${rxEsc(r.student.className||"")}</option>`).join("") || `<option value="">No active submission for this work</option>`}</select></div>
+        <div><label>Reason / Note</label><input id="resetReasonInput" placeholder="Example: wrong upload, network issue"></div>
+      </div>
+      <div class="restoreAdminActions">
+        <button class="green" onclick="adminResetSelectedStudentAttempt()">Reset Selected Student</button>
+        <button class="red" onclick="adminResetWholeWorkAttempt()">Reset This Assignment for All Submitted Students</button>
+        <button class="navy" onclick="review()">Refresh Review Page</button>
+        <button class="gold" onclick="adminRestoreAllSubmittedRecords()">Restore All Submitted Records</button>
+      </div>
+      <span class="restoreMiniBadge">Submitted students for selected work: ${rows.length}</span>
+      <span class="restoreMiniBadge">No submission is deleted</span>
+    </div>`;
+  }
+  window.adminResetSubmissionPanelHTML = rxResetPanelHTML;
+  window.refreshAdminResetPanel = function(){
+    const h = document.getElementById("adminResetSubmissionPanelHolder");
+    if(h) h.innerHTML = rxResetPanelHTML();
+  };
+
+  function rxAddReset(type, workId, studentId, reason, scope){
+    rxEnsure();
+    state.attemptResets.push({id:rxUid("reset"), type, workId, studentId, reason:reason||"", scope:scope||"", resetAt:new Date().toISOString(), resetMs:rxNowMs(), resetBy:"Admin"});
+  }
+
+  window.adminResetSelectedStudentAttempt = function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const sid = document.getElementById("resetStudentSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const w = rxWorkByKey(key);
+    if(!w || !sid) return alert("Select an assignment and a submitted student first.");
+    if(!confirm(`Reset ${rxStudent(sid)?.name || "this student"} for "${w.title}"? Old submissions will remain saved.`)) return;
+    rxAddReset(w.type,w.id,sid,reason,"single-student");
+    rxSave();
+    alert("Reset completed. The student can now attempt the work again. Old submissions are still saved.");
+    review();
+  };
+
+  window.adminResetWholeWorkAttempt = function(){
+    if(role !== "admin") return alert("Only admin can reset submissions.");
+    const key = document.getElementById("resetWorkSelect")?.value || "";
+    const reason = document.getElementById("resetReasonInput")?.value || "";
+    const w = rxWorkByKey(key);
+    if(!w) return alert("Select an assignment first.");
+    const rows = rxRowsForWork(w.key);
+    if(!rows.length) return alert("There is no submitted student for the selected work.");
+    if(!confirm(`Reset "${w.title}" for all ${rows.length} submitted student(s)? Old submissions will remain saved.`)) return;
+    rxAddReset(w.type,w.id,"ALL",reason,"whole-assignment");
+    rxSave();
+    alert("General reset completed. Students can now attempt the work again. Old submissions are still saved.");
+    review();
+  };
+
+  window.adminRestoreAllSubmittedRecords = function(){
+    if(role !== "admin") return alert("Only admin can restore submitted records.");
+    if(!confirm("Restore all hidden submitted records and remove old archive flags? This will not delete anything.")) return;
+    restoreAllHiddenSubmissions();
+    rxSave();
+    alert("All submitted records have been restored.");
+    review();
+  };
+
+  function rxWithActiveOnly(fn){
+    const fullQ = state.submissions;
+    const fullD = state.docSubmissions;
+    // For review pages, show one official active submission per student/work.
+    const qs = [];
+    (state.quizzes||[]).forEach(q=>{ qs.push(...rxOfficialFirstPerStudent(rxActiveQuizSubmissions(q.id), "quiz")); });
+    const ds = [];
+    (state.docAssignments||[]).forEach(a=>{ ds.push(...rxOfficialFirstPerStudent(rxActiveDocSubmissions(a.id), "doc")); });
+    state.submissions = qs;
+    state.docSubmissions = ds;
+    try{ return fn(); }
+    finally{ state.submissions = fullQ; state.docSubmissions = fullD; }
+  }
+
+  const prevReviewRX = window.review;
+  window.review = function(){
+    restoreAllHiddenSubmissions();
+    const result = prevReviewRX ? rxWithActiveOnly(()=>prevReviewRX.apply(this, arguments)) : undefined;
+    const view = document.getElementById("view");
+    if(view){
+      let holder = document.getElementById("adminResetSubmissionPanelHolder");
+      if(holder) holder.innerHTML = rxResetPanelHTML();
+      else view.insertAdjacentHTML("afterbegin", `<div id="adminResetSubmissionPanelHolder">${rxResetPanelHTML()}</div>`);
+    }
+    return result;
+  };
+
+  const prevStudentResultsRX = window.studentResults;
+  if(typeof prevStudentResultsRX === "function"){
+    window.studentResults = function(){
+      restoreAllHiddenSubmissions();
+      return rxWithActiveOnly(()=>prevStudentResultsRX.apply(this, arguments));
+    };
+  }
+
+  window.rpSubmittedRows = function(){
+    const rows = [];
+    (state.docAssignments||[]).forEach(a=>{
+      rxOfficialFirstPerStudent(rxActiveDocSubmissions(a.id),"doc").forEach(ds=>{
+        const st = rxStudent(ds.studentId)||{};
+        rows.push({type:"Scanned / Written Work", typeKey:"scanned", studentId:ds.studentId, studentName:st.name||"Student", className:st.className||"", subject:a.subject||rxSubjectForClass(st.className)||"", workId:ds.assignmentId||"", workTitle:a.title||"Scanned/Theory Assignment", submittedAt:ds.submittedAt||"", score:ds.score ?? "", maxScore:a.maxScore ?? "", published:!!ds.published, status:ds.published?"Marked / Published":"Submitted / Not Published", feedback:ds.feedback||""});
+      });
+    });
+    (state.quizzes||[]).forEach(q=>{
+      rxOfficialFirstPerStudent(rxActiveQuizSubmissions(q.id),"quiz").forEach(s=>{
+        const st = rxStudent(s.studentId)||{};
+        rows.push({type:"Timed MCQ Exercise", typeKey:"timed", studentId:s.studentId, studentName:st.name||"Student", className:st.className||"", subject:q.subject||rxSubjectForClass(st.className)||"", workId:s.quizId||"", workTitle:q.title||"Quiz / Exercise", submittedAt:s.submittedAt||"", score:s.teacherScore ?? s.autoScore ?? "", maxScore:s.maxScore ?? "", published:!!s.published, status:s.published?"Result Published":"Submitted / Result Not Published", feedback:s.feedback||""});
+      });
+    });
+    return rows.sort((a,b)=>String(a.className).localeCompare(String(b.className),undefined,{numeric:true,sensitivity:"base"}) || String(a.studentName).localeCompare(String(b.studentName),undefined,{sensitivity:"base"}) || String(a.workTitle).localeCompare(String(b.workTitle),undefined,{sensitivity:"base"}));
+  };
+
+  // Save wrappers: restore hidden data and prevent deletion markers.
+  if(typeof window.save === "function"){
+    const oldSaveRX = window.save;
+    window.save = function(){
+      restoreAllHiddenSubmissions();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return oldSaveRX.apply(this, arguments);
+    };
+    try{ eval("save=window.save;"); }catch(e){}
+  }
+  if(typeof window.saveLocal === "function"){
+    const oldSaveLocalRX = window.saveLocal;
+    window.saveLocal = function(){
+      restoreAllHiddenSubmissions();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return oldSaveLocalRX.apply(this, arguments);
+    };
+    try{ eval("saveLocal=window.saveLocal;"); }catch(e){}
+  }
+  if(typeof window.pushRemote === "function"){
+    const oldPushRX = window.pushRemote;
+    window.pushRemote = async function(){
+      restoreAllHiddenSubmissions();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await oldPushRX.apply(this, arguments);
+    };
+    try{ eval("pushRemote=window.pushRemote;"); }catch(e){}
+  }
+  if(typeof window.stableWriteRemoteItems === "function"){
+    const oldWriteRX = window.stableWriteRemoteItems;
+    window.stableWriteRemoteItems = async function(){
+      restoreAllHiddenSubmissions();
+      window.__oneAttemptRemovedRows = {submissions:[], docSubmissions:[]};
+      return await oldWriteRX.apply(this, arguments);
+    };
+    try{ eval("stableWriteRemoteItems=window.stableWriteRemoteItems;"); }catch(e){}
+  }
+
   document.addEventListener("click", function(ev){
-    const openBtn = ev.target.closest && ev.target.closest("[data-open-available-work], .openWork");
-    if(openBtn){
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      forceOpenAvailableAssignments();
-      return;
-    }
-    const qBtn = ev.target.closest && ev.target.closest("[data-take-quiz]");
-    if(qBtn){
-      const id = qBtn.getAttribute("data-take-quiz");
-      if(id){
+    const btn = ev.target.closest && ev.target.closest("#fixedAvailableWorkPanel button, [data-open-available-work]");
+    if(btn){
+      const text = String(btn.textContent||"").toLowerCase();
+      if(text.includes("view available") || btn.dataset.openAvailableWork){
         ev.preventDefault();
         ev.stopImmediatePropagation();
-        if(typeof takeQuiz === "function") takeQuiz(id);
-      }
-      return;
-    }
-    const dBtn = ev.target.closest && ev.target.closest("[data-open-doc-submit]");
-    if(dBtn){
-      const id = dBtn.getAttribute("data-open-doc-submit");
-      if(id){
-        ev.preventDefault();
-        ev.stopImmediatePropagation();
-        if(typeof openDocSubmitSimple === "function") openDocSubmitSimple(id);
+        forceOpenAvailableAssignments();
       }
     }
   }, true);
 
+  setTimeout(()=>{
+    try{
+      const changed = restoreAllHiddenSubmissions();
+      if(changed){
+        if(typeof saveLocal==="function") saveLocal();
+        if(typeof pushRemote==="function") pushRemote();
+      }
+    }catch(e){}
+  }, 1500);
+
   try{
-    eval("fixedStudentQuickPanelHTML=window.fixedStudentQuickPanelHTML; forceRenderAvailableAssignments=window.forceRenderAvailableAssignments; forceOpenAvailableAssignments=window.forceOpenAvailableAssignments; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; studentQuizzes=window.studentQuizzes; studentHome=window.studentHome;");
+    eval("restoreAllHiddenSubmissions=window.restoreAllHiddenSubmissions; oneAttemptCleanup=window.oneAttemptCleanup; oneAttemptDeleteRemoteDuplicates=window.oneAttemptDeleteRemoteDuplicates; hasSubmittedQuiz=window.hasSubmittedQuiz; swQuizSubmitted=window.swQuizSubmitted; swDocSubmitted=window.swDocSubmitted; fixedStudentQuickPanelHTML=window.fixedStudentQuickPanelHTML; forceRenderAvailableAssignments=window.forceRenderAvailableAssignments; forceOpenAvailableAssignments=window.forceOpenAvailableAssignments; openStudentAssignmentsAndQuizzes=window.openStudentAssignmentsAndQuizzes; studentQuizzes=window.studentQuizzes; studentHome=window.studentHome; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; openDocSubmitSimple=window.openDocSubmitSimple; openDocSubmit=window.openDocSubmit; submitDocAssignmentSimple=window.submitDocAssignmentSimple; submitDocAssignment=window.submitDocAssignment; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList; openStudentSubmissionOptions=window.openStudentSubmissionOptions; openStudentSubmittedList=window.openStudentSubmittedList; adminResetSubmissionPanelHTML=window.adminResetSubmissionPanelHTML; refreshAdminResetPanel=window.refreshAdminResetPanel; adminResetSelectedStudentAttempt=window.adminResetSelectedStudentAttempt; adminResetWholeWorkAttempt=window.adminResetWholeWorkAttempt; adminRestoreAllSubmittedRecords=window.adminRestoreAllSubmittedRecords; review=window.review; studentResults=window.studentResults; rpSubmittedRows=window.rpSubmittedRows;");
   }catch(e){}
 })();
 
