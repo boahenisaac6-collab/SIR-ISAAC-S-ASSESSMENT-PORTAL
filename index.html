@@ -10151,8 +10151,9 @@ html,body{
 }
 
 
-/* ===== SUPABASE CLEAN FINAL REBUILD ===== */
-.supabaseCleanPanel{border:2px solid #f4c430;border-left:10px solid #0f7b4f;background:linear-gradient(135deg,#fff,#fffdf0);color:#071f3d;border-radius:24px;padding:16px;margin:0 0 16px;box-shadow:0 12px 32px rgba(7,31,61,.10)}.supabaseCleanPanel h2{margin:0 0 7px;color:#071f3d}.supabaseCleanPanel p{margin:0 0 10px;color:#475467;font-weight:850;line-height:1.45}.supabaseCleanActions{display:flex;flex-wrap:wrap;gap:8px}.supabaseCleanActions button{min-height:40px;border-radius:12px;padding:8px 12px;font-weight:950;cursor:pointer}.supabaseCleanStats{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.supabaseCleanStats span{display:inline-flex;border-radius:999px;padding:5px 9px;background:#eef5fc;color:#071f3d;border:1px solid #d9e7f3;font-size:12px;font-weight:950}.supabaseCleanStats span.good{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}
+/* ===== SUPABASE NO-WAIT STARTUP REPAIR ===== */
+.supabaseNowaitPanel{border:2px solid #f4c430;border-left:10px solid #0f7b4f;background:linear-gradient(135deg,#fff,#fffdf0);color:#071f3d;border-radius:24px;padding:16px;margin:0 0 16px;box-shadow:0 12px 32px rgba(7,31,61,.10)}
+.supabaseNowaitPanel h2{margin:0 0 7px;color:#071f3d}.supabaseNowaitPanel p{margin:0 0 10px;color:#475467;font-weight:850;line-height:1.45}.supabaseNowaitActions{display:flex;flex-wrap:wrap;gap:8px}.supabaseNowaitActions button{min-height:40px;border-radius:12px;padding:8px 12px;font-weight:950;cursor:pointer}.supabaseNowaitStats{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.supabaseNowaitStats span{display:inline-flex;border-radius:999px;padding:5px 9px;background:#eef5fc;color:#071f3d;border:1px solid #d9e7f3;font-size:12px;font-weight:950}.supabaseNowaitStats span.good{background:#ecfdf3;color:#0f6b47;border-color:#bce8ce}.emergencyStart{min-height:100vh;display:grid;place-items:center;padding:20px;background:#071f3d;color:#071f3d}.emergencyStartCard{max-width:880px;background:#fff;border-radius:28px;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.35)}.emergencyStartCard h1{margin:0 0 10px;color:#071f3d}.emergencyStartCard p{font-weight:800;color:#475467}.emergencyStartCard button{border:0;border-radius:14px;padding:12px 16px;margin:6px;background:#f4c430;color:#071f3d;font-weight:1000;cursor:pointer}.emergencyStartCard button:first-of-type{background:#071f3d;color:#fff}
 
 </style>
 </head>
@@ -34128,47 +34129,125 @@ with check (true);`;
 
 
 
-/* ===== SUPABASE CLEAN FINAL REBUILD V20 ===== */
+/* ===== SUPABASE NO-WAIT STARTUP REPAIR V21 =====
+   This layer fixes the blank/loading screen by rendering the app immediately.
+   Supabase loads in the background, so a slow/error connection cannot block the interface.
+   It uses Supabase only and preserves latest student features.
+*/
 (function(){
- if(window.__supabaseCleanFinalRebuildV20)return; window.__supabaseCleanFinalRebuildV20=true;
- const T='app_state',RID='main',BUCKET='assessment-files';
- const KEYS=['classes','subjects','students','quizzes','submissions','components','scores','publishedReports','publishedComponentResults','reportScores','reportComments','academicYears','semesters','docAssignments','docSubmissions','announcements','studentAnnouncements','attemptResets','resetRequests','passwordShares','assignmentNotifications','quizResets','messages','chatMessages','chatThreads','classMessages','teacherMessages','studentMessages'];
- let channel=null,pushing=false,pulling=false,pollStarted=false;
- function clone(x){try{return JSON.parse(JSON.stringify(x||{}));}catch(e){return x;}}
- function stat(t,c='warn'){try{let e=document.getElementById('liveStatus');if(e){e.textContent=t;e.className='topStatus '+c}}catch(e){} try{let e=document.getElementById('stableSyncStatus');if(e)e.textContent=t}catch(e){} console.log('SUPABASE CLEAN:',t)}
- window.stableStatus=stat; try{eval('stableStatus=window.stableStatus')}catch(e){}
- function ensure(){if(!state||typeof state!=='object'){try{state=defaultState()}catch(e){state={}}} KEYS.forEach(k=>{if(!Array.isArray(state[k]))state[k]=[]}); state.settings=state.settings||{};}
- const oldNorm=window.normalize; if(typeof oldNorm==='function'){window.normalize=function(){let r=oldNorm.apply(this,arguments);ensure();return r};try{eval('normalize=window.normalize')}catch(e){}}
- function def(){try{return defaultState()}catch(e){return {}}}
- function counts(s){s=s||state||{};return{students:(s.students||[]).length,quizzes:(s.quizzes||[]).length,submissions:(s.submissions||[]).length,docAssignments:(s.docAssignments||[]).length,docSubmissions:(s.docSubmissions||[]).length,reports:(s.publishedReports||[]).length,resets:(s.resetRequests||[]).length}}
- function hasData(s){let c=counts(s||{});return c.students||c.quizzes||c.submissions||c.docAssignments||c.docSubmissions||c.reports||c.resets}
- function localSave(){try{if(typeof normalize==='function')normalize()}catch(e){} ensure(); try{if(typeof saveLocal==='function')saveLocal()}catch(e){}}
- function itemKey(k,it,i){if(it&&typeof it==='object'&&it.id)return String(it.id); if(k==='students')return `${it?.name||''}|${it?.className||''}|${it?.code||''}`; if(k==='submissions')return `${it?.studentId||''}|${it?.quizId||''}|${it?.submittedAt||i}`; if(k==='docSubmissions')return `${it?.studentId||''}|${it?.assignmentId||''}|${it?.submittedAt||i}`; if(k==='scores')return `${it?.studentId||''}|${it?.componentId||it?.component||''}|${it?.subject||''}`; if(k==='publishedReports'||k==='publishedComponentResults')return String(it); return JSON.stringify(it||{}).slice(0,180)+'|'+i}
- function mergeObj(r,l){if(l==null)return clone(r); if(r==null)return clone(l); if(Array.isArray(r)||Array.isArray(l))return clone(l); if(typeof r==='object'&&typeof l==='object'){let o={...clone(r),...clone(l)}; ['files','markedFiles','answers','questionFile','photo'].forEach(k=>{if((!o[k]||(Array.isArray(o[k])&&!o[k].length))&&r[k])o[k]=r[k]; if((!o[k]||(Array.isArray(o[k])&&!o[k].length))&&l[k])o[k]=l[k]}); return o} return clone(l)}
- function mergeArr(r,l,k){let m=new Map(); (Array.isArray(r)?r:[]).forEach((it,i)=>m.set(itemKey(k,it,i),clone(it))); (Array.isArray(l)?l:[]).forEach((it,i)=>{let id=itemKey(k,it,i);m.set(id,m.has(id)?mergeObj(m.get(id),it):clone(it))}); return [...m.values()]}
- function mergeState(remote,local){let base={...def(),...(clone(remote)||{})},loc=clone(local)||{},out={...base}; Object.keys(loc).forEach(k=>{if(KEYS.includes(k))return; if(k==='settings')out.settings={...(out.settings||{}),...(loc.settings||{})}; else if(loc[k]!==undefined)out[k]=mergeObj(out[k],loc[k])}); KEYS.forEach(k=>out[k]=mergeArr(base[k]||[],loc[k]||[],k)); out.submissions=mergeArr(base.submissions||[],loc.submissions||[],'submissions'); out.docSubmissions=mergeArr(base.docSubmissions||[],loc.docSubmissions||[],'docSubmissions'); out.publishedReports=[...new Set([...(base.publishedReports||[]),...(loc.publishedReports||[])].map(String))]; out.publishedComponentResults=[...new Set([...(base.publishedComponentResults||[]),...(loc.publishedComponentResults||[])].map(String))]; return out}
- async function client(){if(sb)return sb; let url=window.AMEST_SUPABASE_URL,key=window.AMEST_SUPABASE_ANON_KEY; if(!url||!key||String(url).includes('PASTE')){stat('Supabase keys missing in app-config.js','bad');return null} if(!window.supabase){stat('Supabase library not loaded','bad');return null} sb=window.supabase.createClient(url,key); return sb}
- async function fetchRemote(){let c=await client(); if(!c)return null; let {data,error}=await c.from(T).select('data,updated_at').eq('id',RID).maybeSingle(); if(error)throw error; return data||null}
- async function writeRemote(d){let c=await client(); if(!c)return false; let {error}=await c.from(T).upsert({id:RID,data:clone(d||{}),updated_at:new Date().toISOString()},{onConflict:'id'}); if(error)throw error; return true}
- async function uploadDataUrl(dataUrl,folder,name='file'){let c=await client(); if(!c||!dataUrl||typeof dataUrl!=='string'||!dataUrl.startsWith('data:'))return dataUrl; try{let mime=(dataUrl.match(/^data:([^;]+);/)||[])[1]||'application/octet-stream';let ext=mime.includes('pdf')?'pdf':mime.includes('png')?'png':mime.includes('webp')?'webp':(mime.includes('jpeg')||mime.includes('jpg'))?'jpg':'bin';let safe=String(name||'file').replace(/\.[^.]+$/,'').replace(/[^\w\-]+/g,'_').slice(0,80)||'file';let path=`${folder}/${safe}_${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;let blob=await(await fetch(dataUrl)).blob();let {error}=await c.storage.from(BUCKET).upload(path,blob,{upsert:true,contentType:mime}); if(error)throw error; let {data}=c.storage.from(BUCKET).getPublicUrl(path); return data.publicUrl}catch(e){console.error(e);stat('Supabase Storage upload failed - run setup SQL','bad');return dataUrl}}
- async function migrateMedia(){ensure(); for(const s of state.students||[]){if(s&&typeof s.photo==='string'&&s.photo.startsWith('data:'))s.photo=await uploadDataUrl(s.photo,`students/${s.id}`,'profile_photo')} for(const a of state.docAssignments||[]){if(a?.questionFile?.data&&typeof a.questionFile.data==='string'&&a.questionFile.data.startsWith('data:'))a.questionFile.data=await uploadDataUrl(a.questionFile.data,`assignments/${a.id}`,a.questionFile.name||'question_paper')} for(const ds of state.docSubmissions||[]){if(Array.isArray(ds.files)){for(let i=0;i<ds.files.length;i++){let f=ds.files[i];if(f?.data&&typeof f.data==='string'&&f.data.startsWith('data:'))f.data=await uploadDataUrl(f.data,`submissions/${ds.id}`,f.name||`submitted_page_${i+1}`)}} if(Array.isArray(ds.markedFiles)){for(let i=0;i<ds.markedFiles.length;i++){let f=ds.markedFiles[i];if(f?.data&&typeof f.data==='string'&&f.data.startsWith('data:'))f.data=await uploadDataUrl(f.data,`marked/${ds.id}`,f.name||`marked_page_${i+1}`)}}}}
- window.supabaseCleanPull=async function(mergeLocal=true,renderAfter=false){if(pulling)return false;pulling=true;try{stat('Loading Supabase live data...','warn');let local=clone(state||{}),row;try{row=await fetchRemote()}catch(e){console.error(e);stat('Supabase table/policy error - run setup SQL','bad');return false}let remote=row&&row.data?row.data:null;if(!hasData(remote)){if(hasData(local)){await supabaseCleanPush(false);stat('Supabase live database created from this browser','live')}else stat('Supabase live database empty','warn');return false} applyingRemote=true;state=mergeLocal?mergeState(remote,local):mergeState(remote,{});try{if(typeof normalize==='function')normalize()}catch(e){} ensure();try{if(typeof restoreAllHiddenSubmissions==='function')restoreAllHiddenSubmissions()}catch(e){} localSave();applyingRemote=false;stat('Supabase live loaded','live'); if(renderAfter){try{if(typeof renderShell==='function'&&(role==='admin'||role==='student'))renderShell();else if(typeof render==='function')render()}catch(e){}} return true}finally{applyingRemote=false;pulling=false}}
- window.supabaseCleanPush=async function(showAlert=false){if(pushing)return false;pushing=true;try{stat('Saving to Supabase live...','warn');ensure();try{if(typeof restoreAllHiddenSubmissions==='function')restoreAllHiddenSubmissions()}catch(e){} let remote=null;try{let row=await fetchRemote();if(row&&row.data)remote=row.data}catch(e){console.error(e);stat('Supabase table/policy error - run setup SQL','bad');if(showAlert)alert('Run the Supabase setup SQL first, then try again.');return false} state=mergeState(remote||{},state||{});try{if(typeof normalize==='function')normalize()}catch(e){} ensure();await migrateMedia();await writeRemote(state);localSave();stat('Supabase live connected','live');if(showAlert)alert('Saved live successfully. Other browsers/phones should see it after refresh.');return true}catch(e){console.error(e);stat('Supabase save failed - check SQL setup','bad');if(showAlert)alert('Supabase save failed. Run setup SQL and try again.');return false}finally{pushing=false}}
- window.initSupabase=async function(){let c=await client();if(!c)return;try{stat('Connecting Supabase live...','warn');await supabaseCleanPull(true,false);try{let row=await fetchRemote();if((!row||!hasData(row.data))&&hasData(state))await supabaseCleanPush(false)}catch(e){} try{if(channel)await c.removeChannel(channel)}catch(e){} channel=c.channel('isaacs-supabase-clean-app-state-v20').on('postgres_changes',{event:'*',schema:'public',table:T,filter:`id=eq.${RID}`},payload=>{if(!payload.new||!payload.new.data||applyingRemote||pushing)return;clearTimeout(scSaveTimer);scSaveTimer=setTimeout(()=>{let incoming=payload.new.data,local=clone(state||{});applyingRemote=true;state=mergeState(incoming,local);try{if(typeof normalize==='function')normalize()}catch(e){} ensure();localSave();applyingRemote=false;stat('Supabase live updated','live');try{if(typeof renderShell==='function'&&(role==='student'||role==='admin'))renderShell()}catch(e){}},450)}).subscribe(s=>{if(s==='SUBSCRIBED')stat('Supabase live connected','live')}); if(!pollStarted){pollStarted=true;setInterval(()=>{if(sb&&!pushing&&!pulling&&(role==='student'||role==='admin'))supabaseCleanPull(true,role==='student')},10000)} stat('Supabase live connected','live')}catch(e){console.error(e);stat('Supabase connection error - run setup SQL','bad')}};
- window.pushRemote=async()=>await supabaseCleanPush(false); window.stablePullRemote=async(m=true)=>await supabaseCleanPull(m,false); window.stableWriteRemoteItems=async()=>await supabaseCleanPush(false); window.stableLoadRemoteItems=async()=>await fetchRemote(); window.stableMigrateMedia=async()=>await migrateMedia();
- window.save=function(){try{if(typeof normalize==='function')normalize()}catch(e){} ensure();localSave(); if(sb&&!applyingRemote){clearTimeout(saveTimer);saveTimer=setTimeout(()=>supabaseCleanPush(false),650)}};
- window.supabaseCleanTest=async function(){try{await client();let row=await fetchRemote();let c=counts(row?.data||{});alert(`Supabase live is connected.\nStudents online: ${c.students}\nQuizzes online: ${c.quizzes}\nQuiz submissions online: ${c.submissions}\nScanned assignments online: ${c.docAssignments}\nScanned submissions online: ${c.docSubmissions}\nPublished reports online: ${c.reports}`)}catch(e){console.error(e);alert('Supabase test failed. Run FULL_SUPABASE_CLEAN_SETUP.sql in Supabase SQL Editor.')}};
- window.supabaseCleanPanelHTML=function(){let c=counts(state);return `<div class="supabaseCleanPanel" id="supabaseCleanPanel"><h2>Supabase Clean Live Connection</h2><p>This version uses Supabase only: app_state/main for live data and assessment-files Storage for uploaded files. Firebase and Cloudinary are not used.</p><div class="supabaseCleanActions"><button class="btn green" onclick="supabaseCleanTest()">Test Supabase Live</button><button class="btn light" onclick="supabaseCleanPull(true,true)">Load Online Data</button><button class="btn gold" onclick="supabaseCleanPush(true)">Publish This Browser Live</button></div><div class="supabaseCleanStats"><span class="good">Students: ${c.students}</span><span>Quizzes: ${c.quizzes}</span><span>Quiz submissions: ${c.submissions}</span><span>Scanned assignments: ${c.docAssignments}</span><span>Scanned submissions: ${c.docSubmissions}</span><span class="good">Published reports: ${c.reports}</span></div></div>`};
- window.injectSupabaseCleanPanel=function(){if(role!=='admin')return;let v=document.getElementById('view');if(!v||document.getElementById('supabaseCleanPanel'))return;v.insertAdjacentHTML('afterbegin',supabaseCleanPanelHTML())};
- const oldRender=window.renderShell;if(typeof oldRender==='function'){window.renderShell=function(){let r=oldRender.apply(this,arguments);setTimeout(()=>{if(['dashboard','settings','reports','quizzes','review'].includes(route))injectSupabaseCleanPanel()},120);return r}} const oldDash=window.dashboard;if(typeof oldDash==='function'){window.dashboard=function(){let r=oldDash.apply(this,arguments);setTimeout(injectSupabaseCleanPanel,120);return r}}
- try{eval('stableStatus=window.stableStatus; normalize=window.normalize; initSupabase=window.initSupabase; pushRemote=window.pushRemote; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; stableLoadRemoteItems=window.stableLoadRemoteItems; stableMigrateMedia=window.stableMigrateMedia; save=window.save; supabaseCleanPull=window.supabaseCleanPull; supabaseCleanPush=window.supabaseCleanPush; supabaseCleanTest=window.supabaseCleanTest; supabaseCleanPanelHTML=window.supabaseCleanPanelHTML; injectSupabaseCleanPanel=window.injectSupabaseCleanPanel; renderShell=window.renderShell; dashboard=window.dashboard;')}catch(e){}
+  if(window.__supabaseNoWaitStartupRepairV21) return;
+  window.__supabaseNoWaitStartupRepairV21 = true;
+
+  const NW_TABLE='app_state';
+  const NW_ID='main';
+  const NW_BUCKET='assessment-files';
+  const NW_LIST_KEYS=['classes','subjects','students','quizzes','submissions','components','scores','publishedReports','publishedComponentResults','reportScores','reportComments','academicYears','semesters','docAssignments','docSubmissions','announcements','studentAnnouncements','attemptResets','resetRequests','passwordShares','assignmentNotifications','quizResets','messages','chatMessages','chatThreads','classMessages','teacherMessages','studentMessages'];
+  let nwPulling=false, nwPushing=false, nwChannel=null, nwPollStarted=false;
+
+  function nwClone(x){try{return JSON.parse(JSON.stringify(x||{}));}catch(e){return x;}}
+  function nwStatus(msg,cls='warn'){
+    try{let el=document.getElementById('liveStatus'); if(el){el.textContent=String(msg||''); el.className='topStatus '+cls;}}catch(e){}
+    try{let el=document.getElementById('stableSyncStatus'); if(el) el.textContent=String(msg||'');}catch(e){}
+    console.log('SUPABASE NO-WAIT:', msg);
+  }
+  window.stableStatus=nwStatus;
+  try{eval('stableStatus=window.stableStatus;')}catch(e){}
+
+  function nwEnsure(){
+    if(!state || typeof state!=='object'){try{state=defaultState();}catch(e){state={};}}
+    NW_LIST_KEYS.forEach(k=>{if(!Array.isArray(state[k])) state[k]=[];});
+    state.settings=state.settings||{};
+  }
+  const oldNorm=window.normalize;
+  if(typeof oldNorm==='function'){
+    window.normalize=function(){let r=oldNorm.apply(this,arguments); nwEnsure(); return r;};
+    try{eval('normalize=window.normalize;')}catch(e){}
+  }
+  function nwDefault(){try{return defaultState();}catch(e){return {};}}
+  function nwCounts(st){st=st||state||{}; return {students:(st.students||[]).length,quizzes:(st.quizzes||[]).length,submissions:(st.submissions||[]).length,docAssignments:(st.docAssignments||[]).length,docSubmissions:(st.docSubmissions||[]).length,reports:(st.publishedReports||[]).length,resetRequests:(st.resetRequests||[]).length};}
+  function nwHasData(st){let c=nwCounts(st||{}); return c.students||c.quizzes||c.submissions||c.docAssignments||c.docSubmissions||c.reports||c.resetRequests;}
+  function nwLocalSave(){try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); try{if(typeof saveLocal==='function')saveLocal();}catch(e){}}
+  function nwItemKey(key,item,index){
+    if(item&&typeof item==='object'&&item.id) return String(item.id);
+    if(key==='students') return `${item?.name||''}|${item?.className||''}|${item?.code||''}`;
+    if(key==='submissions') return `${item?.studentId||''}|${item?.quizId||''}|${item?.submittedAt||index}`;
+    if(key==='docSubmissions') return `${item?.studentId||''}|${item?.assignmentId||''}|${item?.submittedAt||index}`;
+    if(key==='scores') return `${item?.studentId||''}|${item?.componentId||item?.component||''}|${item?.subject||''}`;
+    if(key==='publishedReports'||key==='publishedComponentResults') return String(item);
+    return JSON.stringify(item||{}).slice(0,180)+'|'+index;
+  }
+  function nwMergeObj(r,l){
+    if(l===undefined||l===null) return nwClone(r); if(r===undefined||r===null) return nwClone(l);
+    if(Array.isArray(r)||Array.isArray(l)) return nwClone(l);
+    if(typeof r==='object'&&typeof l==='object'){
+      const out={...nwClone(r),...nwClone(l)};
+      ['files','markedFiles','answers','questionFile','photo'].forEach(k=>{if((!out[k]||(Array.isArray(out[k])&&!out[k].length))&&r[k])out[k]=r[k]; if((!out[k]||(Array.isArray(out[k])&&!out[k].length))&&l[k])out[k]=l[k];});
+      return out;
+    }
+    return nwClone(l);
+  }
+  function nwMergeArr(ra,la,key){let m=new Map(); (Array.isArray(ra)?ra:[]).forEach((it,i)=>m.set(nwItemKey(key,it,i),nwClone(it))); (Array.isArray(la)?la:[]).forEach((it,i)=>{let id=nwItemKey(key,it,i); m.set(id,m.has(id)?nwMergeObj(m.get(id),it):nwClone(it));}); return [...m.values()];}
+  function nwMergeState(remote,local){
+    const base={...nwDefault(),...(nwClone(remote)||{})}, loc=nwClone(local)||{}, out={...base};
+    Object.keys(loc).forEach(k=>{if(NW_LIST_KEYS.includes(k))return; if(k==='settings')out.settings={...(out.settings||{}),...(loc.settings||{})}; else if(loc[k]!==undefined)out[k]=nwMergeObj(out[k],loc[k]);});
+    NW_LIST_KEYS.forEach(k=>out[k]=nwMergeArr(base[k]||[],loc[k]||[],k));
+    out.submissions=nwMergeArr(base.submissions||[],loc.submissions||[],'submissions');
+    out.docSubmissions=nwMergeArr(base.docSubmissions||[],loc.docSubmissions||[],'docSubmissions');
+    out.publishedReports=[...new Set([...(base.publishedReports||[]),...(loc.publishedReports||[])].map(String))];
+    out.publishedComponentResults=[...new Set([...(base.publishedComponentResults||[]),...(loc.publishedComponentResults||[])].map(String))];
+    return out;
+  }
+  async function nwClient(){
+    if(sb) return sb;
+    const url=window.AMEST_SUPABASE_URL, key=window.AMEST_SUPABASE_ANON_KEY;
+    if(!url||!key||String(url).includes('PASTE')){nwStatus('Supabase keys missing in app-config.js','bad'); return null;}
+    if(!window.supabase){nwStatus('Supabase library not loaded yet','warn'); return null;}
+    sb=window.supabase.createClient(url,key); return sb;
+  }
+  async function nwFetch(){let c=await nwClient(); if(!c)return null; let {data,error}=await c.from(NW_TABLE).select('data,updated_at').eq('id',NW_ID).maybeSingle(); if(error)throw error; return data||null;}
+  async function nwWrite(data){let c=await nwClient(); if(!c)return false; let {error}=await c.from(NW_TABLE).upsert({id:NW_ID,data:nwClone(data||{}),updated_at:new Date().toISOString()},{onConflict:'id'}); if(error)throw error; return true;}
+  async function nwUpload(dataUrl,folder,name='file'){
+    if(!dataUrl||typeof dataUrl!=='string'||!dataUrl.startsWith('data:'))return dataUrl;
+    let c=await nwClient(); if(!c)return dataUrl;
+    try{let mime=(dataUrl.match(/^data:([^;]+);/)||[])[1]||'application/octet-stream'; let ext=mime.includes('pdf')?'pdf':mime.includes('png')?'png':mime.includes('webp')?'webp':(mime.includes('jpg')||mime.includes('jpeg'))?'jpg':'bin'; let safe=String(name||'file').replace(/\.[^.]+$/,'').replace(/[^\w\-]+/g,'_').slice(0,80)||'file'; let path=`${folder}/${safe}_${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`; let blob=await (await fetch(dataUrl)).blob(); let {error}=await c.storage.from(NW_BUCKET).upload(path,blob,{upsert:true,contentType:mime}); if(error)throw error; let {data}=c.storage.from(NW_BUCKET).getPublicUrl(path); return data.publicUrl;}catch(e){console.warn('Storage upload skipped',e); nwStatus('Storage upload failed - run setup SQL','bad'); return dataUrl;}
+  }
+  async function nwMigrateMedia(){
+    nwEnsure();
+    for(const s of state.students||[]){if(s&&typeof s.photo==='string'&&s.photo.startsWith('data:'))s.photo=await nwUpload(s.photo,`students/${s.id}`,'profile_photo');}
+    for(const a of state.docAssignments||[]){if(a?.questionFile?.data&&typeof a.questionFile.data==='string'&&a.questionFile.data.startsWith('data:'))a.questionFile.data=await nwUpload(a.questionFile.data,`assignments/${a.id}`,a.questionFile.name||'question_paper');}
+    for(const ds of state.docSubmissions||[]){if(Array.isArray(ds.files)){for(let i=0;i<ds.files.length;i++){let f=ds.files[i]; if(f?.data&&typeof f.data==='string'&&f.data.startsWith('data:'))f.data=await nwUpload(f.data,`submissions/${ds.id}`,f.name||`submitted_page_${i+1}`);}} if(Array.isArray(ds.markedFiles)){for(let i=0;i<ds.markedFiles.length;i++){let f=ds.markedFiles[i]; if(f?.data&&typeof f.data==='string'&&f.data.startsWith('data:'))f.data=await nwUpload(f.data,`marked/${ds.id}`,f.name||`marked_page_${i+1}`);}}}
+  }
+  window.supabaseNoWaitPull=async function(mergeLocal=true,renderAfter=false){
+    if(nwPulling)return false; nwPulling=true;
+    try{nwStatus('Loading live in background...','warn'); let local=nwClone(state||{}), row=null; try{row=await nwFetch();}catch(e){console.error(e); nwStatus('Supabase setup error - run SQL','bad'); return false;} let remote=row?.data||null; if(!nwHasData(remote)){if(nwHasData(local))await supabaseNoWaitPush(false); return false;} applyingRemote=true; state=mergeLocal?nwMergeState(remote,local):nwMergeState(remote,{}); try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); try{if(typeof restoreAllHiddenSubmissions==='function')restoreAllHiddenSubmissions();}catch(e){} nwLocalSave(); applyingRemote=false; nwStatus('Supabase live loaded','live'); if(renderAfter){try{if(typeof renderShell==='function'&&(role==='admin'||role==='student'))renderShell();else if(typeof render==='function')render();}catch(e){}} return true;} finally{applyingRemote=false; nwPulling=false;}
+  };
+  window.supabaseNoWaitPush=async function(show=false){
+    if(nwPushing)return false; nwPushing=true;
+    try{nwStatus('Saving live...','warn'); nwEnsure(); let remote=null; try{let row=await nwFetch(); if(row?.data)remote=row.data;}catch(e){console.error(e); nwStatus('Supabase setup error - run SQL','bad'); if(show)alert('Supabase setup error. Run the SQL file first.'); return false;} state=nwMergeState(remote||{},state||{}); try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); await nwMigrateMedia(); await nwWrite(state); nwLocalSave(); nwStatus('Supabase live connected','live'); if(show)alert('Saved live successfully. Open another browser/phone and refresh.'); return true;}catch(e){console.error(e); nwStatus('Live save failed - check SQL/Storage','bad'); if(show)alert('Live save failed. Check SQL setup and Storage bucket.'); return false;} finally{nwPushing=false;}
+  };
+  window.initSupabase=async function(){
+    let c=await nwClient(); if(!c)return;
+    // Do not block the app. Pull remote after interface is visible.
+    setTimeout(()=>supabaseNoWaitPull(true,false),700);
+    try{if(nwChannel)await c.removeChannel(nwChannel);}catch(e){}
+    try{nwChannel=c.channel('isaacs-nowait-app-state-v21').on('postgres_changes',{event:'*',schema:'public',table:NW_TABLE,filter:`id=eq.${NW_ID}`},payload=>{if(!payload.new||!payload.new.data||applyingRemote||nwPushing)return; let incoming=payload.new.data, local=nwClone(state||{}); applyingRemote=true; state=nwMergeState(incoming,local); try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); nwLocalSave(); applyingRemote=false; nwStatus('Live updated','live'); try{if(role==='student'||role==='admin')renderShell();}catch(e){} }).subscribe(s=>{if(s==='SUBSCRIBED')nwStatus('Supabase live connected','live')});}catch(e){console.warn(e)}
+    if(!nwPollStarted){nwPollStarted=true; setInterval(()=>{if(sb&&!nwPushing&&!nwPulling&&(role==='student'||role==='admin'))supabaseNoWaitPull(true,role==='student')},10000)}
+    nwStatus('Supabase live connected','live');
+  };
+  window.pushRemote=async()=>await supabaseNoWaitPush(false); window.stablePullRemote=async(m=true)=>await supabaseNoWaitPull(m,false); window.stableWriteRemoteItems=async()=>await supabaseNoWaitPush(false); window.stableLoadRemoteItems=async()=>await nwFetch(); window.stableMigrateMedia=async()=>await nwMigrateMedia();
+  window.save=function(){try{if(typeof normalize==='function')normalize();}catch(e){} nwEnsure(); nwLocalSave(); if(sb&&!applyingRemote){clearTimeout(saveTimer); saveTimer=setTimeout(()=>supabaseNoWaitPush(false),650)}};
+  window.supabaseNoWaitTest=async function(){try{await nwClient(); let row=await nwFetch(); let c=nwCounts(row?.data||{}); alert(`Supabase live is connected.\nStudents online: ${c.students}\nQuizzes online: ${c.quizzes}\nQuiz submissions online: ${c.submissions}\nScanned assignments online: ${c.docAssignments}\nScanned submissions online: ${c.docSubmissions}\nPublished reports online: ${c.reports}`);}catch(e){console.error(e); alert('Supabase test failed. Run FULL_SUPABASE_NO_WAIT_SETUP.sql.');}};
+  window.supabaseNoWaitPanelHTML=function(){let c=nwCounts(state); return `<div class="supabaseNowaitPanel" id="supabaseNoWaitPanel"><h2>Supabase Live Connection</h2><p>This repair opens the app immediately, then loads Supabase in the background. It uses Supabase only.</p><div class="supabaseNowaitActions"><button class="btn green" onclick="supabaseNoWaitTest()">Test Supabase Live</button><button class="btn light" onclick="supabaseNoWaitPull(true,true)">Load Online Data</button><button class="btn gold" onclick="supabaseNoWaitPush(true)">Publish This Browser Live</button></div><div class="supabaseNowaitStats"><span class="good">Students: ${c.students}</span><span>Quizzes: ${c.quizzes}</span><span>Quiz submissions: ${c.submissions}</span><span>Scanned assignments: ${c.docAssignments}</span><span>Scanned submissions: ${c.docSubmissions}</span><span class="good">Published reports: ${c.reports}</span></div></div>`};
+  window.injectSupabaseNoWaitPanel=function(){if(role!=='admin')return; let v=document.getElementById('view'); if(!v||document.getElementById('supabaseNoWaitPanel'))return; v.insertAdjacentHTML('afterbegin',supabaseNoWaitPanelHTML())};
+  const oldRS=window.renderShell;if(typeof oldRS==='function'){window.renderShell=function(){let r=oldRS.apply(this,arguments);setTimeout(()=>{if(['dashboard','settings','reports','quizzes','review'].includes(route))injectSupabaseNoWaitPanel()},120);return r}};
+  const oldDash=window.dashboard;if(typeof oldDash==='function'){window.dashboard=function(){let r=oldDash.apply(this,arguments);setTimeout(injectSupabaseNoWaitPanel,120);return r}};
+  window.emergencyRender=function(){try{if(typeof render==='function'){render();return;}}catch(e){console.error(e)} let app=document.getElementById('app'); if(app)app.innerHTML=`<div class="emergencyStart"><div class="emergencyStartCard"><h1>Sir Isaac Assessment Portal</h1><p>The interface opened in recovery mode. Use the buttons below.</p><button onclick="role=null;currentStudentId=null;route='dashboard';render()">Open Main Page</button><button onclick="role='admin';route='dashboard';renderShell()">Open Admin Dashboard</button><button onclick="role='guest';route='studentLogin';renderShell()">Open Student Portal</button></div></div>`};
+  window.supabaseNoWaitStartup=function(){try{if(typeof loadLocal==='function')loadLocal();}catch(e){console.error('loadLocal error',e); try{state=defaultState();}catch(x){state={}}} try{if(window.importOldPortalDataIfNeeded)window.importOldPortalDataIfNeeded();}catch(e){} setTimeout(()=>{let app=document.getElementById('app'); if(app&&!app.innerHTML.trim())emergencyRender();},800); emergencyRender(); setTimeout(()=>{try{initSupabase();}catch(e){console.error(e);nwStatus('Supabase background connection failed','bad')}},1000);};
+  try{eval('stableStatus=window.stableStatus; normalize=window.normalize; initSupabase=window.initSupabase; pushRemote=window.pushRemote; stablePullRemote=window.stablePullRemote; stableWriteRemoteItems=window.stableWriteRemoteItems; stableLoadRemoteItems=window.stableLoadRemoteItems; stableMigrateMedia=window.stableMigrateMedia; save=window.save; supabaseNoWaitPull=window.supabaseNoWaitPull; supabaseNoWaitPush=window.supabaseNoWaitPush; supabaseNoWaitTest=window.supabaseNoWaitTest; supabaseNoWaitPanelHTML=window.supabaseNoWaitPanelHTML; injectSupabaseNoWaitPanel=window.injectSupabaseNoWaitPanel; renderShell=window.renderShell; dashboard=window.dashboard; emergencyRender=window.emergencyRender; supabaseNoWaitStartup=window.supabaseNoWaitStartup;')}catch(e){}
 })();
 
 
-loadLocal();
-if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
-initSupabase().then(render);
-render();
+supabaseNoWaitStartup();
 </script>
 </body>
 </html>
