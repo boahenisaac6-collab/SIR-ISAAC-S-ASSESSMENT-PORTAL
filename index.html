@@ -30028,8 +30028,8 @@ async function initSupabase(){
     eval("turnStudentPasswordOff=window.turnStudentPasswordOff; turnStudentPasswordOn=window.turnStudentPasswordOn; startPasswordFreeWindow=window.startPasswordFreeWindow; stopPasswordFreeWindow=window.stopPasswordFreeWindow; studentPortalHardRefresh=window.studentPortalHardRefresh; studentCardLogin=window.studentCardLogin; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; finishStudentLogin=window.finishStudentLogin; openClassMemberPortal=window.openClassMemberPortal; finishClassMemberPortalLogin=window.finishClassMemberPortalLogin; studentLogin=window.studentLogin; renderShell=window.renderShell; confirmFirstAppRefresh=window.confirmFirstAppRefresh;");
   }catch(e){}
 
-  document.addEventListener("DOMContentLoaded", function(){ setTimeout(fpShowFirstRefreshGate, 250); });
-  setTimeout(fpShowFirstRefreshGate, 900);
+  // V9 update: first-open refresh gate removed. Live settings refresh silently in the background.
+  document.addEventListener("DOMContentLoaded", function(){ setTimeout(()=>fpPullLatestSettings(true).then(fpUpdateLoginUI), 900); });
   setTimeout(()=>fpPullLatestSettings(true).then(fpUpdateLoginUI), 1800);
 })();
 
@@ -30358,7 +30358,7 @@ async function initSupabase(){
       if(!s) return alert("Please select your name and log in first.");
       const q = asQuizById(id);
       if(!q || !asAssignedQuiz(q,s) || (q.status !== "Published" && !asActiveReset(s.id,id))){
-        alert("This exercise is not currently available to your portal. Tap Refresh App and try again.");
+        alert("This exercise is not currently available to your portal. Refresh your browser and try again.");
         if(route === "studentQuizzes") asRenderStudentQuizzes();
         return;
       }
@@ -30442,8 +30442,8 @@ async function initSupabase(){
     eval("availableQuizzes=window.availableQuizzes; availableDocAssignments=window.availableDocAssignments; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; takeQuiz=window.takeQuiz; studentPortalHardRefresh=window.studentPortalHardRefresh; refreshLatestAssignmentsNow=window.refreshLatestAssignmentsNow; confirmAssignmentAppRefresh=window.confirmAssignmentAppRefresh; qToggle=window.qToggle; adminPublishExercise=window.adminPublishExercise; saveQuiz=window.saveQuiz; saveDocAssignment=window.saveDocAssignment; toggleDocAssignment=window.toggleDocAssignment; renderShell=window.renderShell;");
   }catch(e){}
 
-  document.addEventListener("DOMContentLoaded", function(){ setTimeout(asShowRefreshGate, 350); setTimeout(()=>asPullLatest(true), 1500); });
-  setTimeout(asShowRefreshGate, 1000);
+  // V9 update: assignment refresh gate removed. Live assignments refresh silently in the background.
+  document.addEventListener("DOMContentLoaded", function(){ setTimeout(()=>asPullLatest(true), 1500); });
   setTimeout(()=>asPullLatest(true), 2200);
 })();
 
@@ -31521,6 +31521,75 @@ async function initSupabase(){
     try{ v8ApplyDefaultOpen(); v8SaveLocal(); }catch(e){}
   });
   try{ v8ApplyDefaultOpen(); }catch(e){}
+})();
+
+
+/* ===== NO STARTUP REFRESH GATE + DIRECT OPEN V9 =====
+   - Completely removes the “Refreshing latest portal” / first-open refresh screen.
+   - Removes floating/manual refresh buttons from the student view.
+   - The app opens immediately; users may use normal browser refresh when needed.
+   - Keeps v8 direct-click student portal behavior and preserves all submitted work.
+*/
+(function(){
+  const V9_BUILD = "no-startup-refresh-direct-open-v9-2026-05-20";
+  const OLD_REFRESH_KEYS = [
+    "AMEST_REFRESH_CONFIRMED_password-sync-refresh-v4-2026-05-20",
+    "AMEST_ASSIGNMENT_REFRESH_CONFIRMED_assignment-live-sync-v5-2026-05-20",
+    "AMEST_FIRST_REFRESH_DONE_password-assignment-sync-v6-2026-05-20"
+  ];
+  function v9MarkRefreshDone(){
+    try{ OLD_REFRESH_KEYS.forEach(k => sessionStorage.setItem(k, "yes")); }catch(e){}
+  }
+  function v9RemoveRefreshGates(){
+    try{
+      document.querySelectorAll("#fpRefreshGate,#asRefreshGate,.fpRefreshGate,.asRefreshGate,#fpFloatingRefreshBtn,#asFloatingRefreshBtn,#studentPortalRefreshBtn,.fpFloatingRefresh,.asFloatingRefresh,.studentRefreshBtn,.studentRefreshNotice").forEach(el => el.remove());
+      document.querySelectorAll("button").forEach(btn => {
+        const t = String(btn.textContent || "").toLowerCase();
+        if(t.includes("refresh app") || t.includes("refresh assignment") || t.includes("refresh latest") || t.includes("refresh my portal") || t.includes("refreshing latest portal")){
+          const inStudent = (typeof role !== "undefined" && (role === "student" || role === "guest")) || (typeof route !== "undefined" && String(route).toLowerCase().includes("student"));
+          if(inStudent){ btn.remove(); }
+        }
+      });
+    }catch(e){}
+  }
+  function v9Style(){
+    if(document.getElementById("amestV9NoRefreshStyle")) return;
+    document.head.insertAdjacentHTML("beforeend", `<style id="amestV9NoRefreshStyle">
+      #fpRefreshGate,#asRefreshGate,.fpRefreshGate,.asRefreshGate,#fpFloatingRefreshBtn,#asFloatingRefreshBtn,#studentPortalRefreshBtn,.fpFloatingRefresh,.asFloatingRefresh,.studentRefreshBtn,.studentRefreshNotice{display:none!important;visibility:hidden!important;pointer-events:none!important}
+    </style>`);
+  }
+  v9MarkRefreshDone();
+  window.confirmFirstAppRefresh = function(){ v9MarkRefreshDone(); v9RemoveRefreshGates(); return false; };
+  window.confirmAssignmentAppRefresh = function(){ v9MarkRefreshDone(); v9RemoveRefreshGates(); return false; };
+  window.studentPortalHardRefresh = function(){
+    // Manual app refresh button is intentionally removed in v9. Use the browser refresh/reload instead.
+    v9RemoveRefreshGates();
+    return false;
+  };
+  const oldRenderShellV9 = window.renderShell;
+  if(typeof oldRenderShellV9 === "function"){
+    window.renderShell = function(){
+      v9MarkRefreshDone();
+      const result = oldRenderShellV9.apply(this, arguments);
+      setTimeout(v9RemoveRefreshGates, 20);
+      setTimeout(v9RemoveRefreshGates, 300);
+      return result;
+    };
+    try{ renderShell = window.renderShell; }catch(e){}
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    v9Style(); v9MarkRefreshDone(); v9RemoveRefreshGates();
+    try{
+      const mo = new MutationObserver(function(){ v9RemoveRefreshGates(); });
+      mo.observe(document.body || document.documentElement, {childList:true, subtree:true});
+      setTimeout(()=>mo.disconnect(), 15000);
+    }catch(e){}
+  });
+  let runs = 0;
+  const timer = setInterval(function(){
+    runs++; v9Style(); v9MarkRefreshDone(); v9RemoveRefreshGates();
+    if(runs > 20) clearInterval(timer);
+  }, 500);
 })();
 
 loadLocal();
