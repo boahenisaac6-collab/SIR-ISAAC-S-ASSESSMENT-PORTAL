@@ -11,7 +11,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;padding:24px;colo
 </style>
 </head>
 <body>
-<div class="card"><h2>Firebase Stable v3 Connection Check</h2><p>This checks the clean stable document: <b>portal_live_state/main_205_stable_heavy_v3</b>.</p><button onclick="runCheck()">Run Check</button><pre id="out">Click Run Check.</pre></div>
+<div class="card"><h2>Firebase Stable v3 Connection Check</h2><p>This checks the clean stable document: <b>portal_live_state/main_205_click_fixed_v4</b>.</p><button onclick="runCheck()">Run Check</button><pre id="out">Click Run Check.</pre></div>
 <script>
 async function runCheck(){
  const out=document.getElementById('out');
@@ -20,7 +20,7 @@ async function runCheck(){
   if(!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey){out.textContent='❌ firebase-config.js is missing or wrong.';return;}
   if(!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
   const db=firebase.firestore();
-  const ref=db.collection('portal_live_state').doc('main_205_stable_heavy_v3');
+  const ref=db.collection('portal_live_state').doc('main_205_click_fixed_v4');
   const snap=await ref.get();
   let report='Project ID: '+window.FIREBASE_CONFIG.projectId+'
 ';

@@ -34696,7 +34696,7 @@ with check (true);`;
   window.__complexFirebaseDirectLiveV1 = true;
 
   const FB_COLLECTION = "portal_live_state";
-  const FB_DOC = "main_205_stable_heavy_v3";
+  const FB_DOC = "main_205_click_fixed_v4";
   let fbDb = null;
   let fbUnsub = null;
   let fbBusy = false;
@@ -34935,8 +34935,8 @@ with check (true);`;
   if(window.__heavyFirebaseStable205V3) return;
   window.__heavyFirebaseStable205V3 = true;
 
-  const NEW_DOC = "main_205_stable_heavy_v3";
-  const OLD_DOCS = ["main", "main_205_stable_v2", "main_205_stable_heavy_v2"];
+  const NEW_DOC = "main_205_click_fixed_v4";
+  const OLD_DOCS = ["main", "main_205_stable_v2", "main_205_stable_heavy_v2", "main_205_stable_heavy_v3"];
   const OLD_LOCAL_KEYS = [
     "ISAACS_ASSESSMENT_PORTAL_REDESIGNED_V1",
     "ISAACS_ASSESSMENT_PORTAL_STUDENT_PORTAL_RESULTS_REPORT_SCANNED_CONTROL_V17",
@@ -35111,6 +35111,248 @@ with check (true);`;
   setTimeout(v3FirebaseMigrateAndSeed,2500);
   setTimeout(v3FirebaseMigrateAndSeed,9000);
 })();
+
+
+
+/* ===== STUDENT CLICK OPEN FIX V4 =====
+   Fixes the problem where students show first, but after clicking a student the screen returns
+   to "No student found". This layer:
+   - restores the 205 embedded students before and after every click,
+   - turns off password blocking for direct student opening,
+   - opens the selected student with a safe student home page,
+   - rebinds old functions so older layers cannot override the click behaviour.
+*/
+(function(){
+  if(window.__studentClickOpenFixV4) return;
+  window.__studentClickOpenFixV4 = true;
+
+  function f4Clone(x){ try{return JSON.parse(JSON.stringify(x||{}));}catch(e){return x;} }
+  function f4Text(v){ return (v===undefined || v===null) ? "" : String(v); }
+  function f4Esc(s){ return f4Text(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m])); }
+  function f4Seed(){
+    try{ if(typeof SEEDED_DEFAULT_STATE !== "undefined" && SEEDED_DEFAULT_STATE) return f4Clone(SEEDED_DEFAULT_STATE); }catch(e){}
+    try{ if(typeof defaultState === "function") return f4Clone(defaultState()); }catch(e){}
+    return {students:[],classes:["1 AGRIC","1 SCIENCE","1H2A","1 G3B"],subjects:[]};
+  }
+  function f4StudentKey(s,i){
+    return f4Text(s?.id) || (f4Text(s?.name).toUpperCase()+"|"+f4Text(s?.className).toUpperCase()) || ("student_"+i);
+  }
+  function f4Restore(){
+    const seed=f4Seed();
+    if(!window.state || typeof state !== "object") window.state = {};
+    const map=new Map();
+
+    (Array.isArray(seed.students)?seed.students:[]).forEach((s,i)=>{
+      map.set(f4StudentKey(s,i), {...f4Clone(s), deleted:false, status:"Active"});
+    });
+    (Array.isArray(state.students)?state.students:[]).forEach((s,i)=>{
+      if(!s) return;
+      const k=f4StudentKey(s,i);
+      const base=map.get(k)||{};
+      map.set(k, {...base, ...f4Clone(s), deleted:false, status:(s.status||"Active")});
+    });
+
+    state.students=[...map.values()];
+    state.classes=["1 AGRIC","1 SCIENCE","1H2A","1 G3B"];
+    state.subjects=[
+      {name:"Additional Mathematics",classes:["1 AGRIC","1 SCIENCE"]},
+      {name:"Mathematics",classes:["1H2A","1 G3B"]}
+    ];
+    state.settings = state.settings || {};
+    state.settings.requireStudentPassword = false;
+    state.settings.adminPass = state.settings.adminPass || "@amest";
+    state.settings.teacherName = state.settings.teacherName || "Sir Isaac Boahen";
+    state.settings.school = state.settings.school || "AKUSE METHODIST SENIOR HIGH TECHNICAL SCHOOL";
+    try{ if(typeof KEY !== "undefined") localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+    return state;
+  }
+  function f4FindStudent(id){
+    f4Restore();
+    id=f4Text(id);
+    return (state.students||[]).find(s=>f4Text(s.id)===id || f4Text(s.code)===id || f4Text(s.name)===id);
+  }
+  function f4Photo(s){
+    try{ if(typeof photoHTML === "function") return photoHTML(s); }catch(e){}
+    const init=f4Text(s.name).split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"ST";
+    return `<div class="photo">${init}</div>`;
+  }
+  function f4SubjectForClass(cls){
+    return (cls==="1 AGRIC" || cls==="1 SCIENCE") ? "Additional Mathematics" : "Mathematics";
+  }
+  function f4SetRoute(r){
+    f4Restore();
+    route=r;
+    try{ renderShell(); }catch(e){ try{ window.renderShell(); }catch(_){} }
+  }
+  window.setStudentRouteSafely = f4SetRoute;
+
+  window.student = function(id){ return f4FindStudent(id); };
+
+  window.studentLogin = function(){
+    f4Restore();
+    role = "guest";
+    route = "studentLogin";
+    const subj = document.getElementById("loginSubj")?.value || "ALL";
+    const cls = document.getElementById("loginClass")?.value || "ALL";
+    const q = (document.getElementById("loginSearch")?.value || "").toLowerCase();
+
+    const classList = subj==="Additional Mathematics" ? ["1 AGRIC","1 SCIENCE"] :
+                      subj==="Mathematics" ? ["1H2A","1 G3B"] :
+                      ["1 AGRIC","1 SCIENCE","1H2A","1 G3B"];
+
+    const list = (state.students||[]).filter(s=>{
+      const sSubj=f4SubjectForClass(s.className);
+      const hay=(f4Text(s.name)+" "+f4Text(s.code)+" "+f4Text(s.password)+" "+f4Text(s.className)+" "+f4Text(s.phone)).toLowerCase();
+      return (subj==="ALL" || sSubj===subj) && (cls==="ALL" || s.className===cls) && (!q || hay.includes(q));
+    });
+
+    const view=document.getElementById("view");
+    if(!view) return;
+
+    view.innerHTML=`<div class="card">
+      <h2>Student Portal</h2>
+      <p>All students are shown first. Click your name once to open your portal directly.</p>
+      <div class="grid three">
+        <select id="loginSubj" class="select" onchange="studentLogin()">
+          <option value="ALL" ${subj==="ALL"?"selected":""}>All Subjects</option>
+          <option value="Additional Mathematics" ${subj==="Additional Mathematics"?"selected":""}>Additional Mathematics</option>
+          <option value="Mathematics" ${subj==="Mathematics"?"selected":""}>Mathematics</option>
+        </select>
+        <select id="loginClass" class="select" onchange="studentLogin()">
+          <option value="ALL" ${cls==="ALL"?"selected":""}>All Classes</option>
+          ${classList.map(c=>`<option value="${f4Esc(c)}" ${cls===c?"selected":""}>${f4Esc(c)}</option>`).join("")}
+        </select>
+        <input id="loginSearch" class="input" oninput="studentLogin()" value="${f4Esc(q)}" placeholder="Search name, code, phone or class">
+      </div>
+      <div class="toolbar" style="margin-top:10px">
+        <span class="badge good">Students loaded: ${state.students.length}</span>
+        <span class="badge">Showing: ${list.length}</span>
+        <span class="badge good">Click-open fixed</span>
+      </div>
+    </div>
+    <div class="studentPickGrid">
+      ${list.map(s=>`<button type="button" class="studentPick dblHint" onclick="openStudentFixedV4('${f4Esc(s.id)}')">
+        ${f4Photo(s)}
+        <span><b>${f4Esc(s.name)}</b><small>${f4Esc(s.code||s.password||"")} • ${f4Esc(s.className||"")}</small><small class="dblText">Click once to open portal</small></span>
+      </button>`).join("") || `<div class="empty">No student found. Choose All Subjects and All Classes, or press Ctrl + Shift + R.</div>`}
+    </div><div id="studentPassBox"></div>`;
+  };
+
+  window.openStudentFixedV4 = function(id){
+    f4Restore();
+    const s=f4FindStudent(id);
+    if(!s){
+      alert("Student not found. I am restoring the full list now.");
+      role="guest"; route="studentLogin";
+      try{ renderShell(); }catch(e){ studentLogin(); }
+      return;
+    }
+    currentStudentId=s.id;
+    try{ localStorage.setItem("SIR_ISAAC_CURRENT_STUDENT_ID_FIXED", s.id); }catch(e){}
+    role="student";
+    route="studentHome";
+    f4SetRoute("studentHome");
+  };
+
+  window.selectStudentLogin = window.openStudentFixedV4;
+  window.quickOpenStudentPortal = window.openStudentFixedV4;
+
+  window.studentHome = function(){
+    f4Restore();
+    let s=f4FindStudent(currentStudentId);
+    if(!s){
+      const saved = localStorage.getItem("SIR_ISAAC_CURRENT_STUDENT_ID_FIXED") || "";
+      s=f4FindStudent(saved);
+      if(s) currentStudentId=s.id;
+    }
+    if(!s){
+      role="guest"; route="studentLogin";
+      return studentLogin();
+    }
+
+    const subject=f4SubjectForClass(s.className);
+    const qs=(state.quizzes||[]).filter(q=>{
+      if(q.deleted) return false;
+      const isPublished = q.status==="Published" || q.published===true;
+      const classes = Array.isArray(q.classNames) ? q.classNames : (q.className ? [q.className] : []);
+      return isPublished && (!classes.length || classes.includes(s.className));
+    });
+    const docs=(state.docAssignments||[]).filter(a=>{
+      if(a.deleted) return false;
+      const isPublished = a.status==="Published" || a.published===true;
+      const classes = Array.isArray(a.classNames) ? a.classNames : (a.className ? [a.className] : []);
+      return isPublished && (!classes.length || classes.includes(s.className));
+    });
+    const submitted=(state.submissions||[]).filter(x=>f4Text(x.studentId)===f4Text(s.id)).length + (state.docSubmissions||[]).filter(x=>f4Text(x.studentId)===f4Text(s.id)).length;
+
+    const view=document.getElementById("view");
+    if(!view) return;
+    view.innerHTML=`<div class="cleanStudentDashboard">
+      <div class="cleanStudentHero">
+        <div class="cleanStudentHead">${f4Photo(s)}<div><h2>Welcome, ${f4Esc(s.name)}</h2><p>${f4Esc(s.className)} • ${f4Esc(subject)}</p></div></div>
+      </div>
+      <div class="cards">
+        <div class="card stat"><span>Available Work</span><b>${qs.length + docs.length}</b></div>
+        <div class="card stat"><span>Submitted Work</span><b>${submitted}</b></div>
+        <div class="card stat"><span>Student Code</span><b style="font-size:18px">${f4Esc(s.code||s.password||"")}</b></div>
+      </div>
+      <div class="cleanStudentActions">
+        <div class="cleanActionCard"><h3>Assignments and Quizzes</h3><p>Open all published quizzes and scanned/theory work for your class.</p><button class="btn green" onclick="setStudentRouteSafely('studentQuizzes')">View Available Assignments / Quizzes</button></div>
+        <div class="cleanActionCard"><h3>Submitted Work and Scores</h3><p>View submitted work, feedback, marked scripts and published results.</p><button class="btn light" onclick="setStudentRouteSafely('studentResults')">View Submitted Work / Results</button></div>
+        <div class="cleanActionCard"><h3>Back to Student List</h3><p>Return to the full student list without losing the student records.</p><button class="btn gold" onclick="role='guest';route='studentLogin';renderShell()">Choose Another Student</button></div>
+      </div>
+    </div>`;
+  };
+
+  // Keep original pages for quizzes/results where possible, but protect if they fail.
+  const oldStudentQuizzesF4 = window.studentQuizzes || (typeof studentQuizzes==="function" ? studentQuizzes : null);
+  window.studentQuizzes = function(){
+    try{
+      f4Restore();
+      if(oldStudentQuizzesF4) return oldStudentQuizzesF4.apply(this, arguments);
+    }catch(e){ console.warn(e); }
+    const s=f4FindStudent(currentStudentId);
+    if(!s){ role="guest"; route="studentLogin"; return studentLogin(); }
+    document.getElementById("view").innerHTML=`<div class="card"><h2>Available Assignments and Quizzes</h2><p>If work has been published for ${f4Esc(s.className)}, it will appear here after refresh.</p><button class="btn gold" onclick="studentHome()">Back to Home</button></div>`;
+  };
+
+  const oldStudentResultsF4 = window.studentResults || (typeof studentResults==="function" ? studentResults : null);
+  window.studentResults = function(){
+    try{
+      f4Restore();
+      if(oldStudentResultsF4) return oldStudentResultsF4.apply(this, arguments);
+    }catch(e){ console.warn(e); }
+    const s=f4FindStudent(currentStudentId);
+    if(!s){ role="guest"; route="studentLogin"; return studentLogin(); }
+    document.getElementById("view").innerHTML=`<div class="card"><h2>My Results</h2><p>Published results for ${f4Esc(s.name)} will appear here.</p><button class="btn gold" onclick="studentHome()">Back to Home</button></div>`;
+  };
+
+  // Rebind old script variables to this fixed version.
+  try{
+    eval("student=window.student; studentLogin=window.studentLogin; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; studentHome=window.studentHome; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; setStudentRouteSafely=window.setStudentRouteSafely; openStudentFixedV4=window.openStudentFixedV4;");
+  }catch(e){}
+
+  // Extra guard: if any old script wipes the selected student, restore it instead of showing "No student found".
+  setInterval(function(){
+    try{
+      f4Restore();
+      if((role==="student" || route==="studentHome" || route==="studentQuizzes" || route==="studentResults") && currentStudentId && !f4FindStudent(currentStudentId)){
+        const saved = localStorage.getItem("SIR_ISAAC_CURRENT_STUDENT_ID_FIXED") || "";
+        const s = f4FindStudent(saved);
+        if(s){ currentStudentId=s.id; role="student"; route="studentHome"; f4SetRoute("studentHome"); }
+      }
+      if(route==="studentLogin" && (!state.students || state.students.length<205)){
+        studentLogin();
+      }
+    }catch(e){}
+  },1500);
+
+  // Immediately save corrected data to the new Firebase document after startup.
+  setTimeout(function(){
+    try{ f4Restore(); if(typeof save==="function") save(); }catch(e){}
+  },2200);
+})();
+
 
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
