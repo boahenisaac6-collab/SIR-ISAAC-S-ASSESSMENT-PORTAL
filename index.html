@@ -28067,300 +28067,447 @@ async function initSupabase(){
 })();
 
 
-/* ===== RECOVERY BASELINE V11: RESTORE ORIGINAL WORKING SYNC + ASSIGNMENT RECOVERY =====
-   This patch is intentionally conservative. It does not delete submissions. It restores assignments
-   only from sources that still contain quizzes/docAssignments, and it prevents an empty assignment
-   list from being pushed over a non-empty live/browser backup.
-*/
+/* ===== FINAL ONE-ATTEMPT START LOCK + ADMIN RESET PATCH ===== */
 (function(){
-  const RR_VERSION = "Recovery Baseline v11";
-  let rrBusy = false;
-  let rrLastSources = [];
-  let rrPreventPushGuard = false;
+  const OA_VERSION = "one-attempt-start-lock-2026-05-20";
+  let oaActiveQuizId = null;
+  let oaTimer = null;
+  let oaSecondsLeft = 0;
+  let oaSubmitting = false;
+  let oaRouteAllowed = false;
 
-  function rrEsc(v){
-    try{ if(typeof esc === "function") return esc(v); }catch(e){}
-    return String(v ?? "").replace(/[&<>'"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]));
+  function oaEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? "").replace(/[&<>\"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[m])); }
+    catch(e){ return String(v ?? ""); }
   }
-  function rrClone(v){ try{return JSON.parse(JSON.stringify(v));}catch(e){return v;} }
-  function rrArr(v){ return Array.isArray(v) ? v : []; }
-  function rrNow(){ return new Date().toISOString(); }
-  function rrStateHasAssignments(st){ return rrArr(st && st.quizzes).length + rrArr(st && st.docAssignments).length > 0; }
-  function rrAssignmentCount(st){ return rrArr(st && st.quizzes).length + rrArr(st && st.docAssignments).length; }
-  function rrSubmissionCount(st){ return rrArr(st && st.submissions).length + rrArr(st && st.docSubmissions).length; }
-  function rrStudentCount(st){ return rrArr(st && st.students).length; }
-  function rrLooksLikeState(obj){
-    if(!obj || typeof obj !== "object") return false;
-    return Array.isArray(obj.students) || Array.isArray(obj.quizzes) || Array.isArray(obj.docAssignments) || Array.isArray(obj.submissions) || Array.isArray(obj.docSubmissions);
+  function oaUid(prefix){
+    try{ return typeof uid === "function" ? uid(prefix) : prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8); }
+    catch(e){ return prefix + "_" + Date.now(); }
   }
-  function rrItemId(key,item,index){
-    if(item && item.id) return String(item.id);
-    if(item && item.studentId && item.quizId) return String(item.quizId)+"_"+String(item.studentId);
-    if(item && item.studentId && item.assignmentId) return String(item.assignmentId)+"_"+String(item.studentId);
-    if(item && item.code) return String(item.code);
-    if(item && item.name && item.className) return String(item.className)+"_"+String(item.name);
-    return String(key)+"_"+String(index);
+  function oaNowText(){ return new Date().toLocaleString(); }
+  function oaNowISO(){ return new Date().toISOString(); }
+  function oaEnsure(){
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.students = Array.isArray(state.students) ? state.students : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.quizResets = Array.isArray(state.quizResets) ? state.quizResets : [];
+    state.oneAttemptVersion = OA_VERSION;
   }
-  function rrRecordTime(item){
-    const keys=["updatedAt","modifiedAt","submittedAt","createdAt","_stableSavedAt","_stableRemoteUpdatedAt","publishedAt"];
-    let best=0;
-    keys.forEach(k=>{
-      const t=Date.parse(item && item[k] || "");
-      if(Number.isFinite(t) && t>best) best=t;
-    });
-    return best;
-  }
-  function rrMergeArray(current, incoming, key, preferIncomingForAssignments=false){
-    const map = new Map();
-    rrArr(current).forEach((item,i)=>{ if(item) map.set(rrItemId(key,item,i), rrClone(item)); });
-    rrArr(incoming).forEach((item,i)=>{
-      if(!item) return;
-      const id=rrItemId(key,item,i);
-      const cur=map.get(id);
-      if(!cur){ map.set(id, rrClone(item)); return; }
-      const inc=rrClone(item);
-      const curTime=rrRecordTime(cur), incTime=rrRecordTime(inc);
-      let chosen;
-      if(preferIncomingForAssignments && String(inc.status||"").toLowerCase()==="published") chosen = Object.assign({}, cur, inc);
-      else if(incTime && incTime >= curTime) chosen = Object.assign({}, cur, inc);
-      else chosen = Object.assign({}, inc, cur);
-      map.set(id, chosen);
-    });
-    return Array.from(map.values());
-  }
-  function rrCoreCopy(st){
-    if(!st || typeof st !== "object") return {};
-    const copy={};
-    ["settings","subjects","classes","components"].forEach(k=>{ if(st[k]!==undefined) copy[k]=rrClone(st[k]); });
-    return copy;
-  }
-  function rrCandidateScore(c){
-    const st=c && c.state || {};
-    return rrAssignmentCount(st)*10000 + rrStudentCount(st)*20 + rrSubmissionCount(st);
-  }
-  function rrSortCandidates(list){
-    return rrArr(list).filter(c=>rrLooksLikeState(c.state)).sort((a,b)=>rrCandidateScore(b)-rrCandidateScore(a));
-  }
-  function rrLocalCandidates(){
-    const out=[];
-    try{
-      for(let i=0;i<localStorage.length;i++){
-        const key=localStorage.key(i);
-        if(!key) continue;
-        const raw=localStorage.getItem(key);
-        if(!raw || raw.length<20) continue;
-        let obj=null;
-        try{ obj=JSON.parse(raw); }catch(e){ continue; }
-        const possible=[];
-        if(rrLooksLikeState(obj)) possible.push(obj);
-        if(obj && rrLooksLikeState(obj.data)) possible.push(obj.data);
-        if(obj && rrLooksLikeState(obj.state)) possible.push(obj.state);
-        possible.forEach((st,idx)=>{
-          out.push({type:"Browser storage", name:key+(idx?" / nested":""), state:st, sourceKey:key, updatedAt:st.updatedAt || st.lastUpdated || ""});
-        });
-      }
-    }catch(e){ console.warn("Recovery local scan failed", e); }
-    return out;
-  }
-  async function rrRemoteCandidates(){
-    const out=[];
-    if(!window.sb && typeof sb !== "undefined") window.sb = sb;
-    const client = window.sb || (typeof sb !== "undefined" ? sb : null);
-    if(!client) return out;
-
-    try{
-      if(typeof stableLoadRemoteItems === "function"){
-        const loaded = await stableLoadRemoteItems();
-        if(loaded && loaded.state) out.push({type:"Supabase stable_items", name:"stable_items reconstructed", state:loaded.state, updatedAt:""});
-      }else{
-        const {data,error}=await client.from("stable_items").select("bucket,item_id,data,updated_at").limit(20000);
-        if(!error && data && data.length){
-          const rec = (typeof defaultState === "function") ? defaultState() : {};
-          const listKeys = ["students","quizzes","submissions","docAssignments","docSubmissions","reportScores","reportComments","scores","publishedReports","passwordShares","assignmentNotifications","quizResets","announcements","messages","chatMessages","chatThreads","classMessages","teacherMessages","studentMessages"];
-          listKeys.forEach(k=>rec[k]=[]);
-          data.forEach(r=>{
-            if(r.bucket==="core" && r.item_id==="main" && r.data){ Object.assign(rec, rrClone(r.data)); return; }
-            if(listKeys.includes(r.bucket) && r.data){ const item=rrClone(r.data); item._stableRemoteUpdatedAt=r.updated_at; rec[r.bucket].push(item); }
-          });
-          out.push({type:"Supabase stable_items", name:"stable_items raw reconstructed", state:rec, updatedAt:""});
-        }
-      }
-    }catch(e){ console.warn("Recovery stable_items scan failed", e); }
-
-    try{
-      const ids=["main","main_backup","main_before_v10","main_recovery","main_old"];
-      const {data,error}=await client.from("app_state").select("id,data,updated_at").in("id",ids).limit(20);
-      if(!error && data){
-        data.forEach(r=>{ if(r && rrLooksLikeState(r.data)) out.push({type:"Supabase app_state", name:r.id, state:r.data, updatedAt:r.updated_at}); });
-      }
-    }catch(e){ console.warn("Recovery app_state scan failed", e); }
-    return out;
-  }
-
-  async function rrAllCandidates(){
-    const local = rrLocalCandidates();
-    const remote = await rrRemoteCandidates();
-    rrLastSources = rrSortCandidates([...local, ...remote]);
-    return rrLastSources;
-  }
-
-  function rrApplyRecoveredState(sourceState, label="Recovered source", publish=true){
-    if(!sourceState || !rrLooksLikeState(sourceState)) return {changed:false, message:"The selected source does not contain valid portal data."};
-    state = state || (typeof defaultState === "function" ? defaultState() : {});
-    const beforeAssignments = rrAssignmentCount(state);
-
-    // Restore core only where current core is missing or clearly empty.
-    if((!Array.isArray(state.students) || !state.students.length) && Array.isArray(sourceState.students) && sourceState.students.length) state.students = rrClone(sourceState.students);
-    if((!Array.isArray(state.classes) || !state.classes.length) && Array.isArray(sourceState.classes) && sourceState.classes.length) state.classes = rrClone(sourceState.classes);
-    if((!Array.isArray(state.subjects) || !state.subjects.length) && Array.isArray(sourceState.subjects) && sourceState.subjects.length) state.subjects = rrClone(sourceState.subjects);
-    if((!Array.isArray(state.components) || !state.components.length) && Array.isArray(sourceState.components) && sourceState.components.length) state.components = rrClone(sourceState.components);
-    if(sourceState.settings && !state.settings) state.settings = rrClone(sourceState.settings);
-
-    // Restore assignments and notification structures. Do not remove anything already present.
-    state.quizzes = rrMergeArray(state.quizzes, sourceState.quizzes, "quizzes", true);
-    state.docAssignments = rrMergeArray(state.docAssignments, sourceState.docAssignments, "docAssignments", true);
-    state.assignmentNotifications = rrMergeArray(state.assignmentNotifications, sourceState.assignmentNotifications, "assignmentNotifications", true);
-
-    // Preserve and merge student work. Never delete submitted work.
-    state.submissions = rrMergeArray(state.submissions, sourceState.submissions, "submissions", false);
-    state.docSubmissions = rrMergeArray(state.docSubmissions, sourceState.docSubmissions, "docSubmissions", false);
-    state.quizResets = rrMergeArray(state.quizResets, sourceState.quizResets, "quizResets", false);
-    state.scores = rrMergeArray(state.scores, sourceState.scores, "scores", false);
-    state.reportScores = rrMergeArray(state.reportScores, sourceState.reportScores, "reportScores", false);
-    state.reportComments = rrMergeArray(state.reportComments, sourceState.reportComments, "reportComments", false);
-    state.publishedReports = rrMergeArray(state.publishedReports, sourceState.publishedReports, "publishedReports", false);
-
-    state.recoveryBaselineV11 = {appliedAt:rrNow(), source:label, beforeAssignments, afterAssignments:rrAssignmentCount(state)};
-    if(typeof normalize === "function") normalize();
-    try{ if(typeof saveLocal === "function") saveLocal(); else localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
-
-    if(publish && typeof window.pushRemote === "function"){
-      setTimeout(()=>{ try{ window.pushRemote(); }catch(e){ console.warn("Recovery publish failed", e); } }, 200);
-    }else if(publish && typeof pushRemote === "function"){
-      setTimeout(()=>{ try{ pushRemote(); }catch(e){ console.warn("Recovery publish failed", e); } }, 200);
+  function oaSave(){
+    oaEnsure();
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof save === "function") save(); else if(typeof saveLocal === "function") saveLocal(); }catch(e){
+      try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(x){}
     }
-    if(typeof renderShell === "function") setTimeout(()=>renderShell(), 250); else if(typeof render === "function") setTimeout(()=>render(),250);
-    return {changed:true, message:`Recovered from ${label}. Assignments: ${beforeAssignments} → ${rrAssignmentCount(state)}. Submissions preserved.`};
   }
-
-  async function rrRecoverBestIfEmpty(showAlert=false){
-    if(rrBusy) return false;
-    if(rrAssignmentCount(state)>0) return false;
-    rrBusy=true;
-    try{
-      const sources = await rrAllCandidates();
-      const best = sources.find(c=>rrAssignmentCount(c.state)>0);
-      if(!best){ if(showAlert) alert("No backup source with assignments was found in this browser or Supabase. You may need to recreate or restore from a JSON backup."); return false; }
-      const res = rrApplyRecoveredState(best.state, best.type+" - "+best.name, true);
-      if(showAlert) alert(res.message);
-      return true;
-    }finally{ rrBusy=false; }
+  function oaStudent(studentId){
+    try{ return typeof student === "function" ? student(studentId) : (state.students||[]).find(s => String(s.id) === String(studentId)); }
+    catch(e){ return (state.students||[]).find(s => String(s.id) === String(studentId)); }
   }
-
-  function rrRecoveryCardHtml(){
-    const count = rrAssignmentCount(state);
-    const subs = rrSubmissionCount(state);
-    return `<div class="card" id="recoveryBaselineV11Card">
-      <h2>Recovery Baseline v11</h2>
-      <p class="notice">This version is rebuilt from the original working portal. It avoids the risky master-sync changes and protects submitted work.</p>
-      <div class="grid three">
-        <div class="stat"><b>${count}</b><span>Assignments / Quizzes currently loaded</span></div>
-        <div class="stat"><b>${subs}</b><span>Submitted work preserved</span></div>
-        <div class="stat"><b>${rrEsc(RR_VERSION)}</b><span>Current recovery build</span></div>
-      </div>
-      <div class="toolbar">
-        <button class="btn green" onclick="recoveryScanSources()">Scan Backups for Assignments</button>
-        <button class="btn gold" onclick="recoveryAutoRestoreBest()">Restore Best Assignment Backup</button>
-        <button class="btn navy" onclick="recoveryPublishCurrent()">Publish Current Browser Live</button>
-      </div>
-      <div id="recoveryBaselineV11Results"></div>
-    </div>`;
+  function oaQuiz(quizId){
+    try{ return typeof quiz === "function" ? quiz(quizId) : (state.quizzes||[]).find(q => String(q.id) === String(quizId)); }
+    catch(e){ return (state.quizzes||[]).find(q => String(q.id) === String(quizId)); }
   }
-
-  window.recoveryScanSources = async function(){
-    const box=document.getElementById("recoveryBaselineV11Results");
-    if(box) box.innerHTML = `<div class="notice">Scanning browser storage and Supabase backups...</div>`;
-    const sources = await rrAllCandidates();
-    const rows = sources.map((c,i)=>{
-      const a=rrAssignmentCount(c.state), s=rrSubmissionCount(c.state), st=rrStudentCount(c.state);
-      return `<tr><td>${i+1}</td><td>${rrEsc(c.type)}</td><td>${rrEsc(c.name)}</td><td><b>${a}</b></td><td>${s}</td><td>${st}</td><td><button class="btn green" onclick="recoveryRestoreSource(${i})" ${a?"":"disabled"}>Restore</button></td></tr>`;
-    }).join("");
-    if(box) box.innerHTML = `<div class="tableWrap"><table><thead><tr><th>#</th><th>Source</th><th>Name</th><th>Assignments</th><th>Submissions</th><th>Students</th><th>Action</th></tr></thead><tbody>${rows || `<tr><td colspan="7">No recovery source found.</td></tr>`}</tbody></table></div>`;
-  };
-  window.recoveryRestoreSource = function(index){
-    const src=rrLastSources[index];
-    if(!src) return alert("Recovery source not found. Scan again.");
-    const res=rrApplyRecoveredState(src.state, src.type+" - "+src.name, true);
-    alert(res.message);
-  };
-  window.recoveryAutoRestoreBest = async function(){
-    const sources = await rrAllCandidates();
-    const best = sources.find(c=>rrAssignmentCount(c.state)>0);
-    if(!best) return alert("No assignment backup was found in this browser or Supabase.");
-    const res=rrApplyRecoveredState(best.state, best.type+" - "+best.name, true);
-    alert(res.message);
-  };
-  window.recoveryPublishCurrent = async function(){
-    try{
-      if(typeof normalize === "function") normalize();
-      if(typeof saveLocal === "function") saveLocal();
-      if(typeof window.pushRemote === "function") await window.pushRemote(); else if(typeof pushRemote === "function") await pushRemote();
-      alert("Current browser data has been published live. Assignments: "+rrAssignmentCount(state)+". Submissions preserved: "+rrSubmissionCount(state)+".");
-    }catch(e){ console.error(e); alert("Could not publish live. Check Supabase connection."); }
-  };
-
-  // Inject recovery panel into Settings and Backup screens without disturbing the original layout.
-  const rrOldSettings = window.settings || (typeof settings === "function" ? settings : null);
-  if(typeof rrOldSettings === "function"){
-    window.settings = function(){
-      const out = rrOldSettings.apply(this, arguments);
-      setTimeout(()=>{
-        const view=document.getElementById("view");
-        if(view && !document.getElementById("recoveryBaselineV11Card")) view.insertAdjacentHTML("beforeend", rrRecoveryCardHtml());
-      },80);
-      return out;
-    };
-    try{ eval("settings=window.settings;"); }catch(e){}
+  function oaSubjectForClass(className){
+    try{ return typeof subjectForClass === "function" ? subjectForClass(className) : ((state.subjects||[]).find(x => (x.classes||[]).includes(className))||{}).name; }
+    catch(e){ return ((state.subjects||[]).find(x => (x.classes||[]).includes(className))||{}).name; }
   }
-  const rrOldBackup = window.backup || (typeof backup === "function" ? backup : null);
-  if(typeof rrOldBackup === "function"){
-    window.backup = function(){
-      const out = rrOldBackup.apply(this, arguments);
-      setTimeout(()=>{
-        const view=document.getElementById("view");
-        if(view && !document.getElementById("recoveryBaselineV11Card")) view.insertAdjacentHTML("beforeend", rrRecoveryCardHtml());
-      },80);
-      return out;
-    };
-    try{ eval("backup=window.backup;"); }catch(e){}
+  function oaQuizMax(q){
+    return (q?.questions||[]).reduce((sum, qq) => sum + (Number(qq.marks)||1), 0);
   }
-
-  // Prevent empty assignment state from overwriting a source that still has assignments.
-  const rrOriginalPushRemote = window.pushRemote || (typeof pushRemote === "function" ? pushRemote : null);
-  if(typeof rrOriginalPushRemote === "function"){
-    window.pushRemote = async function(){
-      if(!rrPreventPushGuard && rrAssignmentCount(state)===0){
-        rrPreventPushGuard = true;
-        try{ await rrRecoverBestIfEmpty(false); }catch(e){ console.warn("Pre-push recovery check failed", e); }
-        rrPreventPushGuard = false;
+  function oaSubmission(studentId, quizId){
+    oaEnsure();
+    return (state.submissions||[]).find(s => String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId));
+  }
+  function oaAllSubmissions(studentId, quizId){
+    oaEnsure();
+    return (state.submissions||[]).filter(s => String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId));
+  }
+  function oaActiveReset(studentId, quizId){
+    oaEnsure();
+    return (state.quizResets||[]).find(r => String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active);
+  }
+  function oaCanAttempt(studentId, quizId){
+    if(!studentId || !quizId) return false;
+    const sub = oaSubmission(studentId, quizId);
+    const reset = oaActiveReset(studentId, quizId);
+    return !sub || !!reset;
+  }
+  function oaAssignedQuizzesForStudent(studentId){
+    oaEnsure();
+    const s = oaStudent(studentId);
+    if(!s) return [];
+    const subj = oaSubjectForClass(s.className);
+    const activeResetIds = new Set((state.quizResets||[])
+      .filter(r => String(r.studentId) === String(s.id) && r.active)
+      .map(r => String(r.quizId)));
+    const list = (state.quizzes||[]).filter(q => {
+      const assigned = String(q.subject) === String(subj) && (q.classNames||[]).map(String).includes(String(s.className));
+      const published = q.status === "Published";
+      const resetVisible = assigned && (activeResetIds.has(String(q.id)) || (q.resetAvailableFor||[]).map(String).includes(String(s.id)));
+      return assigned && (published || resetVisible);
+    });
+    const seen = new Set();
+    return list.filter(q => { if(seen.has(String(q.id))) return false; seen.add(String(q.id)); return true; });
+  }
+  function oaClosedReason(studentId, quizId){
+    const sub = oaSubmission(studentId, quizId);
+    if(!sub) return "";
+    if(sub.startedOnly) return "The student started/opened this exercise, so the one attempt has been consumed.";
+    if(sub.autoSubmitted) return "This exercise was submitted automatically.";
+    return "This exercise has already been submitted.";
+  }
+  function oaMarkResetUsed(studentId, quizId){
+    (state.quizResets||[]).forEach(r => {
+      if(String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active){
+        r.active = false;
+        r.usedAt = oaNowISO();
       }
-      return rrOriginalPushRemote.apply(this, arguments);
+    });
+    const q = oaQuiz(quizId);
+    if(q && Array.isArray(q.resetAvailableFor)){
+      q.resetAvailableFor = q.resetAvailableFor.filter(x => String(x) !== String(studentId));
+    }
+  }
+  function oaCreateStartLock(studentId, quizId){
+    oaEnsure();
+    const q = oaQuiz(quizId);
+    if(!q || !studentId) return null;
+    const reset = oaActiveReset(studentId, quizId);
+    const existing = oaSubmission(studentId, quizId);
+    if(existing && !reset) return null;
+    if(reset){
+      state.submissions = (state.submissions||[]).filter(s => !(String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId)));
+    }
+    oaMarkResetUsed(studentId, quizId);
+    const startText = oaNowText();
+    const startIso = oaNowISO();
+    const sub = {
+      id: oaUid("sub"),
+      quizId,
+      studentId,
+      answers: {},
+      autoScore: 0,
+      teacherScore: null,
+      maxScore: oaQuizMax(q),
+      published: false,
+      submittedAt: startText,
+      submittedAtISO: startIso,
+      startedAt: startText,
+      startedAtISO: startIso,
+      feedback: "Attempt locked immediately after the student started the exercise. Reset is required for another attempt.",
+      autoSubmitted: true,
+      startedOnly: true,
+      attemptLocked: true,
+      oneAttempt: true,
+      lockStatus: "started_locked",
+      lockReason: "Student clicked the final start button for a one-attempt exercise."
     };
-    try{ eval("pushRemote=window.pushRemote;"); }catch(e){}
+    state.submissions.push(sub);
+    oaSave();
+    return sub;
   }
 
-  // After the app opens, if assignments are empty, try automatic recovery once.
-  const rrOriginalInit = window.initSupabase || (typeof initSupabase === "function" ? initSupabase : null);
-  if(typeof rrOriginalInit === "function"){
-    window.initSupabase = async function(){
-      const result = await rrOriginalInit.apply(this, arguments);
-      setTimeout(()=>{ rrRecoverBestIfEmpty(false).catch(e=>console.warn("Auto recovery skipped", e)); }, 1800);
-      return result;
-    };
-    try{ eval("initSupabase=window.initSupabase;"); }catch(e){}
-  }else{
-    setTimeout(()=>{ rrRecoverBestIfEmpty(false).catch(e=>console.warn("Auto recovery skipped", e)); }, 2500);
+  function oaCssName(name){
+    try{ return (window.CSS && CSS.escape) ? oaCssName(name) : String(name).replace(/\\/g,"\\\\").replace(/"/g,'\\"'); }
+    catch(e){ return String(name); }
   }
+  function oaFormat(sec){
+    sec = Math.max(0, Number(sec)||0);
+    const m = Math.floor(sec/60), s = sec % 60;
+    return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+  }
+  function oaStopQuizLock(){
+    if(oaTimer) clearInterval(oaTimer);
+    oaTimer = null;
+    oaActiveQuizId = null;
+    oaSubmitting = false;
+    window.quizTakingActive = false;
+    document.body.classList.remove("quizInProgress");
+    document.getElementById("quizLockNotice")?.remove();
+    try{ if(typeof showQuickNavAfterQuiz === "function") showQuickNavAfterQuiz(); }catch(e){}
+  }
+  function oaStartNavLock(){
+    window.quizTakingActive = true;
+    document.body.classList.add("quizInProgress");
+    try{ if(typeof hideQuickNavForQuiz === "function") hideQuickNavForQuiz(); }catch(e){}
+    document.getElementById("quickNavBar")?.remove();
+    if(!document.getElementById("quizLockNotice")){
+      document.body.insertAdjacentHTML("beforeend", `<div id="quizLockNotice" class="quizLockNotice">Exercise in progress — one attempt has been recorded. Submit before leaving.</div>`);
+    }
+  }
+  function oaAnswerHTML(qq, i){
+    if(typeof answerHTML === "function") return answerHTML(qq, i);
+    return `<div class="questionBox"><h3>Question ${i+1} (${Number(qq.marks)||1} mark${(Number(qq.marks)||1)>1?"s":""})</h3><div class="mathPreview">${oaEsc(qq.prompt)}</div><textarea name="ans_${oaEsc(qq.id)}" placeholder="Type your answer here"></textarea></div>`;
+  }
+  function oaRenderQuiz(quizId){
+    const q = oaQuiz(quizId);
+    if(!q) return alert("Exercise not found.");
+    oaActiveQuizId = quizId;
+    oaSubmitting = false;
+    oaStartNavLock();
+    const mins = Number(q.durationMinutes) || 30;
+    oaSecondsLeft = mins * 60;
+    if(oaTimer) clearInterval(oaTimer);
+    const view = document.getElementById("view");
+    if(!view) return;
+    view.innerHTML = `<div class="quizTimerBar">
+        <div><b>${oaEsc(q.title)}</b><br><small>${oaEsc(q.subject)} • ${oaEsc((q.classNames||[]).join(", "))}</small></div>
+        <div>Time left: <span id="quizTimerClock" class="quizTimerClock">${oaFormat(oaSecondsLeft)}</span></div>
+      </div>
+      <div class="notice" style="margin-bottom:10px"><b>One-attempt rule is active.</b> Your attempt has already been recorded. If you leave this page, the exercise will remain submitted/locked unless Sir Isaac resets it.</div>
+      <div class="card"><h2>${oaEsc(q.title)}</h2><p>This exercise is one attempt only. It will submit automatically when the time is up or when you try to leave the exercise page.</p><form id="quizForm">${(q.questions||[]).map((qq,i)=>oaAnswerHTML(qq,i)).join("")}</form><button class="btn green full" onclick="submitQuiz('${oaEsc(q.id)}',false)">Submit Exercise</button></div>`;
+    oaTimer = setInterval(() => {
+      oaSecondsLeft--;
+      const el = document.getElementById("quizTimerClock");
+      if(el){ el.textContent = oaFormat(oaSecondsLeft); if(oaSecondsLeft <= 60) el.classList.add("danger"); }
+      if(oaSecondsLeft <= 0){
+        clearInterval(oaTimer);
+        window.submitQuiz(quizId, true);
+      }
+    }, 1000);
+    try{ if(typeof typeset === "function") typeset(); }catch(e){}
+  }
+
+  window.availableQuizzes = function(){
+    oaEnsure();
+    const s = oaStudent(currentStudentId);
+    if(!s) return [];
+    return oaAssignedQuizzesForStudent(s.id).filter(q => oaCanAttempt(s.id, q.id));
+  };
+
+  window.takeQuiz = function(id){
+    oaEnsure();
+    const q = oaQuiz(id);
+    const s = oaStudent(currentStudentId);
+    if(!q) return alert("Exercise not found.");
+    if(!s) return alert("Please select your name and log in first.");
+    if(!oaCanAttempt(s.id, id)){
+      const sub = oaSubmission(s.id, id) || {};
+      alert("This exercise is already locked for you. It can only be opened again after Sir Isaac resets it in Admin Mode.");
+      try{ if(typeof setRoute === "function") setRoute("studentResults"); }catch(e){}
+      return;
+    }
+    document.getElementById("startQuizPromptOverlay")?.remove();
+    document.body.insertAdjacentHTML("beforeend", `<div id="startQuizPromptOverlay" class="startQuizPromptOverlay">
+      <div class="startQuizPromptBox">
+        <div class="startQuizPromptHead"><h2>Start One-Attempt Exercise?</h2></div>
+        <div class="startQuizPromptBody">
+          <p>You are about to start: <b>${oaEsc(q.title)}</b>.</p>
+          <ol>
+            <li>This exercise is <b>one attempt only</b>.</li>
+            <li>When you click the gold start button below, your attempt will be recorded immediately.</li>
+            <li>If you go back, close the page, refresh, or leave the exercise, it will remain submitted/locked for you.</li>
+            <li>Only the admin can reset it for you from Admin Mode.</li>
+            <li>The time limit is <b>${Number(q.durationMinutes)||30} minutes</b>.</li>
+          </ol>
+        </div>
+        <div class="startQuizPromptActions">
+          <button class="cancel" onclick="closeStartQuizPrompt()">Cancel / Not Ready</button>
+          <button class="continue" onclick="confirmStartExerciseNow('${oaEsc(id)}')">Yes, Start and Lock My Attempt</button>
+        </div>
+      </div>
+    </div>`);
+  };
+
+  window.closeStartQuizPrompt = function(){
+    document.getElementById("startQuizPromptOverlay")?.remove();
+    try{ if(typeof showQuickNavAfterQuiz === "function") showQuickNavAfterQuiz(); }catch(e){}
+  };
+
+  window.confirmStartExerciseNow = function(id){
+    oaEnsure();
+    const s = oaStudent(currentStudentId);
+    const q = oaQuiz(id);
+    document.getElementById("startQuizPromptOverlay")?.remove();
+    if(!s || !q) return alert("Student or exercise not found.");
+    const lock = oaCreateStartLock(s.id, id);
+    if(!lock){
+      alert("This exercise has already been started or submitted. Ask Sir Isaac to reset it if you need another attempt.");
+      try{ if(typeof setRoute === "function") setRoute("studentResults"); }catch(e){}
+      return;
+    }
+    oaRenderQuiz(id);
+  };
+
+  window.submitQuiz = function(id, auto=false){
+    oaEnsure();
+    if(oaSubmitting) return;
+    const q = oaQuiz(id);
+    const s = oaStudent(currentStudentId);
+    if(!q || !s) return alert("Student or exercise not found.");
+    oaSubmitting = true;
+    if(oaTimer) clearInterval(oaTimer);
+    const form = document.getElementById("quizForm");
+    let answers = {}, score = 0, max = 0;
+    const fileReads = [];
+
+    (q.questions||[]).forEach(qq => {
+      max += Number(qq.marks)||1;
+      const name = "ans_" + qq.id;
+      if(!form){ answers[qq.id] = ""; return; }
+      if(qq.type === "mcq"){
+        const v = form.querySelector(`[name="${oaCssName(name)}"]:checked`)?.value || "";
+        answers[qq.id] = v;
+        if(String(v).toUpperCase() === String(qq.answer||"").toUpperCase()) score += Number(qq.marks)||1;
+      }else if(qq.type === "upload"){
+        const input = form.querySelector(`[name="${oaCssName(name)}"]`);
+        const files = [...(input?.files || [])];
+        if(files.length){
+          answers[qq.id] = [];
+          files.forEach(f => fileReads.push(new Promise(res => {
+            const r = new FileReader();
+            r.onload = () => { answers[qq.id].push({name:f.name, type:f.type, data:r.result}); res(); };
+            r.onerror = () => { res(); };
+            r.readAsDataURL(f);
+          })));
+        }else answers[qq.id] = "";
+      }else{
+        const v = form.querySelector(`[name="${oaCssName(name)}"]`)?.value || "";
+        answers[qq.id] = v;
+        if(qq.type === "fill" && v.trim().toLowerCase() === String(qq.answer||"").trim().toLowerCase()) score += Number(qq.marks)||1;
+      }
+    });
+
+    Promise.all(fileReads).then(() => {
+      let sub = oaSubmission(s.id, id);
+      if(!sub){
+        sub = {id:oaUid("sub"), quizId:id, studentId:s.id};
+        state.submissions.push(sub);
+      }
+      Object.assign(sub, {
+        quizId:id,
+        studentId:s.id,
+        answers,
+        autoScore:score,
+        teacherScore:null,
+        maxScore:max || oaQuizMax(q),
+        published:false,
+        submittedAt:oaNowText(),
+        submittedAtISO:oaNowISO(),
+        finalizedAt:oaNowText(),
+        finalizedAtISO:oaNowISO(),
+        feedback: sub.feedback && !sub.startedOnly ? sub.feedback : "",
+        autoSubmitted:!!auto,
+        startedOnly:false,
+        attemptLocked:true,
+        oneAttempt:true,
+        lockStatus:auto ? "auto_submitted" : "submitted",
+        lockReason:auto ? "Automatic submission caused by timer, leaving the page, or locked navigation." : "Student submitted the one-attempt exercise."
+      });
+      oaStopQuizLock();
+      oaSave();
+      alert(auto ? "The exercise has been submitted automatically and is now locked." : "Submitted successfully. This exercise is now locked for you.");
+      oaRouteAllowed = true;
+      try{ if(typeof setRoute === "function") setRoute("studentResults"); }catch(e){}
+      oaRouteAllowed = false;
+    }).catch(() => {
+      oaStopQuizLock();
+      oaSave();
+      alert("The attempt has been saved and locked. If your uploaded file did not attach properly, contact Sir Isaac for a reset.");
+      try{ if(typeof setRoute === "function") setRoute("studentResults"); }catch(e){}
+    });
+  };
+
+  window.studentQuizzes = function(){
+    oaEnsure();
+    const s = oaStudent(currentStudentId);
+    if(!s){ try{ if(typeof setRoute === "function") setRoute("studentLogin"); }catch(e){} return; }
+    const assigned = oaAssignedQuizzesForStudent(s.id);
+    const openQs = assigned.filter(q => oaCanAttempt(s.id, q.id));
+    const closedQs = assigned.filter(q => !oaCanAttempt(s.id, q.id));
+    const docs = (typeof availableDocAssignments === "function") ? availableDocAssignments() : [];
+    const notice = (typeof qaNoticeHTML === "function") ? qaNoticeHTML(s.id) : "";
+    const view = document.getElementById("view");
+    if(!view) return;
+    view.innerHTML = `${notice}<div class="card"><h2>Available Exercises and Document Upload Work</h2><p>Every exercise is one attempt only. Once you start, the attempt is recorded and locked unless the admin resets it.</p></div>
+      <div>${openQs.map(q => `<div class="quizCard"><h3>${oaEsc(q.title)}</h3><p>${oaEsc((q.questions||[]).length)} question(s) • ${Number(q.durationMinutes)||30} minutes</p><button class="btn green" onclick="takeQuiz('${oaEsc(q.id)}')">Start Exercise</button></div>`).join("") || `<div class="empty">No new timed exercise available now.</div>`}</div>
+      <div class="card"><h2>Locked / Submitted Exercises</h2>${closedQs.map(q => { const sub = oaSubmission(s.id, q.id)||{}; return `<div class="quizClosedCard"><h3>${oaEsc(q.title)}</h3><p>${oaEsc(oaClosedReason(s.id,q.id))}</p><p>Recorded: ${oaEsc(sub.submittedAt || sub.startedAt || "")}</p><span class="quizClosedBadge">Locked — admin reset required</span></div>`; }).join("") || `<div class="empty">No locked exercise yet.</div>`}</div>
+      <div class="card"><h2>Scan and Upload Written Work</h2>${docs.map(a => `<div class="docAssignmentCard"><h3>${oaEsc(a.title)}</h3><p>${oaEsc(a.instructions||"Scan your work and upload the pages here.")}</p><p>Maximum score: ${oaEsc(a.maxScore)}</p><button class="btn green" onclick="openDocSubmit('${oaEsc(a.id)}')">Upload Scanned Pages</button></div>`).join("") || `<div class="empty">No document-upload assignment available now.</div>`}</div>`;
+  };
+
+  window.resetQuizForStudent = function(studentId, quizId){
+    oaEnsure();
+    const st = oaStudent(studentId), q = oaQuiz(quizId);
+    if(!st || !q) return alert("Student or exercise not found.");
+    const all = oaAllSubmissions(studentId, quizId);
+    const message = all.length
+      ? "Reset this exercise for " + st.name + "?\n\nThis will remove the student's locked attempt/submission, answers, score, and published status for this exercise. The student will be able to start one fresh attempt."
+      : st.name + " has no recorded locked attempt for this exercise.\n\nDo you still want to create a fresh access reset?";
+    if(!confirm(message)) return;
+    state.submissions = (state.submissions||[]).filter(s => !(String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId)));
+    state.quizResets = (state.quizResets||[]).map(r => {
+      if(String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active){
+        return {...r, active:false, replacedAt:oaNowISO()};
+      }
+      return r;
+    });
+    state.quizResets.push({
+      id: oaUid("reset"),
+      studentId,
+      quizId,
+      createdAt: oaNowISO(),
+      active: true,
+      reason: "Teacher reset: allow one fresh attempt after mistake/technical issue."
+    });
+    q.resetAvailableFor = Array.isArray(q.resetAvailableFor) ? q.resetAvailableFor : [];
+    if(!q.resetAvailableFor.map(String).includes(String(studentId))) q.resetAvailableFor.push(studentId);
+    oaSave();
+    alert("Reset successful. The student now has one fresh attempt for this exercise.");
+    try{ if(typeof refreshStudentWorkPanel === "function") refreshStudentWorkPanel(studentId); }catch(e){}
+    try{ if(typeof adminExerciseRefreshHub === "function") adminExerciseRefreshHub(); }catch(e){}
+    try{ if(typeof review === "function" && route === "review") review(); }catch(e){}
+  };
+
+  const oldSetRouteOA = window.setRoute;
+  if(typeof oldSetRouteOA === "function"){
+    window.setRoute = function(r){
+      if(oaActiveQuizId && !oaRouteAllowed){
+        window.submitQuiz(oaActiveQuizId, true);
+        return;
+      }
+      return oldSetRouteOA.apply(this, arguments);
+    };
+  }
+
+  const oldRenderOA = window.render;
+  if(typeof oldRenderOA === "function"){
+    window.render = function(){
+      if(oaActiveQuizId){
+        try{ if(typeof status === "function") status("Live saved — exercise continues", "live"); }catch(e){}
+        return;
+      }
+      return oldRenderOA.apply(this, arguments);
+    };
+  }
+
+  window.addEventListener("popstate", function(){
+    if(oaActiveQuizId){
+      try{ history.pushState(null, "", location.href); }catch(e){}
+      window.submitQuiz(oaActiveQuizId, true);
+    }
+  });
+
+  window.addEventListener("beforeunload", function(e){
+    if(oaActiveQuizId){
+      const sub = oaSubmission(currentStudentId, oaActiveQuizId);
+      if(sub){
+        sub.autoSubmitted = true;
+        sub.attemptLocked = true;
+        sub.oneAttempt = true;
+        sub.lockStatus = sub.startedOnly ? "started_locked" : sub.lockStatus;
+        sub.lastSeenAt = oaNowISO();
+        try{ if(typeof saveLocal === "function") saveLocal(); else localStorage.setItem(KEY, JSON.stringify(state)); }catch(x){}
+      }
+      e.preventDefault();
+      e.returnValue = "Your exercise attempt has already been recorded and will remain locked.";
+      return e.returnValue;
+    }
+  });
+
+  try{
+    eval("availableQuizzes=window.availableQuizzes; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; studentQuizzes=window.studentQuizzes; resetQuizForStudent=window.resetQuizForStudent; closeStartQuizPrompt=window.closeStartQuizPrompt; confirmStartExerciseNow=window.confirmStartExerciseNow; setRoute=window.setRoute; render=window.render;");
+  }catch(e){}
 })();
 
 
