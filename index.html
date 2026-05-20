@@ -28207,11 +28207,6 @@ async function initSupabase(){
     oaSave();
     return sub;
   }
-
-  function oaCssName(name){
-    try{ return (window.CSS && CSS.escape) ? oaCssName(name) : String(name).replace(/\\/g,"\\\\").replace(/"/g,'\\"'); }
-    catch(e){ return String(name); }
-  }
   function oaFormat(sec){
     sec = Math.max(0, Number(sec)||0);
     const m = Math.floor(sec/60), s = sec % 60;
@@ -28347,11 +28342,11 @@ async function initSupabase(){
       const name = "ans_" + qq.id;
       if(!form){ answers[qq.id] = ""; return; }
       if(qq.type === "mcq"){
-        const v = form.querySelector(`[name="${oaCssName(name)}"]:checked`)?.value || "";
+        const v = form.querySelector(`[name="${CSS.escape(name)}"]:checked`)?.value || "";
         answers[qq.id] = v;
         if(String(v).toUpperCase() === String(qq.answer||"").toUpperCase()) score += Number(qq.marks)||1;
       }else if(qq.type === "upload"){
-        const input = form.querySelector(`[name="${oaCssName(name)}"]`);
+        const input = form.querySelector(`[name="${CSS.escape(name)}"]`);
         const files = [...(input?.files || [])];
         if(files.length){
           answers[qq.id] = [];
@@ -28363,7 +28358,7 @@ async function initSupabase(){
           })));
         }else answers[qq.id] = "";
       }else{
-        const v = form.querySelector(`[name="${oaCssName(name)}"]`)?.value || "";
+        const v = form.querySelector(`[name="${CSS.escape(name)}"]`)?.value || "";
         answers[qq.id] = v;
         if(qq.type === "fill" && v.trim().toLowerCase() === String(qq.answer||"").trim().toLowerCase()) score += Number(qq.marks)||1;
       }
@@ -28507,6 +28502,428 @@ async function initSupabase(){
 
   try{
     eval("availableQuizzes=window.availableQuizzes; takeQuiz=window.takeQuiz; submitQuiz=window.submitQuiz; studentQuizzes=window.studentQuizzes; resetQuizForStudent=window.resetQuizForStudent; closeStartQuizPrompt=window.closeStartQuizPrompt; confirmStartExerciseNow=window.confirmStartExerciseNow; setRoute=window.setRoute; render=window.render;");
+  }catch(e){}
+})();
+
+/* ===== STUDENT RESET REQUEST + ADMIN GRANT / DENY WORKFLOW ===== */
+(function(){
+  const RR_VERSION = "reset-request-grant-deny-2026-05-20";
+
+  function rrEsc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? "").replace(/[&<>\"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[m])); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function rrUid(prefix){
+    try{ return typeof uid === "function" ? uid(prefix) : prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8); }
+    catch(e){ return prefix + "_" + Date.now(); }
+  }
+  function rrNowISO(){ return new Date().toISOString(); }
+  function rrNowText(){ return new Date().toLocaleString(); }
+  function rrShowTime(iso){ try{ return iso ? new Date(iso).toLocaleString() : ""; }catch(e){ return iso || ""; } }
+  function rrEnsure(){
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.students = Array.isArray(state.students) ? state.students : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.quizResets = Array.isArray(state.quizResets) ? state.quizResets : [];
+    state.quizResetRequests = Array.isArray(state.quizResetRequests) ? state.quizResetRequests : [];
+    state.resetRequestVersion = RR_VERSION;
+  }
+  function rrSave(){
+    rrEnsure();
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof save === "function") save(); else if(typeof saveLocal === "function") saveLocal(); }catch(e){
+      try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(x){}
+    }
+  }
+  function rrStudent(id){
+    try{ return typeof student === "function" ? student(id) : (state.students||[]).find(s => String(s.id) === String(id)); }
+    catch(e){ return (state.students||[]).find(s => String(s.id) === String(id)); }
+  }
+  function rrQuiz(id){
+    try{ return typeof quiz === "function" ? quiz(id) : (state.quizzes||[]).find(q => String(q.id) === String(id)); }
+    catch(e){ return (state.quizzes||[]).find(q => String(q.id) === String(id)); }
+  }
+  function rrSubjectForClass(className){
+    try{ return typeof subjectForClass === "function" ? subjectForClass(className) : ((state.subjects||[]).find(x => (x.classes||[]).map(String).includes(String(className)))||{}).name; }
+    catch(e){ return ((state.subjects||[]).find(x => (x.classes||[]).map(String).includes(String(className)))||{}).name; }
+  }
+  function rrSubmission(studentId, quizId){
+    rrEnsure();
+    return (state.submissions||[]).find(s => String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId));
+  }
+  function rrSubmissionsForQuiz(quizId){
+    rrEnsure();
+    return (state.submissions||[]).filter(s => String(s.quizId) === String(quizId));
+  }
+  function rrActiveReset(studentId, quizId){
+    rrEnsure();
+    return (state.quizResets||[]).find(r => String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active);
+  }
+  function rrCanAttempt(studentId, quizId){
+    const sub = rrSubmission(studentId, quizId);
+    return !sub || !!rrActiveReset(studentId, quizId);
+  }
+  function rrAssignedQuizzesForStudent(studentId){
+    rrEnsure();
+    const s = rrStudent(studentId);
+    if(!s) return [];
+    const subj = rrSubjectForClass(s.className);
+    const activeResetIds = new Set((state.quizResets||[])
+      .filter(r => String(r.studentId) === String(s.id) && r.active)
+      .map(r => String(r.quizId)));
+    const list = (state.quizzes||[]).filter(q => {
+      const assigned = String(q.subject) === String(subj) && (q.classNames||[]).map(String).includes(String(s.className));
+      const published = q.status === "Published";
+      const resetVisible = assigned && (activeResetIds.has(String(q.id)) || (q.resetAvailableFor||[]).map(String).includes(String(s.id)));
+      return assigned && (published || resetVisible);
+    });
+    const seen = new Set();
+    return list.filter(q => { if(seen.has(String(q.id))) return false; seen.add(String(q.id)); return true; });
+  }
+  function rrRequests(studentId, quizId){
+    rrEnsure();
+    return (state.quizResetRequests||[])
+      .filter(r => (!studentId || String(r.studentId) === String(studentId)) && (!quizId || String(r.quizId) === String(quizId)))
+      .sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  }
+  function rrLatestRequest(studentId, quizId){ return rrRequests(studentId, quizId)[0] || null; }
+  function rrPendingRequest(studentId, quizId){ return rrRequests(studentId, quizId).find(r => r.status === "Pending") || null; }
+  function rrPendingCount(){ rrEnsure(); return (state.quizResetRequests||[]).filter(r => r.status === "Pending").length; }
+  function rrStatusBadge(req){
+    if(!req) return `<span class="rrBadge none">No request</span>`;
+    const cls = req.status === "Pending" ? "pending" : req.status === "Granted" ? "granted" : "denied";
+    return `<span class="rrBadge ${cls}">${rrEsc(req.status)}</span>`;
+  }
+  function rrRequestMessage(studentId, quizId){
+    const req = rrLatestRequest(studentId, quizId);
+    if(!req) return "";
+    if(req.status === "Pending") return `<div class="rrMiniStatus pending"><b>Reset request pending.</b> Sent: ${rrEsc(rrShowTime(req.createdAt))}. Wait for admin decision.</div>`;
+    if(req.status === "Granted" && !rrSubmission(studentId, quizId)) return `<div class="rrMiniStatus granted"><b>Reset granted.</b> This exercise has been reopened. Go to Available Exercises and start only when ready.</div>`;
+    if(req.status === "Denied") return `<div class="rrMiniStatus denied"><b>Reset request denied.</b> ${rrEsc(req.adminNote || "Admin did not grant a new attempt.")}</div>`;
+    return "";
+  }
+  function rrStudentResetActionHTML(studentId, quizId){
+    const sub = rrSubmission(studentId, quizId);
+    const req = rrLatestRequest(studentId, quizId);
+    const pending = rrPendingRequest(studentId, quizId);
+    if(!sub && req?.status === "Granted") return rrRequestMessage(studentId, quizId);
+    if(!sub) return "";
+    if(pending) return rrRequestMessage(studentId, quizId);
+    if(req?.status === "Denied"){
+      return `${rrRequestMessage(studentId, quizId)}<button class="rrStudentBtn" onclick="requestQuizReset('${rrEsc(quizId)}',true)">Send New Reset Request</button>`;
+    }
+    return `<button class="rrStudentBtn" onclick="requestQuizReset('${rrEsc(quizId)}')">Request Reset / Redo Access</button>`;
+  }
+  function rrCloseActiveResets(studentId, quizId){
+    (state.quizResets||[]).forEach(r => {
+      if(String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active){
+        r.active = false;
+        r.replacedAt = rrNowISO();
+      }
+    });
+  }
+  function rrGrantAccess(studentId, quizId, requestId){
+    rrEnsure();
+    const st = rrStudent(studentId), q = rrQuiz(quizId);
+    if(!st || !q) return alert("Student or exercise not found.");
+    const req = requestId ? (state.quizResetRequests||[]).find(r => String(r.id) === String(requestId)) : rrPendingRequest(studentId, quizId);
+    state.submissions = (state.submissions||[]).filter(s => !(String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId)));
+    rrCloseActiveResets(studentId, quizId);
+    state.quizResets.push({
+      id: rrUid("reset"),
+      studentId,
+      quizId,
+      requestId: req?.id || "",
+      createdAt: rrNowISO(),
+      active: true,
+      reason: "Admin granted student reset request. One fresh attempt allowed."
+    });
+    q.resetAvailableFor = Array.isArray(q.resetAvailableFor) ? q.resetAvailableFor : [];
+    if(!q.resetAvailableFor.map(String).includes(String(studentId))) q.resetAvailableFor.push(studentId);
+    if(req){
+      req.status = "Granted";
+      req.decidedAt = rrNowISO();
+      req.adminNote = "Access granted by admin. Previous submission removed from submitted-student lists.";
+    }
+    rrSave();
+  }
+  function rrRefreshAfterDecision(studentId){
+    try{ if(typeof refreshStudentWorkPanel === "function" && studentId) refreshStudentWorkPanel(studentId); }catch(e){}
+    try{ if(typeof adminExerciseRefreshHub === "function") adminExerciseRefreshHub(); }catch(e){}
+    try{ if(typeof review === "function" && role === "admin" && route === "review") review(); }catch(e){}
+    try{ if(typeof students === "function" && role === "admin" && route === "students") students(); }catch(e){}
+    try{ if(role === "student" && typeof studentQuizzes === "function" && route === "studentQuizzes") studentQuizzes(); }catch(e){}
+    try{ if(role === "student" && typeof studentResults === "function" && route === "studentResults") studentResults(); }catch(e){}
+  }
+
+  function rrInstallStyle(){
+    if(document.getElementById("resetRequestWorkflowStyle")) return;
+    const style = document.createElement("style");
+    style.id = "resetRequestWorkflowStyle";
+    style.textContent = `
+      .resetRequestPanel{background:#fff;border:2px solid #d9e7f3;border-left:8px solid #f4c430;border-radius:22px;padding:16px;margin:0 0 16px;box-shadow:0 10px 28px rgba(7,31,61,.08)}
+      .resetRequestPanel h2{margin:0 0 7px;color:#071f3d}.resetRequestPanel p{margin:0 0 12px;color:#667085;line-height:1.45;font-weight:750}
+      .rrSummaryGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:10px 0}.rrSummary{border:1px solid #d9e7f3;background:#f8fbff;border-radius:14px;padding:11px}.rrSummary span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:950;color:#667085}.rrSummary b{display:block;color:#071f3d;font-size:22px;margin-top:3px}
+      .rrTableWrap{overflow:auto;border:1px solid #d9e7f3;border-radius:14px;background:#fff}.rrTable{width:100%;border-collapse:collapse}.rrTable th{background:#071f3d;color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.05em}.rrTable th,.rrTable td{border-bottom:1px solid #edf2f7;padding:9px;vertical-align:top}.rrTable small{display:block;color:#667085;font-weight:750;line-height:1.35}.rrTable .actions{display:flex;flex-wrap:wrap;gap:6px}.rrTable button,.rrStudentBtn,.rrGrantBtn,.rrDenyBtn,.rrDirectResetBtn{border:0;border-radius:11px;min-height:36px;padding:8px 11px;font-weight:900;cursor:pointer}.rrGrantBtn{background:#0f7b4f;color:#fff}.rrDenyBtn{background:#d92d20;color:#fff}.rrDirectResetBtn{background:#f4c430;color:#071f3d}.rrStudentBtn{background:#f4c430;color:#071f3d;margin-top:8px}.rrBadge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:950;border:1px solid #d9e7f3;background:#f8fbff;color:#071f3d}.rrBadge.pending{background:#fff7d1;border-color:#f4c430;color:#6b5300}.rrBadge.granted{background:#ecfdf3;border-color:#bce8ce;color:#0f6b47}.rrBadge.denied{background:#fff1f0;border-color:#ffd4d0;color:#b42318}.rrBadge.none{background:#eef5fc;color:#667085}.rrMiniStatus{margin-top:8px;border-radius:12px;padding:9px 10px;font-size:13px;line-height:1.4;font-weight:850}.rrMiniStatus.pending{background:#fff7d1;border:1px solid #f4c430;color:#6b5300}.rrMiniStatus.granted{background:#ecfdf3;border:1px solid #bce8ce;color:#0f6b47}.rrMiniStatus.denied{background:#fff1f0;border:1px solid #ffd4d0;color:#b42318}.rrRequestNote{max-width:260px;white-space:normal;line-height:1.35}.rrStudentResetCentre{border:2px solid #d9e7f3;border-left:8px solid #0f7b4f}.rrClosedCardActions{margin-top:10px}.rrAttention{display:inline-flex;align-items:center;gap:6px;background:#fff7d1;border:1px solid #f4c430;color:#071f3d;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:950}
+      @media(max-width:760px){.rrTable th,.rrTable td{font-size:12px}.rrTable .actions{display:grid}.rrTable button,.rrStudentBtn{width:100%}}
+      @media print{.resetRequestPanel .actions,.rrStudentBtn{display:none!important}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  window.requestQuizReset = function(quizId, forceNew=false){
+    rrEnsure();
+    const st = rrStudent(currentStudentId), q = rrQuiz(quizId);
+    if(!st || !q) return alert("Student or exercise not found.");
+    const sub = rrSubmission(st.id, quizId);
+    if(!sub) return alert("This exercise is not currently locked/submitted for you. Check Available Exercises.");
+    const pending = rrPendingRequest(st.id, quizId);
+    if(pending && !forceNew) return alert("You have already sent a reset request for this exercise. Wait for the admin to grant or deny it.");
+    const reason = prompt("Briefly state why you want this exercise reset. Example: I clicked Start by mistake / network problem / phone went off.", "I clicked Start by mistake.");
+    if(reason === null) return;
+    const text = String(reason || "").trim() || "Student requested reset / redo access.";
+    if(pending && forceNew){
+      pending.status = "Cancelled";
+      pending.cancelledAt = rrNowISO();
+    }
+    state.quizResetRequests.push({
+      id: rrUid("resetReq"),
+      studentId: st.id,
+      quizId,
+      submissionId: sub.id || "",
+      status: "Pending",
+      reason: text,
+      createdAt: rrNowISO(),
+      submittedAt: sub.submittedAt || sub.startedAt || "",
+      lockStatus: sub.lockStatus || (sub.startedOnly ? "started_locked" : "submitted"),
+      studentName: st.name || "",
+      className: st.className || "",
+      quizTitle: q.title || ""
+    });
+    rrSave();
+    alert("Your reset request has been sent to the admin. You cannot redo the exercise unless the admin grants access.");
+    rrRefreshAfterDecision(st.id);
+  };
+
+  window.grantQuizResetRequest = function(requestId){
+    rrEnsure();
+    const req = (state.quizResetRequests||[]).find(r => String(r.id) === String(requestId));
+    if(!req) return alert("Reset request not found.");
+    if(req.status !== "Pending" && !confirm("This request is not pending. Grant access anyway?")) return;
+    const st = rrStudent(req.studentId), q = rrQuiz(req.quizId);
+    if(!st || !q) return alert("Student or exercise not found.");
+    if(!confirm("Grant reset access for " + st.name + "?\n\nThe previous submission will be removed immediately, and the student's name will no longer appear in submitted-student lists until the student submits again.")) return;
+    rrGrantAccess(req.studentId, req.quizId, req.id);
+    alert("Reset granted. The previous submission has been removed, and the student now has one fresh attempt.");
+    rrRefreshAfterDecision(req.studentId);
+  };
+
+  window.denyQuizResetRequest = function(requestId){
+    rrEnsure();
+    const req = (state.quizResetRequests||[]).find(r => String(r.id) === String(requestId));
+    if(!req) return alert("Reset request not found.");
+    const st = rrStudent(req.studentId), q = rrQuiz(req.quizId);
+    const note = prompt("Reason for denying the reset request. This will be visible to you in the record.", "Request denied by admin.");
+    if(note === null) return;
+    req.status = "Denied";
+    req.decidedAt = rrNowISO();
+    req.adminNote = String(note || "Request denied by admin.").trim();
+    rrSave();
+    alert("Reset request denied. The student's existing submission remains in the submitted list.");
+    rrRefreshAfterDecision(req.studentId);
+  };
+
+  window.grantResetForSubmission = function(studentId, quizId){
+    rrEnsure();
+    const st = rrStudent(studentId), q = rrQuiz(quizId);
+    if(!st || !q) return alert("Student or exercise not found.");
+    const pending = rrPendingRequest(studentId, quizId);
+    if(pending) return grantQuizResetRequest(pending.id);
+    if(!confirm("Grant redo access for " + st.name + " even though there is no pending request?\n\nThe previous submission will be removed from submitted-student lists.")) return;
+    rrGrantAccess(studentId, quizId, "");
+    alert("Reset granted. The student now has one fresh attempt.");
+    rrRefreshAfterDecision(studentId);
+  };
+
+  window.resetRequestAdminPanelHTML = function(){
+    rrEnsure(); rrInstallStyle();
+    const requests = (state.quizResetRequests||[]).slice().sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+    const pending = requests.filter(r => r.status === "Pending");
+    const granted = requests.filter(r => r.status === "Granted").length;
+    const denied = requests.filter(r => r.status === "Denied").length;
+    const rows = requests.length ? requests : [];
+    return `<div class="resetRequestPanel" id="resetRequestAdminPanel">
+      <h2>Student Reset Request Centre</h2>
+      <p>Students who mistakenly start or submit an exercise can request a reset from their portal. Granting a request removes that student's old submission immediately, so the student will not appear in submitted-student lists until the work is submitted again.</p>
+      <div class="rrSummaryGrid">
+        <div class="rrSummary"><span>Pending Requests</span><b>${pending.length}</b></div>
+        <div class="rrSummary"><span>Granted</span><b>${granted}</b></div>
+        <div class="rrSummary"><span>Denied</span><b>${denied}</b></div>
+      </div>
+      <div class="rrTableWrap"><table class="rrTable">
+        <thead><tr><th>Student</th><th>Exercise</th><th>Request</th><th>Submission State</th><th>Decision</th></tr></thead>
+        <tbody>
+          ${rows.map(r => {
+            const st = rrStudent(r.studentId) || {name:r.studentName || "Student", className:r.className || ""};
+            const q = rrQuiz(r.quizId) || {title:r.quizTitle || "Exercise"};
+            const sub = rrSubmission(r.studentId, r.quizId);
+            return `<tr>
+              <td><b>${rrEsc(st.name)}</b><small>${rrEsc(st.className || "")}</small></td>
+              <td><b>${rrEsc(q.title || "Exercise")}</b><small>${rrEsc(q.subject || "")}</small></td>
+              <td>${rrStatusBadge(r)}<div class="rrRequestNote"><small><b>Sent:</b> ${rrEsc(rrShowTime(r.createdAt))}</small><small><b>Reason:</b> ${rrEsc(r.reason || "No reason given")}</small>${r.adminNote?`<small><b>Admin note:</b> ${rrEsc(r.adminNote)}</small>`:""}</div></td>
+              <td>${sub ? `<span class="rrBadge pending">Still in submitted list</span><small>${rrEsc(sub.lockStatus || (sub.startedOnly?"Started / locked":"Submitted"))}</small><small>${rrEsc(sub.submittedAt || sub.startedAt || "")}</small>` : `<span class="rrBadge granted">Removed / reopened</span><small>Student will appear again only after a fresh submission.</small>`}</td>
+              <td><div class="actions">${r.status === "Pending" ? `<button class="rrGrantBtn" onclick="grantQuizResetRequest('${rrEsc(r.id)}')">Grant Access</button><button class="rrDenyBtn" onclick="denyQuizResetRequest('${rrEsc(r.id)}')">Deny</button>` : `<span>${rrEsc(r.decidedAt ? rrShowTime(r.decidedAt) : "No action needed")}</span>`}</div></td>
+            </tr>`;
+          }).join("") || `<tr><td colspan="5"><div class="empty">No student has requested a reset yet.</div></td></tr>`}
+        </tbody>
+      </table></div>
+    </div>`;
+  };
+
+  function rrStudentResetCentreHTML(studentId){
+    rrEnsure();
+    const s = rrStudent(studentId);
+    if(!s) return "";
+    const locked = rrAssignedQuizzesForStudent(studentId).filter(q => !!rrSubmission(studentId, q.id));
+    return `<div class="card rrStudentResetCentre" id="studentResetRequestCentre">
+      <h2>Request Exercise Reset</h2>
+      <p>If you mistakenly started an exercise, request a reset here. You cannot redo the work unless the admin grants access.</p>
+      ${locked.map(q => {
+        const sub = rrSubmission(studentId, q.id) || {};
+        const req = rrLatestRequest(studentId, q.id);
+        return `<div class="quizClosedCard"><h3>${rrEsc(q.title || "Exercise")}</h3><p>Recorded: ${rrEsc(sub.submittedAt || sub.startedAt || "")}</p>${rrStatusBadge(req)}${rrStudentResetActionHTML(studentId, q.id)}</div>`;
+      }).join("") || `<div class="empty">No locked exercise available for reset request.</div>`}
+    </div>`;
+  }
+
+  window.studentQuizzes = function(){
+    rrEnsure(); rrInstallStyle();
+    const s = rrStudent(currentStudentId);
+    if(!s){ try{ if(typeof setRoute === "function") setRoute("studentLogin"); }catch(e){} return; }
+    const assigned = rrAssignedQuizzesForStudent(s.id);
+    const openQs = assigned.filter(q => rrCanAttempt(s.id, q.id));
+    const closedQs = assigned.filter(q => !rrCanAttempt(s.id, q.id));
+    const docs = (typeof availableDocAssignments === "function") ? availableDocAssignments() : [];
+    const notice = (typeof qaNoticeHTML === "function") ? qaNoticeHTML(s.id) : "";
+    const view = document.getElementById("view");
+    if(!view) return;
+    view.innerHTML = `${notice}<div class="card"><h2>Available Exercises and Document Upload Work</h2><p>Every exercise is one attempt only. Once you start, your attempt is recorded and locked unless the admin grants a reset.</p></div>
+      <div>${openQs.map(q => `<div class="quizCard"><h3>${rrEsc(q.title)}</h3><p>${rrEsc((q.questions||[]).length)} question(s) • ${Number(q.durationMinutes)||30} minutes</p><button class="btn green" onclick="takeQuiz('${rrEsc(q.id)}')">Start Exercise</button>${rrRequestMessage(s.id, q.id)}</div>`).join("") || `<div class="empty">No new timed exercise available now.</div>`}</div>
+      <div class="card"><h2>Locked / Submitted Exercises</h2>${closedQs.map(q => { const sub = rrSubmission(s.id, q.id)||{}; return `<div class="quizClosedCard"><h3>${rrEsc(q.title)}</h3><p>${rrEsc(sub.startedOnly ? "You started/opened this exercise, so your one attempt has been consumed." : "You have submitted or attempted this exercise.")}</p><p>Recorded: ${rrEsc(sub.submittedAt || sub.startedAt || "")}</p><span class="quizClosedBadge">Locked — admin reset required</span><div class="rrClosedCardActions">${rrStudentResetActionHTML(s.id, q.id)}</div></div>`; }).join("") || `<div class="empty">No locked exercise yet.</div>`}</div>
+      <div class="card"><h2>Scan and Upload Written Work</h2>${docs.map(a => `<div class="docAssignmentCard"><h3>${rrEsc(a.title)}</h3><p>${rrEsc(a.instructions||"Scan your work and upload the pages here.")}</p><p>Maximum score: ${rrEsc(a.maxScore)}</p><button class="btn green" onclick="openDocSubmit('${rrEsc(a.id)}')">Upload Scanned Pages</button></div>`).join("") || `<div class="empty">No document-upload assignment available now.</div>`}</div>`;
+  };
+
+  const oldStudentResultsRR = window.studentResults;
+  window.studentResults = function(){
+    rrInstallStyle();
+    const result = oldStudentResultsRR ? oldStudentResultsRR.apply(this, arguments) : undefined;
+    const view = document.getElementById("view");
+    if(view && currentStudentId && !document.getElementById("studentResetRequestCentre")){
+      view.insertAdjacentHTML("beforeend", rrStudentResetCentreHTML(currentStudentId));
+    }
+    return result;
+  };
+
+  const oldStudentWorkSummaryRR = window.studentWorkSummaryHTML;
+  window.studentWorkSummaryHTML = function(studentId){
+    rrEnsure(); rrInstallStyle();
+    const base = oldStudentWorkSummaryRR ? oldStudentWorkSummaryRR.apply(this, arguments) : "";
+    const subs = (state.submissions||[]).filter(s => String(s.studentId) === String(studentId));
+    const panel = `<div class="studentWorkPanel" id="resetControlPanel_${rrEsc(studentId)}">
+      <h3>Reset Request / Redo Access Control</h3>
+      <p>Granting access removes the student's old submission immediately. The student will then disappear from submitted-student lists until a fresh submission is made.</p>
+      ${subs.map(sub => {
+        const q = rrQuiz(sub.quizId) || {};
+        const req = rrLatestRequest(studentId, sub.quizId);
+        const pending = rrPendingRequest(studentId, sub.quizId);
+        return `<div class="studentAttemptBox"><b>${rrEsc(q.title || "Exercise")}</b><br>Recorded: ${rrEsc(sub.submittedAt || sub.startedAt || "")}<br>Score: ${rrEsc(sub.teacherScore ?? sub.autoScore ?? 0)} / ${rrEsc(sub.maxScore ?? "")}
+          <div style="margin-top:6px">${rrStatusBadge(req)} ${pending?`<span class="rrAttention">Student requested reset</span>`:""}</div>
+          ${req?.reason ? `<div class="rrMiniStatus ${req.status === "Pending" ? "pending" : req.status === "Granted" ? "granted" : "denied"}"><b>Reason:</b> ${rrEsc(req.reason)}</div>` : ""}
+          <div class="toolbar" style="margin-top:8px">${pending ? `<button class="rrGrantBtn" onclick="grantQuizResetRequest('${rrEsc(pending.id)}')">Grant Access</button><button class="rrDenyBtn" onclick="denyQuizResetRequest('${rrEsc(pending.id)}')">Deny Request</button>` : `<button class="rrDirectResetBtn" onclick="grantResetForSubmission('${rrEsc(studentId)}','${rrEsc(sub.quizId)}')">Grant Redo Access</button>`}</div>
+        </div>`;
+      }).join("") || `<div class="empty">No timed exercise submission or locked attempt for this student.</div>`}
+    </div>`;
+    return base + panel;
+  };
+
+  const oldReviewRR = window.review;
+  window.review = function(){
+    rrInstallStyle();
+    const result = oldReviewRR ? oldReviewRR.apply(this, arguments) : undefined;
+    const view = document.getElementById("view");
+    if(view && !document.getElementById("resetRequestAdminPanel")){
+      view.insertAdjacentHTML("afterbegin", resetRequestAdminPanelHTML());
+    }
+    return result;
+  };
+
+  const oldAdminExerciseReviewHubRR = window.adminExerciseReviewHub;
+  window.adminExerciseReviewHub = function(){
+    rrInstallStyle();
+    const hub = oldAdminExerciseReviewHubRR ? oldAdminExerciseReviewHubRR.apply(this, arguments) : "";
+    return resetRequestAdminPanelHTML() + hub;
+  };
+
+  // Public / student submitted list helper: after a reset is granted, the old submission is removed.
+  // This override also ignores any obsolete submission explicitly marked as reopened/reset.
+  if(typeof window.studentSubmittedList === "function"){
+    const oldOpenStudentSubmittedListRR = window.openStudentSubmittedList;
+    const oldStudentSubmissionOptionsRR = window.studentSubmissionOptions;
+    function rrWorkList(){
+      const quizzes = (state.quizzes || [])
+        .filter(q => q.status === "Published")
+        .map(q => ({id:q.id,type:"quiz",label:"Timed Quiz / MCQ",title:q.title || "Untitled Quiz",subject:q.subject || "",classes:Array.isArray(q.classNames)?q.classNames:[],count:(state.submissions||[]).filter(s => String(s.quizId) === String(q.id) && !s.resetGranted).length}));
+      const docs = (state.docAssignments || [])
+        .filter(a => a.status === "Published")
+        .map(a => ({id:a.id,type:"doc",label:"Scanned / Theory Work",title:a.title || "Untitled Assignment",subject:a.subject || "",classes:Array.isArray(a.classNames)?a.classNames:[],count:(state.docSubmissions||[]).filter(s => String(s.assignmentId) === String(a.id)).length}));
+      return quizzes.concat(docs).sort((a,b)=>String(a.title).localeCompare(String(b.title), undefined, {sensitivity:"base"}));
+    }
+    function rrWorkKey(w){ return `${w.type}:${w.id}`; }
+    function rrGetWorkByKey(key){ return rrWorkList().find(w => rrWorkKey(w) === String(key)) || null; }
+    window.openStudentSubmittedList = function(key){
+      if(typeof oldOpenStudentSubmittedListRR === "function"){
+        try{ publicWorkSelected = key; window.publicWorkSelected = key; route = "studentSubmittedList"; renderShell(); return; }catch(e){}
+      }
+    };
+    window.studentSubmissionOptions = function(){
+      const works = rrWorkList();
+      const view = document.getElementById("view");
+      if(!view) return oldStudentSubmissionOptionsRR ? oldStudentSubmissionOptionsRR.apply(this, arguments) : undefined;
+      view.innerHTML = `<div class="studentPublicHeader"><h2>Submitted Work Lists</h2><p>Select an assignment, exercise, quiz, or scanned work to view the students whose submissions have been captured.</p></div><div class="submissionWorkGrid">${works.map(w=>`<div class="submissionWorkCard"><span class="submissionBadge">${w.count} submitted</span><h3>${rrEsc(w.title)}</h3><p>${rrEsc(w.label)}<br>${rrEsc(w.subject)}<br>Classes: ${rrEsc((w.classes||[]).join(", ") || "All assigned classes")}</p><button class="btn green full" onclick="openStudentSubmittedList('${rrEsc(rrWorkKey(w))}')">View Submitted Students</button></div>`).join("") || `<div class="empty">No published assignment or quiz is available now.</div>`}</div>`;
+    };
+    window.studentSubmittedList = function(){
+      const w = rrGetWorkByKey(window.publicWorkSelected || publicWorkSelected) || rrWorkList()[0];
+      const view = document.getElementById("view");
+      if(!view) return;
+      if(!w){ view.innerHTML = `<div class="studentPublicHeader"><h2>Submitted Work List</h2><p>No published assignment or quiz is available now.</p></div>`; return; }
+      publicWorkSelected = rrWorkKey(w); window.publicWorkSelected = publicWorkSelected;
+      const rows = [];
+      if(w.type === "quiz"){
+        (state.submissions||[]).filter(s => String(s.quizId) === String(w.id) && !s.resetGranted).forEach(sub => { const st = rrStudent(sub.studentId); if(st) rows.push({student:st,submittedAt:sub.submittedAt||sub.startedAt||"",status:sub.published?"Published":"Submitted"}); });
+      }else{
+        (state.docSubmissions||[]).filter(s => String(s.assignmentId) === String(w.id)).forEach(sub => { const st = rrStudent(sub.studentId); if(st) rows.push({student:st,submittedAt:sub.submittedAt||"",status:sub.published?"Published":"Submitted"}); });
+      }
+      rows.sort((a,b)=>String(a.student.className||"").localeCompare(String(b.student.className||""), undefined, {numeric:true,sensitivity:"base"}) || String(a.student.name||"").localeCompare(String(b.student.name||""), undefined, {sensitivity:"base"}));
+      view.innerHTML = `<div class="studentPublicHeader"><h2>${rrEsc(w.title)}</h2><p>${rrEsc(w.label)} • ${rows.length} submitted record(s)</p></div><div class="studentViewToolbar"><button class="navy" onclick="openStudentSubmissionOptions()">Back to Assignment Options</button><button class="gold" onclick="window.print()">Print List</button></div><div class="studentSubmissionTableWrap"><table class="studentSubmissionTable"><thead><tr><th>No.</th><th>Name</th><th>Class</th><th>Submission Status</th><th>Submitted At</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${rrEsc(r.student.name)}</b></td><td>${rrEsc(r.student.className)}</td><td>${rrEsc(r.status)}</td><td>${rrEsc(r.submittedAt)}</td></tr>`).join("") || `<tr><td colspan="5">No submission has been captured for this work yet.</td></tr>`}</tbody></table></div>`;
+    };
+  }
+
+  const oldRenderShellRR = window.renderShell;
+  if(typeof oldRenderShellRR === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellRR.apply(this, arguments);
+      try{
+        if(role === "admin" && rrPendingCount() > 0){
+          const top = document.querySelector(".topbar h1");
+          if(top && !document.getElementById("rrTopBadge")) top.insertAdjacentHTML("afterend", `<p id="rrTopBadge" class="rrAttention">${rrPendingCount()} reset request(s) pending</p>`);
+        }
+      }catch(e){}
+      return result;
+    };
+  }
+
+  try{
+    eval("requestQuizReset=window.requestQuizReset; grantQuizResetRequest=window.grantQuizResetRequest; denyQuizResetRequest=window.denyQuizResetRequest; grantResetForSubmission=window.grantResetForSubmission; resetRequestAdminPanelHTML=window.resetRequestAdminPanelHTML; studentQuizzes=window.studentQuizzes; studentResults=window.studentResults; studentWorkSummaryHTML=window.studentWorkSummaryHTML; review=window.review; adminExerciseReviewHub=window.adminExerciseReviewHub; studentSubmissionOptions=window.studentSubmissionOptions; studentSubmittedList=window.studentSubmittedList; openStudentSubmittedList=window.openStudentSubmittedList; renderShell=window.renderShell;");
   }catch(e){}
 })();
 
