@@ -31592,6 +31592,436 @@ async function initSupabase(){
   }, 500);
 })();
 
+/* ===== MASTER LIVE SYNC AUTHORITY V10 =====
+   Fixes cross-browser problem:
+   - Supabase/live database becomes the authority when a different browser opens the app.
+   - Old localStorage from phones cannot override published assignments/settings/students.
+   - Admin edits are still allowed to publish from the current browser.
+   - Student submissions/reset requests are merged by latest record so submitted work is preserved.
+   - Writes go to both stable_items and app_state/main as a fallback.
+*/
+(function(){
+  const V10_BUILD = "master-live-sync-authority-v10-2026-05-20";
+  let v10AdminDirtyAt = 0;
+  let v10StudentDirtyAt = 0;
+  let v10ForcePublish = false;
+  let v10Pulling = false;
+
+  function v10Clone(o){ try{return JSON.parse(JSON.stringify(o));}catch(e){return o;} }
+  function v10ISO(){ return new Date().toISOString(); }
+  function v10Ms(v){
+    if(!v) return 0;
+    if(typeof v === "number") return v;
+    const s = String(v);
+    const d = Date.parse(s);
+    if(!Number.isNaN(d)) return d;
+    return 0;
+  }
+  function v10Text(v){ return String(v ?? "").trim(); }
+  function v10Role(){ try{return String(role||"");}catch(e){return "";} }
+  function v10Route(){ try{return String(route||"");}catch(e){return "";} }
+  function v10IsAdmin(){ return v10Role() === "admin"; }
+  function v10AdminDirtyRecent(){ return v10ForcePublish || (Date.now() - v10AdminDirtyAt < 20000); }
+  function v10StudentDirtyRecent(){ return Date.now() - v10StudentDirtyAt < 20000; }
+  function v10IdFor(key,item,index){
+    try{ if(typeof stableArrayItemId === "function") return stableArrayItemId(key,item,index); }catch(e){}
+    if(item && item.id) return String(item.id);
+    if(item && item.quizId && item.studentId) return String(item.quizId)+"_"+String(item.studentId);
+    if(item && item.assignmentId && item.studentId) return String(item.assignmentId)+"_"+String(item.studentId);
+    if(item && item.studentId && (key === "scores" || key === "reportScores" || key === "reportComments")) return String(item.studentId);
+    return key+"_"+index;
+  }
+  function v10ItemTime(item){
+    if(!item || typeof item !== "object") return 0;
+    const fields = [
+      "v10UpdatedAt","_v10UpdatedAt","updatedAt","modifiedAt","editedAt","publishedAt","submittedAt","startedAt","createdAt","grantedAt","deniedAt","requestedAt","markedAt","reviewedAt","_stableSavedAt","_stableRemoteUpdatedAt"
+    ];
+    let best = 0;
+    fields.forEach(f=>{ best = Math.max(best, v10Ms(item[f])); });
+    return best;
+  }
+  function v10StateTime(st){
+    if(!st || typeof st !== "object") return 0;
+    let best = 0;
+    const paths = [
+      st?.syncMeta?.liveUpdatedAt, st?.syncMeta?.globalUpdatedAt, st?.settings?.passwordSettingsUpdatedAt,
+      st?.settings?.studentPasswordModeUpdatedAt, st?.updatedAt, st?._v10UpdatedAt
+    ];
+    paths.forEach(v=>{ best = Math.max(best, v10Ms(v)); });
+    ["quizzes","docAssignments","assignmentNotifications","submissions","docSubmissions","quizResets","quizResetRequests","students","scores","reportScores","publishedReports"].forEach(k=>{
+      (Array.isArray(st[k]) ? st[k] : []).forEach(x=>{ best = Math.max(best, v10ItemTime(x)); });
+    });
+    return best;
+  }
+  function v10EnsureSyncMeta(reason="sync"){
+    if(!state || typeof state !== "object") return;
+    state.syncMeta = state.syncMeta && typeof state.syncMeta === "object" ? state.syncMeta : {};
+    state.syncMeta.build = V10_BUILD;
+    state.syncMeta.liveUpdatedAt = v10ISO();
+    state.syncMeta.lastReason = reason;
+    if(v10IsAdmin()) state.syncMeta.globalUpdatedAt = state.syncMeta.liveUpdatedAt;
+  }
+  function v10StampLocal(reason="save"){
+    if(!state || typeof state !== "object") return;
+    const stamp = v10ISO();
+    v10EnsureSyncMeta(reason);
+    if(v10IsAdmin()){
+      v10AdminDirtyAt = Date.now();
+      state._v10AdminLastSave = stamp;
+      // Teacher-controlled records are allowed to win only from this active admin save.
+      ["quizzes","docAssignments","assignmentNotifications","students","classes","subjects","quizResets"].forEach(k=>{
+        const arr = state[k];
+        if(Array.isArray(arr)) arr.forEach(x=>{ if(x && typeof x === "object") x._v10UpdatedAt = x._v10UpdatedAt || stamp; });
+      });
+      // When the admin is reviewing/marking, make the visible marking changes win without touching unrelated phones.
+      if(["review","reports","students"].includes(v10Route())){
+        ["submissions","docSubmissions","reportScores","reportComments","scores","publishedReports","quizResetRequests"].forEach(k=>{
+          const arr = state[k];
+          if(Array.isArray(arr)) arr.forEach(x=>{ if(x && typeof x === "object") x._v10UpdatedAt = stamp; });
+        });
+      }
+    }else if(v10Role() === "student"){
+      v10StudentDirtyAt = Date.now();
+      const sid = typeof currentStudentId !== "undefined" ? String(currentStudentId || "") : "";
+      ["submissions","docSubmissions","quizResetRequests"].forEach(k=>{
+        const arr = state[k];
+        if(Array.isArray(arr)) arr.forEach(x=>{ if(x && typeof x === "object" && (!sid || String(x.studentId||"") === sid)) x._v10UpdatedAt = stamp; });
+      });
+    }
+  }
+
+  const V10_GLOBAL_ARRAYS = new Set(["students","quizzes","docAssignments","assignmentNotifications","passwordShares","quizResets","announcements","messages","classMessages","teacherMessages"]);
+  const V10_LATEST_ARRAYS = new Set(["submissions","docSubmissions","quizResetRequests","reportScores","reportComments","scores","publishedReports","chatMessages","chatThreads","studentMessages"]);
+
+  function v10RemoteFirstObject(remoteObj, localObj, allowLocal){
+    const r = (remoteObj && typeof remoteObj === "object") ? v10Clone(remoteObj) : {};
+    const l = (localObj && typeof localObj === "object") ? localObj : {};
+    if(allowLocal){
+      try{ return stableMergeObject(r,l); }catch(e){ return Object.assign(r, v10Clone(l)); }
+    }
+    // Remote wins. Local only fills blanks that the live copy does not have.
+    Object.keys(l).forEach(k=>{
+      if(r[k] === undefined || r[k] === null || r[k] === "") r[k] = v10Clone(l[k]);
+    });
+    return r;
+  }
+
+  function v10MergeArray(remoteArr, localArr, key, mode){
+    const map = new Map();
+    (Array.isArray(remoteArr) ? remoteArr : []).forEach((item,i)=>{
+      if(!item) return;
+      const id = v10IdFor(key,item,i);
+      map.set(id, v10Clone(item));
+    });
+    (Array.isArray(localArr) ? localArr : []).forEach((item,i)=>{
+      if(!item) return;
+      const id = v10IdFor(key,item,i);
+      const existing = map.get(id);
+      if(!existing){
+        // Missing local records are accepted for student-generated/latest arrays or active admin publish.
+        if(mode === "local" || mode === "latest" || v10AdminDirtyRecent() || v10StudentDirtyRecent()) map.set(id, v10Clone(item));
+        return;
+      }
+      if(mode === "local"){
+        try{ map.set(id, stableMergeObject(existing,item)); }catch(e){ map.set(id, Object.assign(v10Clone(existing), v10Clone(item))); }
+        return;
+      }
+      if(mode === "latest"){
+        const rt = v10ItemTime(existing);
+        const lt = v10ItemTime(item);
+        if(lt > rt + 500){
+          try{ map.set(id, stableMergeObject(existing,item)); }catch(e){ map.set(id, Object.assign(v10Clone(existing), v10Clone(item))); }
+        }
+        return;
+      }
+      // remote mode: live copy wins, local only fills blank fields.
+      map.set(id, v10RemoteFirstObject(existing,item,false));
+    });
+    return Array.from(map.values());
+  }
+
+  const originalStableMergeStatesV10 = typeof stableMergeStates === "function" ? stableMergeStates : null;
+  stableMergeStates = function(remoteState, localState){
+    const remote = remoteState || {};
+    const local = localState || {};
+    let base;
+    try{ base = deepMerge(defaultState(), remote); }catch(e){ base = v10Clone(remote) || {}; }
+    const adminLocalWins = v10AdminDirtyRecent();
+
+    // Core/non-list keys: remote/live database wins unless this active browser just saved as admin.
+    Object.keys(local || {}).forEach(k=>{
+      const isList = (typeof STABLE_LIST_KEYS !== "undefined" && STABLE_LIST_KEYS.includes(k)) || k === "quizResetRequests";
+      if(isList) return;
+      if(k === "settings"){
+        base.settings = v10RemoteFirstObject(base.settings || {}, local.settings || {}, adminLocalWins);
+        // Student password default remains open unless the admin explicitly turns it on in the live copy.
+        if(!base.settings || typeof base.settings !== "object") base.settings = {};
+        if(base.settings.requireStudentPassword !== true) base.settings.requireStudentPassword = false;
+        return;
+      }
+      if(k === "classes" || k === "subjects" || k === "components" || k === "syncMeta"){
+        if(adminLocalWins) base[k] = v10Clone(local[k]);
+        else if(base[k] === undefined || base[k] === null || (Array.isArray(base[k]) && !base[k].length)) base[k] = v10Clone(local[k]);
+        return;
+      }
+      if(adminLocalWins && !["role","route","currentStudentId"].includes(k)){
+        base[k] = v10Clone(local[k]);
+      }else if(base[k] === undefined || base[k] === null || base[k] === ""){
+        base[k] = v10Clone(local[k]);
+      }
+    });
+
+    const keys = new Set([]);
+    try{ (STABLE_LIST_KEYS || []).forEach(k=>keys.add(k)); }catch(e){}
+    ["quizResetRequests","submissions","docSubmissions","students","quizzes","docAssignments","scores","reportScores","reportComments","publishedReports","assignmentNotifications","quizResets"].forEach(k=>keys.add(k));
+
+    keys.forEach(k=>{
+      const r = Array.isArray(base[k]) ? base[k] : [];
+      const l = Array.isArray(local[k]) ? local[k] : [];
+      if(V10_GLOBAL_ARRAYS.has(k)) base[k] = v10MergeArray(r,l,k,adminLocalWins ? "local" : "remote");
+      else if(V10_LATEST_ARRAYS.has(k)) base[k] = v10MergeArray(r,l,k,"latest");
+      else base[k] = v10MergeArray(r,l,k,adminLocalWins ? "local" : "remote");
+    });
+
+    base.syncMeta = base.syncMeta && typeof base.syncMeta === "object" ? base.syncMeta : {};
+    base.syncMeta.build = V10_BUILD;
+    return base;
+  };
+  try{ window.stableMergeStates = stableMergeStates; }catch(e){}
+
+  async function v10LoadAppStateRaw(){
+    if(!sb) return null;
+    try{
+      const {data,error} = await sb.from("app_state").select("data,updated_at").eq("id","main").maybeSingle();
+      if(!error && data && data.data) return {state:data.data, updated_at:data.updated_at || ""};
+    }catch(e){ console.warn("v10 app_state/main read failed", e); }
+    try{
+      const {data,error} = await sb.from("app_state").select("data,updated_at").eq("id","main_backup").maybeSingle();
+      if(!error && data && data.data) return {state:data.data, updated_at:data.updated_at || ""};
+    }catch(e){ console.warn("v10 app_state/main_backup read failed", e); }
+    return null;
+  }
+
+  const originalStableLoadRemoteItemsV10 = typeof stableLoadRemoteItems === "function" ? stableLoadRemoteItems : null;
+  stableLoadRemoteItems = async function(){
+    let stableLoaded = null;
+    if(originalStableLoadRemoteItemsV10){
+      try{ stableLoaded = await originalStableLoadRemoteItemsV10(); }catch(e){ stableLoaded = null; console.warn("v10 stable_items read failed", e); }
+    }
+    const appRaw = await v10LoadAppStateRaw();
+    const appLoaded = appRaw && appRaw.state ? {empty:false,state:appRaw.state,source:"app_state"} : null;
+
+    if(stableLoaded && !stableLoaded.empty && stableLoaded.state){
+      if(appLoaded){
+        const stableTime = Math.max(v10StateTime(stableLoaded.state), v10Ms(stableLoaded.updated_at));
+        const appTime = Math.max(v10StateTime(appLoaded.state), v10Ms(appRaw.updated_at));
+        if(appTime > stableTime + 1000) return appLoaded;
+      }
+      return stableLoaded;
+    }
+    if(appLoaded) return appLoaded;
+    return stableLoaded || {empty:true,state:null};
+  };
+  try{ window.stableLoadRemoteItems = stableLoadRemoteItems; }catch(e){}
+
+  const originalStableWriteRemoteItemsV10 = typeof stableWriteRemoteItems === "function" ? stableWriteRemoteItems : null;
+  stableWriteRemoteItems = async function(){
+    if(!sb) return;
+    normalize();
+    if(!state.syncMeta || typeof state.syncMeta !== "object") state.syncMeta = {};
+    state.syncMeta.build = V10_BUILD;
+    state.syncMeta.liveUpdatedAt = state.syncMeta.liveUpdatedAt || v10ISO();
+    let stableOk = false;
+    if(originalStableWriteRemoteItemsV10){
+      try{ await originalStableWriteRemoteItemsV10(); stableOk = true; }
+      catch(e){ console.warn("stable_items write failed; using app_state fallback", e); }
+    }
+    try{
+      const full = v10Clone(state);
+      await sb.from("app_state").upsert({id:"main",data:full,updated_at:new Date().toISOString()},{onConflict:"id"});
+      await sb.from("app_state").upsert({id:"main_backup",data:full,updated_at:new Date().toISOString()},{onConflict:"id"});
+    }catch(e){
+      console.warn("app_state fallback write failed", e);
+      if(!stableOk) throw e;
+    }
+  };
+  try{ window.stableWriteRemoteItems = stableWriteRemoteItems; }catch(e){}
+
+  const originalStablePullRemoteV10 = typeof stablePullRemote === "function" ? stablePullRemote : null;
+  stablePullRemote = async function(mergeLocal=true){
+    if(!sb || v10Pulling) return false;
+    v10Pulling = true;
+    try{
+      const loaded = await stableLoadRemoteItems();
+      if(!loaded || loaded.empty || !loaded.state) return false;
+      applyingRemote = true;
+      const localCopy = v10Clone(state || {});
+      state = mergeLocal ? stableMergeStates(loaded.state, localCopy) : deepMerge(defaultState(), loaded.state);
+      normalize();
+      saveLocal();
+      applyingRemote = false;
+      stableRemoteReady = true;
+      stableLastPull = Date.now();
+      return true;
+    }catch(e){
+      applyingRemote = false;
+      console.error("v10 pull failed", e);
+      return false;
+    }finally{
+      v10Pulling = false;
+    }
+  };
+  pullRemote = stablePullRemote;
+  try{ window.stablePullRemote = stablePullRemote; window.pullRemote = pullRemote; }catch(e){}
+
+  const originalSaveV10 = typeof save === "function" ? save : null;
+  save = function(){
+    if(!applyingRemote) v10StampLocal(v10IsAdmin() ? "admin_save" : "student_or_local_save");
+    if(originalSaveV10) return originalSaveV10.apply(this, arguments);
+  };
+  try{ window.save = save; }catch(e){}
+
+  pushRemote = async function(){
+    if(!sb || stablePushing) return;
+    stablePushing = true;
+    try{
+      stableStatus("Publishing live...","warn");
+      await stablePullRemote(true);
+      if(typeof stableMigrateMedia === "function") await stableMigrateMedia();
+      normalize();
+      v10EnsureSyncMeta(v10IsAdmin() ? "admin_publish" : "student_publish");
+      saveLocal();
+      await stableWriteRemoteItems();
+      stableStatus("Live database updated","live");
+    }catch(e){
+      console.error(e);
+      stableStatus("Live sync error - check Supabase tables/connection","bad");
+    }finally{
+      stablePushing = false;
+      v10ForcePublish = false;
+      if(Date.now() - v10AdminDirtyAt > 15000) v10AdminDirtyAt = 0;
+    }
+  };
+  try{ window.pushRemote = pushRemote; }catch(e){}
+
+  window.amestPublishThisBrowserLiveNow = async function(){
+    if(!sb) return alert("Supabase is not connected. Check the internet connection and app-config.js.");
+    if(!confirm("This will publish the current data in this browser as the live database for all students.\n\nUse this only from the browser where you have the correct assignments, students and settings.\n\nContinue?")) return;
+    v10ForcePublish = true;
+    v10AdminDirtyAt = Date.now();
+    v10EnsureSyncMeta("manual_force_publish");
+    await pushRemote();
+    alert("Published live successfully. Other browsers and students should refresh their browser and see the same data.");
+    try{ if(typeof render === "function") render(); }catch(e){}
+  };
+
+  window.amestReloadFromLiveDatabaseNow = async function(){
+    if(!sb) return alert("Supabase is not connected. Check the internet connection and app-config.js.");
+    const ok = await stablePullRemote(false);
+    if(ok){ alert("Reloaded from the live database."); try{ if(typeof render === "function") render(); }catch(e){} }
+    else alert("No live database record was found or the connection failed.");
+  };
+
+  window.amestSyncHealthCheck = async function(showAlert=true){
+    const localCount = {
+      students:(state.students||[]).length, quizzes:(state.quizzes||[]).length,
+      docAssignments:(state.docAssignments||[]).length, submissions:(state.submissions||[]).length,
+      docSubmissions:(state.docSubmissions||[]).length
+    };
+    let remoteText = "Not connected";
+    if(sb){
+      try{
+        const loaded = await stableLoadRemoteItems();
+        if(loaded && !loaded.empty && loaded.state){
+          remoteText = `Connected. Live records: students ${(loaded.state.students||[]).length}, quizzes ${(loaded.state.quizzes||[]).length}, theory ${(loaded.state.docAssignments||[]).length}, quiz submissions ${(loaded.state.submissions||[]).length}, scanned submissions ${(loaded.state.docSubmissions||[]).length}. Source: ${loaded.source || "stable_items"}`;
+        }else remoteText = "Connected but no live records found yet.";
+      }catch(e){ remoteText = "Connection/table problem: " + (e.message || e); }
+    }
+    const msg = `This browser records: students ${localCount.students}, quizzes ${localCount.quizzes}, theory ${localCount.docAssignments}, quiz submissions ${localCount.submissions}, scanned submissions ${localCount.docSubmissions}.\n\n${remoteText}`;
+    if(showAlert) alert(msg);
+    return msg;
+  };
+
+  function v10SyncPanelHTML(){
+    return `<div id="v10LiveSyncPanel" class="v10LiveSyncPanel">
+      <h2>Master Live Sync Control</h2>
+      <p><b>Live database is now the authority.</b> This prevents old phone/browser data from hiding assignments or forcing old password settings.</p>
+      <div class="v10SyncBtns">
+        <button class="green" onclick="amestPublishThisBrowserLiveNow()">Publish This Browser Live Now</button>
+        <button class="navy" onclick="amestReloadFromLiveDatabaseNow()">Reload From Live Database</button>
+        <button class="gold" onclick="amestSyncHealthCheck(true)">Check Live Sync</button>
+      </div>
+    </div>`;
+  }
+  function v10InsertPanel(){
+    try{
+      if(v10Role() !== "admin") return;
+      const view = document.getElementById("view");
+      if(!view || document.getElementById("v10LiveSyncPanel")) return;
+      view.insertAdjacentHTML("afterbegin", v10SyncPanelHTML());
+    }catch(e){}
+  }
+  function v10Style(){
+    if(document.getElementById("amestV10LiveSyncStyle")) return;
+    document.head.insertAdjacentHTML("beforeend", `<style id="amestV10LiveSyncStyle">
+      .v10LiveSyncPanel{background:#fff;border:2px solid #d9e7f3;border-left:8px solid #0f7b4f;border-radius:18px;padding:14px;margin:0 0 14px;box-shadow:0 8px 22px rgba(7,31,61,.08)}
+      .v10LiveSyncPanel h2{margin:0 0 6px;color:#071f3d}.v10LiveSyncPanel p{margin:0 0 10px;color:#475467;font-weight:800;line-height:1.45}.v10SyncBtns{display:flex;flex-wrap:wrap;gap:8px}.v10SyncBtns button{min-height:40px;border:0;border-radius:12px;padding:9px 12px;font-weight:950;cursor:pointer}.v10SyncBtns .green{background:#0f7b4f;color:#fff}.v10SyncBtns .navy{background:#071f3d;color:#fff}.v10SyncBtns .gold{background:#f4c430;color:#071f3d}
+      @media(max-width:760px){.v10SyncBtns{display:grid;grid-template-columns:1fr}.v10SyncBtns button{width:100%}}
+    </style>`);
+  }
+  const oldRenderShellV10 = typeof renderShell === "function" ? renderShell : null;
+  if(oldRenderShellV10){
+    renderShell = function(){
+      const result = oldRenderShellV10.apply(this, arguments);
+      v10Style(); setTimeout(v10InsertPanel, 80);
+      return result;
+    };
+    try{ window.renderShell = renderShell; }catch(e){}
+  }
+  const oldRenderV10 = typeof render === "function" ? render : null;
+  if(oldRenderV10){
+    render = function(){
+      const result = oldRenderV10.apply(this, arguments);
+      v10Style(); setTimeout(v10InsertPanel, 120);
+      return result;
+    };
+    try{ window.render = render; }catch(e){}
+  }
+
+  // Student view should quietly pull live data shortly after opening, without a blocking refresh screen.
+  function v10SilentStudentPull(){
+    if(!sb || v10Pulling) return;
+    if(Date.now() - (stableLastPull || 0) < 3500) return;
+    setTimeout(async()=>{
+      try{
+        const ok = await stablePullRemote(true);
+        if(ok && (v10Role()==="student" || v10Role()==="guest")){
+          if(typeof render === "function") render();
+        }
+      }catch(e){}
+    }, 150);
+  }
+  const oldOpenStudentPortalV10 = window.openStudentPortal;
+  if(typeof oldOpenStudentPortalV10 === "function"){
+    window.openStudentPortal = function(){
+      const res = oldOpenStudentPortalV10.apply(this, arguments);
+      v10SilentStudentPull();
+      return res;
+    };
+    try{ openStudentPortal = window.openStudentPortal; }catch(e){}
+  }
+  ["studentHome","studentQuizzes","studentResults"].forEach(fn=>{
+    const old = window[fn];
+    if(typeof old === "function"){
+      window[fn] = function(){ v10SilentStudentPull(); return old.apply(this, arguments); };
+      try{ eval(fn + " = window[fn];"); }catch(e){}
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function(){ v10Style(); });
+})();
+
+
 loadLocal();
 if(window.amestV6AfterLocalLoad){ try{ window.amestV6AfterLocalLoad(); }catch(e){ console.warn("V6 local setup skipped", e); } }
 if(window.amestV7AfterLocalLoad){ try{ window.amestV7AfterLocalLoad(); }catch(e){ console.warn("V7 local setup skipped", e); } }
