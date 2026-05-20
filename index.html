@@ -29252,6 +29252,427 @@ async function initSupabase(){
 })();
 
 
+/* ===== RESET REQUEST V3: KEEP OLD SUBMISSION UNTIL NEW ATTEMPT REPLACES IT ===== */
+(function(){
+  const V3_VERSION = "grant-keeps-submission-replace-on-resubmit-2026-05-20";
+
+  function v3Esc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? "").replace(/[&<>\"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[m])); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function v3Uid(prefix){
+    try{ return typeof uid === "function" ? uid(prefix) : prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8); }
+    catch(e){ return prefix + "_" + Date.now(); }
+  }
+  function v3NowISO(){ return new Date().toISOString(); }
+  function v3NowText(){ return new Date().toLocaleString(); }
+  function v3Time(v){ try{ return v ? new Date(v).toLocaleString() : ""; }catch(e){ return v || ""; } }
+  function v3Ensure(){
+    state.students = Array.isArray(state.students) ? state.students : [];
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+    state.quizResets = Array.isArray(state.quizResets) ? state.quizResets : [];
+    state.quizResetRequests = Array.isArray(state.quizResetRequests) ? state.quizResetRequests : [];
+    state.removedDuplicateSubmissions = Array.isArray(state.removedDuplicateSubmissions) ? state.removedDuplicateSubmissions : [];
+    state.resetRequestV3Version = V3_VERSION;
+  }
+  function v3Save(){
+    v3Ensure();
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof save === "function") save(); else if(typeof saveLocal === "function") saveLocal(); else localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch(e){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(x){} }
+  }
+  function v3Student(id){
+    try{ return typeof student === "function" ? student(id) : (state.students||[]).find(s => String(s.id) === String(id)); }
+    catch(e){ return (state.students||[]).find(s => String(s.id) === String(id)); }
+  }
+  function v3Quiz(id){
+    try{ return typeof quiz === "function" ? quiz(id) : (state.quizzes||[]).find(q => String(q.id) === String(id)); }
+    catch(e){ return (state.quizzes||[]).find(q => String(q.id) === String(id)); }
+  }
+  function v3Requests(studentId, quizId){
+    v3Ensure();
+    return (state.quizResetRequests||[])
+      .filter(r => (!studentId || String(r.studentId) === String(studentId)) && (!quizId || String(r.quizId) === String(quizId)))
+      .sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  }
+  function v3LatestRequest(studentId, quizId){ return v3Requests(studentId, quizId)[0] || null; }
+  function v3PendingRequest(studentId, quizId){ return v3Requests(studentId, quizId).find(r => r.status === "Pending") || null; }
+  function v3Submissions(studentId, quizId){
+    v3Ensure();
+    return (state.submissions||[]).filter(s => String(s.studentId) === String(studentId) && String(s.quizId) === String(quizId));
+  }
+  function v3Submission(studentId, quizId){ return v3Submissions(studentId, quizId)[0] || null; }
+  function v3ActiveReset(studentId, quizId){
+    v3Ensure();
+    return (state.quizResets||[]).find(r => String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active);
+  }
+  function v3CloseActiveResets(studentId, quizId, note){
+    (state.quizResets||[]).forEach(r => {
+      if(String(r.studentId) === String(studentId) && String(r.quizId) === String(quizId) && r.active){
+        r.active = false;
+        r.usedAt = r.usedAt || v3NowISO();
+        r.usedReason = note || "Fresh attempt started.";
+      }
+    });
+    const q = v3Quiz(quizId);
+    if(q && Array.isArray(q.resetAvailableFor)){
+      q.resetAvailableFor = q.resetAvailableFor.filter(x => String(x) !== String(studentId));
+    }
+  }
+  function v3RequestBadge(req){
+    if(!req) return `<span class="rrBadge none">No request</span>`;
+    const cls = req.status === "Pending" ? "pending" : req.status === "Granted" ? "granted" : req.status === "Denied" ? "denied" : "none";
+    return `<span class="rrBadge ${cls}">${v3Esc(req.status)}</span>`;
+  }
+  function v3InstallStyle(){
+    if(document.getElementById("resetRequestV3Style")) return;
+    const style = document.createElement("style");
+    style.id = "resetRequestV3Style";
+    style.textContent = `
+      .rrKeepNotice{border:1px solid #bce8ce;background:#ecfdf3;color:#075936;border-radius:12px;padding:8px 10px;margin-top:8px;font-weight:850;line-height:1.35}
+      .rrReplaceNotice{border:1px solid #efd36b;background:#fff7d1;color:#071f3d;border-radius:12px;padding:8px 10px;margin-top:8px;font-weight:850;line-height:1.35}
+      .rrReplacementFlag{display:inline-block;border-radius:999px;padding:4px 8px;background:#fff7d1;border:1px solid #f4c430;color:#071f3d;font-size:11px;font-weight:950;margin-top:4px}
+    `;
+    document.head.appendChild(style);
+  }
+  function v3MarkSubmissionWaiting(sub, requestId){
+    if(!sub) return;
+    sub.resetAccessGrantedWaiting = true;
+    sub.resetAccessGrantedAt = v3NowISO();
+    sub.resetAccessGrantedAtText = v3NowText();
+    sub.resetRequestId = requestId || sub.resetRequestId || "";
+    sub.resetReplacementMode = "update_existing_submission";
+    sub.resetOldSubmissionKept = true;
+    sub.resetReplacementCompleted = false;
+  }
+  function v3GrantKeepSubmission(studentId, quizId, requestId){
+    v3Ensure();
+    const st = v3Student(studentId), q = v3Quiz(quizId);
+    if(!st || !q) return alert("Student or exercise not found.");
+    const req = requestId ? (state.quizResetRequests||[]).find(r => String(r.id) === String(requestId)) : v3PendingRequest(studentId, quizId);
+    const sub = v3Submission(studentId, quizId);
+
+    v3CloseActiveResets(studentId, quizId, "New reset access granted; old active reset closed.");
+    state.quizResets.push({
+      id: v3Uid("reset"),
+      studentId,
+      quizId,
+      requestId: req?.id || "",
+      originalSubmissionId: sub?.id || "",
+      createdAt: v3NowISO(),
+      active: true,
+      replaceMode: "update_existing_submission",
+      keepOldSubmissionUntilResubmit: true,
+      reason: "Admin granted one fresh attempt. Old submission remains visible until the fresh submission replaces it."
+    });
+    q.resetAvailableFor = Array.isArray(q.resetAvailableFor) ? q.resetAvailableFor : [];
+    if(!q.resetAvailableFor.map(String).includes(String(studentId))) q.resetAvailableFor.push(studentId);
+
+    if(sub) v3MarkSubmissionWaiting(sub, req?.id || requestId || "");
+    if(req){
+      req.status = "Granted";
+      req.decidedAt = v3NowISO();
+      req.adminNote = "Access granted. The old submission remains visible until the student submits the fresh attempt; then it will be updated automatically.";
+      req.keepOldSubmissionUntilResubmit = true;
+    }
+    v3Save();
+  }
+
+  window.grantQuizResetRequest = function(requestId){
+    v3Ensure(); v3InstallStyle();
+    const req = (state.quizResetRequests||[]).find(r => String(r.id) === String(requestId));
+    if(!req) return alert("Reset request not found.");
+    if(req.status !== "Pending" && !confirm("This request is not pending. Grant access anyway?")) return;
+    const st = v3Student(req.studentId), q = v3Quiz(req.quizId);
+    if(!st || !q) return alert("Student or exercise not found.");
+    if(!confirm("Grant one fresh attempt for " + st.name + "?\n\nThe old submission will remain in the submitted list for now. When the student submits the fresh attempt, the old record will be updated automatically. No double submission will be created.")) return;
+    v3GrantKeepSubmission(req.studentId, req.quizId, req.id);
+    alert("Reset access granted. The old submission is still visible. When the student submits again, the same record will be updated automatically.");
+    try{ if(typeof refreshStudentWorkPanel === "function") refreshStudentWorkPanel(req.studentId); }catch(e){}
+    try{ if(typeof adminExerciseRefreshHub === "function") adminExerciseRefreshHub(); }catch(e){}
+    try{ if(typeof review === "function" && role === "admin" && route === "review") review(); }catch(e){}
+  };
+
+  window.grantResetForSubmission = function(studentId, quizId){
+    v3Ensure(); v3InstallStyle();
+    const st = v3Student(studentId), q = v3Quiz(quizId);
+    if(!st || !q) return alert("Student or exercise not found.");
+    const pending = v3PendingRequest(studentId, quizId);
+    if(pending) return window.grantQuizResetRequest(pending.id);
+    if(!confirm("Grant one fresh attempt for " + st.name + "?\n\nThe old submission will remain in the submitted list. When the student submits again, the old record will be updated automatically.")) return;
+    v3GrantKeepSubmission(studentId, quizId, "");
+    alert("Redo access granted. The student has one fresh attempt, but the old submission remains until the new one replaces it.");
+    try{ if(typeof refreshStudentWorkPanel === "function") refreshStudentWorkPanel(studentId); }catch(e){}
+    try{ if(typeof adminExerciseRefreshHub === "function") adminExerciseRefreshHub(); }catch(e){}
+    try{ if(typeof review === "function" && role === "admin" && route === "review") review(); }catch(e){}
+  };
+
+  // Keep the older direct reset button safe as well. It now grants a replacement attempt instead of deleting immediately.
+  window.resetQuizForStudent = function(studentId, quizId){
+    return window.grantResetForSubmission(studentId, quizId);
+  };
+
+  // When a granted student clicks Start, the existing submission must stay in the list.
+  // The old internal start function briefly creates a new lock record. We immediately replace that temporary record
+  // with the original submission record, marked as "waiting for replacement", so final submission updates the same record.
+  const oldConfirmStartV3 = window.confirmStartExerciseNow;
+  if(typeof oldConfirmStartV3 === "function"){
+    window.confirmStartExerciseNow = function(id){
+      v3Ensure(); v3InstallStyle();
+      const studentId = currentStudentId;
+      const reset = v3ActiveReset(studentId, id);
+      const original = reset ? v3Submission(studentId, id) : null;
+      if(original && reset){
+        const originalRef = original;
+        const originalId = originalRef.id || v3Uid("sub");
+        originalRef.id = originalId;
+        const reqId = reset.requestId || originalRef.resetRequestId || "";
+        const result = oldConfirmStartV3.apply(this, arguments);
+        // oldConfirmStartV3 is synchronous; it also starts the timer and renders the quiz.
+        state.submissions = (state.submissions||[]).filter(s => !(String(s.studentId) === String(studentId) && String(s.quizId) === String(id)));
+        Object.assign(originalRef, {
+          id: originalId,
+          studentId,
+          quizId: id,
+          resetAccessGrantedWaiting: false,
+          resetReattemptStarted: true,
+          resetReattemptStartedAt: v3NowISO(),
+          resetReattemptStartedAtText: v3NowText(),
+          resetReplacementPending: true,
+          resetReplacementCompleted: false,
+          resetReplacementMode: "update_existing_submission",
+          resetOldSubmissionKept: true,
+          resetRequestId: reqId,
+          lastResetId: reset.id || "",
+          attemptLocked: true,
+          oneAttempt: true,
+          lockStatus: "reset_reattempt_started_locked",
+          lockReason: "Student started a granted fresh attempt. Old submission remains visible until this attempt is finally submitted."
+        });
+        state.submissions.push(originalRef);
+        v3CloseActiveResets(studentId, id, "Fresh attempt started; old submission kept for replacement.");
+        v3Save();
+        return result;
+      }
+      return oldConfirmStartV3.apply(this, arguments);
+    };
+  }
+
+  function v3FinaliseReplacement(studentId, quizId){
+    const sub = v3Submission(studentId, quizId);
+    if(!sub || sub.startedOnly) return false;
+    if(sub.resetReplacementPending || sub.resetReplacementMode === "update_existing_submission" || sub.resetReattemptStarted){
+      sub.resetReplacementPending = false;
+      sub.resetReplacementCompleted = true;
+      sub.resetReplacedAt = v3NowISO();
+      sub.resetAccessGrantedWaiting = false;
+      sub.resetOldSubmissionKept = false;
+      sub.lockStatus = sub.lockStatus === "reset_reattempt_started_locked" ? "resubmitted_replacement" : (sub.lockStatus || "resubmitted_replacement");
+      sub.replacesPreviousSubmission = true;
+      const req = v3LatestRequest(studentId, quizId);
+      if(req && req.status === "Granted"){
+        req.freshSubmissionReceivedAt = req.freshSubmissionReceivedAt || v3NowISO();
+        req.adminNote = "Fresh submission received. The original submitted record has been updated with the new attempt.";
+      }
+      v3Save();
+      return true;
+    }
+    return false;
+  }
+
+  const oldSubmitQuizV3 = window.submitQuiz;
+  if(typeof oldSubmitQuizV3 === "function"){
+    window.submitQuiz = function(id, auto){
+      v3Ensure();
+      const studentId = currentStudentId;
+      const before = v3Submission(studentId, id);
+      const replacementMode = !!(before && (before.resetReplacementPending || before.resetReplacementMode === "update_existing_submission" || before.resetReattemptStarted));
+      const result = oldSubmitQuizV3.apply(this, arguments);
+      if(replacementMode){
+        let tries = 0;
+        const finish = function(){
+          tries++;
+          const done = v3FinaliseReplacement(studentId, id);
+          if(!done && tries < 30) setTimeout(finish, 500);
+          if(tries === 2 || done) v3SmartCleanDuplicateQuizSubmissions(true);
+        };
+        setTimeout(finish, 400);
+      }else{
+        setTimeout(() => v3SmartCleanDuplicateQuizSubmissions(true), 800);
+      }
+      return result;
+    };
+  }
+
+  function v3DateValue(s){
+    const raw = s?.finalizedAtISO || s?.submittedAtISO || s?.startedAtISO || s?.createdAt || s?.submittedAt || s?.startedAt || "";
+    const t = Date.parse(raw);
+    return Number.isFinite(t) ? t : 0;
+  }
+  function v3IsCompleted(s){ return s && !s.startedOnly && s.lockStatus !== "started_locked" && s.lockStatus !== "reset_reattempt_started_locked"; }
+  function v3IsMarked(s){ return s && (s.published || s.teacherScore !== null && s.teacherScore !== undefined || String(s.feedback||"").trim()); }
+  function v3ChooseKeeper(group){
+    const replacements = group.filter(s => s.resetReplacementCompleted || s.replacesPreviousSubmission || (s.resetReplacementMode === "update_existing_submission" && v3IsCompleted(s)));
+    if(replacements.length) return replacements.slice().sort((a,b)=>v3DateValue(b)-v3DateValue(a))[0];
+    const completed = group.filter(v3IsCompleted);
+    const marked = group.filter(v3IsMarked);
+    const pool = marked.length ? marked : (completed.length ? completed : group);
+    return pool.slice().sort((a,b)=>{
+      const ta = v3DateValue(a), tb = v3DateValue(b);
+      if(ta !== tb) return ta - tb;
+      return String(a.id||"").localeCompare(String(b.id||""));
+    })[0];
+  }
+  function v3MergeData(keep, extra){
+    extra.forEach(r => {
+      if(!keep.previousDuplicateSubmissionIds) keep.previousDuplicateSubmissionIds = [];
+      if(r.id && !keep.previousDuplicateSubmissionIds.includes(r.id)) keep.previousDuplicateSubmissionIds.push(r.id);
+      if((keep.teacherScore === null || keep.teacherScore === undefined || keep.teacherScore === "") && r.teacherScore !== null && r.teacherScore !== undefined && r.teacherScore !== "") keep.teacherScore = r.teacherScore;
+      if(!keep.feedback && r.feedback) keep.feedback = r.feedback;
+      if(!keep.published && r.published){ keep.published = true; keep.publishedAt = keep.publishedAt || r.publishedAt || v3NowISO(); }
+      if((!keep.answers || !Object.keys(keep.answers||{}).length) && r.answers) keep.answers = r.answers;
+      if(!keep.maxScore && r.maxScore) keep.maxScore = r.maxScore;
+      if(!keep.autoScore && r.autoScore) keep.autoScore = r.autoScore;
+    });
+    keep.duplicateCleaned = true;
+    keep.duplicateCleanedAt = keep.duplicateCleanedAt || v3NowISO();
+    return keep;
+  }
+  function v3SmartCleanDuplicateQuizSubmissions(silent){
+    v3Ensure();
+    const groups = new Map();
+    (state.submissions||[]).forEach(s => {
+      if(!s || !s.studentId || !s.quizId) return;
+      const key = String(s.studentId) + "::" + String(s.quizId);
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(s);
+    });
+    let removed = [];
+    let kept = [];
+    groups.forEach(group => {
+      if(group.length <= 1){ kept.push(group[0]); return; }
+      const keep = v3ChooseKeeper(group);
+      const extra = group.filter(x => x !== keep);
+      v3MergeData(keep, extra);
+      kept.push(keep);
+      removed = removed.concat(extra.map(x => Object.assign({}, x, {removedAsDuplicate:true, removedAt:v3NowISO(), keptSubmissionId:keep.id || ""})));
+    });
+    const unusual = (state.submissions||[]).filter(s => !s || !s.studentId || !s.quizId);
+    if(removed.length){
+      const seen = new Set();
+      state.submissions = kept.concat(unusual).filter(s => {
+        const id = String(s?.id || (String(s?.studentId||"")+"::"+String(s?.quizId||"")));
+        if(seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
+      state.removedDuplicateSubmissions = (state.removedDuplicateSubmissions||[]).concat(removed);
+      state.lastDuplicateSubmissionCleanup = {at:v3NowISO(), removedCount:removed.length, version:V3_VERSION};
+      v3Save();
+    }
+    if(!silent) alert(removed.length ? `Duplicate cleanup completed. ${removed.length} extra duplicate submission record(s) removed. Only one active submission remains per student per exercise.` : "No duplicate quiz submissions were found.");
+    return removed.length;
+  }
+  window.smartCleanDuplicateQuizSubmissions = v3SmartCleanDuplicateQuizSubmissions;
+  window.cleanDuplicateQuizSubmissionsNow = function(){ return v3SmartCleanDuplicateQuizSubmissions(false); };
+
+  // Patch the reset request panel text so admin sees the new rule clearly.
+  const oldResetPanelV3 = window.resetRequestAdminPanelHTML;
+  if(typeof oldResetPanelV3 === "function"){
+    window.resetRequestAdminPanelHTML = function(){
+      v3InstallStyle();
+      let html = oldResetPanelV3.apply(this, arguments) || "";
+      html = html
+        .replace(/Granting access removes the student's old submission immediately\. The student will then disappear from submitted-student lists until a fresh submission is made\./g,
+          "Granting access keeps the old submission visible. When the student submits the fresh attempt, the same submitted record is updated automatically; no double submission is created.")
+        .replace(/Previous submission removed from submitted-student lists\./g,
+          "Previous submission kept until fresh submission replaces it.")
+        .replace(/Grant Access/g, "Grant Fresh Attempt")
+        .replace(/Grant Redo Access/g, "Grant Fresh Attempt");
+      return html;
+    };
+  }
+
+  // Improve the student reset button/status after access has already been granted.
+  const oldStudentQuizzesV3 = window.studentQuizzes;
+  if(typeof oldStudentQuizzesV3 === "function"){
+    window.studentQuizzes = function(){
+      v3Ensure(); v3InstallStyle();
+      const result = oldStudentQuizzesV3.apply(this, arguments);
+      try{
+        const s = v3Student(currentStudentId);
+        if(!s) return result;
+        const view = document.getElementById("view");
+        if(!view) return result;
+        (state.quizResets||[]).filter(r => String(r.studentId) === String(s.id) && r.active).forEach(r => {
+          const q = v3Quiz(r.quizId);
+          if(q && !document.getElementById("rrKeepNotice_" + String(q.id).replace(/[^a-zA-Z0-9_-]/g,"_"))){
+            const cards = Array.from(view.querySelectorAll(".quizCard h3"));
+            const target = cards.find(h => h.textContent.trim() === String(q.title||"").trim());
+            if(target){
+              target.parentElement.insertAdjacentHTML("beforeend", `<div class="rrKeepNotice" id="rrKeepNotice_${v3Esc(String(q.id).replace(/[^a-zA-Z0-9_-]/g,"_"))}">Reset granted. Start only when ready. Your old submission remains visible until this fresh attempt is submitted and replaces it.</div>`);
+            }
+          }
+        });
+      }catch(e){}
+      return result;
+    };
+  }
+
+  // Improve public submitted list status: granted students remain visible with a clear note.
+  const oldStudentSubmittedListV3 = window.studentSubmittedList;
+  if(typeof oldStudentSubmittedListV3 === "function"){
+    window.studentSubmittedList = function(){
+      v3Ensure(); v3InstallStyle();
+      const result = oldStudentSubmittedListV3.apply(this, arguments);
+      try{
+        const view = document.getElementById("view");
+        if(view){
+          view.querySelectorAll(".rrBadge.granted").forEach(b => {
+            if(!b.parentElement.querySelector(".rrReplacementFlag")){
+              b.insertAdjacentHTML("afterend", `<br><span class="rrReplacementFlag">old record kept until new submission replaces it</span>`);
+            }
+          });
+        }
+      }catch(e){}
+      return result;
+    };
+  }
+
+  const oldReviewV3 = window.review;
+  if(typeof oldReviewV3 === "function"){
+    window.review = function(){
+      v3Ensure(); v3InstallStyle();
+      v3SmartCleanDuplicateQuizSubmissions(true);
+      const result = oldReviewV3.apply(this, arguments);
+      try{
+        const panel = document.getElementById("resetRequestAdminPanel");
+        if(panel && !document.getElementById("rrKeepPolicyNotice")){
+          panel.insertAdjacentHTML("afterbegin", `<div id="rrKeepPolicyNotice" class="rrReplaceNotice"><b>New reset rule:</b> Granting permission does not remove the old submission. The old record stays in the submitted list until the student submits again, then that same record is updated automatically.</div>`);
+        }
+      }catch(e){}
+      return result;
+    };
+  }
+
+  const oldRenderShellV3 = window.renderShell;
+  if(typeof oldRenderShellV3 === "function"){
+    window.renderShell = function(){
+      v3SmartCleanDuplicateQuizSubmissions(true);
+      return oldRenderShellV3.apply(this, arguments);
+    };
+  }
+
+  try{
+    eval("grantQuizResetRequest=window.grantQuizResetRequest; grantResetForSubmission=window.grantResetForSubmission; resetQuizForStudent=window.resetQuizForStudent; confirmStartExerciseNow=window.confirmStartExerciseNow; submitQuiz=window.submitQuiz; cleanDuplicateQuizSubmissionsNow=window.cleanDuplicateQuizSubmissionsNow; smartCleanDuplicateQuizSubmissions=window.smartCleanDuplicateQuizSubmissions; resetRequestAdminPanelHTML=window.resetRequestAdminPanelHTML; studentQuizzes=window.studentQuizzes; studentSubmittedList=window.studentSubmittedList; review=window.review; renderShell=window.renderShell;");
+  }catch(e){}
+
+  setTimeout(function(){ try{ v3SmartCleanDuplicateQuizSubmissions(true); }catch(e){} }, 0);
+})();
+
+
+
 loadLocal();
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(render);
