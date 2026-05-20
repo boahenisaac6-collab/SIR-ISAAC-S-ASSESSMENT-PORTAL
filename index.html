@@ -8925,7 +8925,7 @@ function deepMerge(base, extra){
   }
   return out;
 }
-const SEEDED_DEFAULT_STATE = {"settings": {"adminPass": "@amest", "requireStudentPassword": true, "allowStudentPhotoUpload": true, "teacherName": "Sir Isaac Boahen", "school": "AKUSE METHODIST SENIOR HIGH TECHNICAL SCHOOL", "studentCode": "AMEST"}, "subjects": [{"name": "Additional Mathematics", "classes": ["1 AGRIC", "1 SCIENCE"]}, {"name": "Mathematics", "classes": ["1H2A", "1 G3B"]}], "classes": ["1 AGRIC", "1 SCIENCE", "1H2A", "1 G3B"], "students": [{"id": "stu_1AGRI_001", "code": "1AGRI-001", "name": "ABOAH TRACY", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-001"}, {"id": "stu_1AGRI_002", "code": "1AGRI-002", "name": "NKORNU SHARON KEZIA NAA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-002"}, {"id": "stu_1AGRI_003", "code": "1AGRI-003", "name": "OFUSU MAVIS EMEFA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-003"}, {"id": "stu_1AGRI_004", "code": "1AGRI-004", "name": "AMANKWAH PRINCESS OTUBEA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-004"}, {"id": "stu_1AGRI_005", "code": "1AGRI-005", "name": "OFOSU JENNIFER ANIMA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-005"}, {"id": "stu_1AGRI_006", "code": "1AGRI-006", "name": "COFFIE CHELSEA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-006"}, {"id": "stu_1AGRI_007", "code": "1AGRI-007", "name": "ACQUAH JOSHUA KOFI", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-007"}, {"id": "stu_1AGRI_008", "code": "1AGRI-008", "name": "TETTEH TIMOTHY", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-008"}, {"id": "stu_1AGRI_009", "code": "1AGRI-009", "name": "TEYE ABBRAHAM", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-009"}, {"id": "stu_1AGRI_010", "code": "1AGRI-010", "name": "BAAKO JUDE KABU", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-010"}, {"id": "stu_1AGRI_011", "code": "1AGRI-011", "name": "TERKPERTEY HORACIOUS KWADJO", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-011"}, {"id": "stu_1AGRI_012", "code": "1AGRI-012", "name": "GODSON ELLIS SAMPAH JNR", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-012"}, {"id": "stu_1AGRI_013", "code": "1AGRI-013", "name": "ANTHONY ATULE", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-013"}, {"id": "stu_1AGRI_014", "code": "1AGRI-014", "name": "ANTWI EMMANUEL", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-014"}, {"id": "stu_1AGRI_015", "code": "1AGRI-015", "name": "RICHMOND IDUN", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-015"}, {"id": "stu_1AGRI_016", "code": "1AGRI-016", "name": "AYITEY MICHEAL", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-016"}, {"id": "stu_1AGRI_017", "code": "1AGRI-017", "name": "ERIC FIANU", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-017"}, {"id": "stu_1AGRI_018", "code": "1AGRI-018", "name": "WILSON ELIZABETH", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-018"}, {"id": "stu_1AGRI_019", "code": "1AGRI-019", "name": "QUAYE DUODU GIDEON", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-019"}, {"id": "stu_1AGRI_020", "code": "1AGRI-020", "name": "ACKAH BENEDICT OWUSU", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-020"}, {"id": "stu_1AGRI_021", "code": "1AGRI-021", "name": "ANNORKWAO MERCY BARNS", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-021"}, {"id": "stu_1SCIE_001", "code": "1SCIE-001", "name": "AWUKUTSE ABENA JOYCE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-001"}, {"id": "stu_1SCIE_002", "code": "1SCIE-002", "name": "INUSAH HAIDA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-002"}, {"id": "stu_1SCIE_003", "code": "1SCIE-003", "name": "MARY GIFTY MENSAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-003"}, {"id": "stu_1SCIE_004", "code": "1SCIE-004", "name": "PRISCILLA LAMKI ATTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-004"}, {"id": "stu_1SCIE_005", "code": "1SCIE-005", "name": "ARTHUR CASSANDRA AKUBA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-005"}, {"id": "stu_1SCIE_006", "code": "1SCIE-006", "name": "TEYE MARY MAKU", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-006"}, {"id": "stu_1SCIE_007", "code": "1SCIE-007", "name": "JEDIDIAH ADU SAWYER", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-007"}, {"id": "stu_1SCIE_008", "code": "1SCIE-008", "name": "AKUTEYE ADDO JOSEPH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-008"}, {"id": "stu_1SCIE_009", "code": "1SCIE-009", "name": "ASARE AFIA JOYCE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-009"}, {"id": "stu_1SCIE_010", "code": "1SCIE-010", "name": "ISSABELLA FATI ABUBAKAR KARIM", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-010"}, {"id": "stu_1SCIE_011", "code": "1SCIE-011", "name": "TSIKUDO DELIGHT", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-011"}, {"id": "stu_1SCIE_012", "code": "1SCIE-012", "name": "BRISTER OPHELIA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-012"}, {"id": "stu_1SCIE_013", "code": "1SCIE-013", "name": "ESTHER DEDE TETTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-013"}, {"id": "stu_1SCIE_014", "code": "1SCIE-014", "name": "BLAY AMA JACKLINE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-014"}, {"id": "stu_1SCIE_015", "code": "1SCIE-015", "name": "TEYE AGNES ABLAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-015"}, {"id": "stu_1SCIE_016", "code": "1SCIE-016", "name": "MATEY DOMINIC TETTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-016"}, {"id": "stu_1SCIE_017", "code": "1SCIE-017", "name": "AMOAH PRECIOUS", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-017"}, {"id": "stu_1SCIE_018", "code": "1SCIE-018", "name": "OFORI ESTHER POMAAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-018"}, {"id": "stu_1SCIE_019", "code": "1SCIE-019", "name": "AGBEKO URSULA WOELINAM", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-019"}, {"id": "stu_1SCIE_020", "code": "1SCIE-020", "name": "BOATENG BETTY", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-020"}, {"id": "stu_1SCIE_021", "code": "1SCIE-021", "name": "GABRIEL TETTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-021"}, {"id": "stu_1SCIE_022", "code": "1SCIE-022", "name": "NIPALE EUGENE AGYAPONG", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-022"}, {"id": "stu_1SCIE_023", "code": "1SCIE-023", "name": "PHILIP MENSAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-023"}, {"id": "stu_1SCIE_024", "code": "1SCIE-024", "name": "SUDEY JEREMIAH KWABLA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-024"}, {"id": "stu_1SCIE_025", "code": "1SCIE-025", "name": "HENRY AWAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-025"}, {"id": "stu_1SCIE_026", "code": "1SCIE-026", "name": "ESTHER TETTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-026"}, {"id": "stu_1SCIE_027", "code": "1SCIE-027", "name": "SODJI JOSHUA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-027"}, {"id": "stu_1SCIE_028", "code": "1SCIE-028", "name": "ABOAGYEWAA JESSICA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-028"}, {"id": "stu_1SCIE_029", "code": "1SCIE-029", "name": "BILLY JOHN ETONAM", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-029"}, {"id": "stu_1SCIE_030", "code": "1SCIE-030", "name": "AMINATU ISMAIL", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-030"}, {"id": "stu_1SCIE_031", "code": "1SCIE-031", "name": "NATHANIEL ASANTE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-031"}, {"id": "stu_1SCIE_032", "code": "1SCIE-032", "name": "SAMUEL AIDOO INKOOM", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-032"}, {"id": "stu_1SCIE_033", "code": "1SCIE-033", "name": "DZIWORNU TODA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-033"}, {"id": "stu_1SCIE_034", "code": "1SCIE-034", "name": "DASI SHADRACH ALIPUE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-034"}, {"id": "stu_1SCIE_035", "code": "1SCIE-035", "name": "THEODORICK ARKU", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-035"}, {"id": "stu_1SCIE_036", "code": "1SCIE-036", "name": "ARTHUR BENEDICT", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-036"}, {"id": "stu_1SCIE_037", "code": "1SCIE-037", "name": "ATTABRAH BLESSING NANA YAA MENSAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-037"}, {"id": "stu_1SCIE_038", "code": "1SCIE-038", "name": "HAWA POKUA MALIK", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-038"}, {"id": "stu_1SCIE_039", "code": "1SCIE-039", "name": "FRIMPONG ALEXANDER", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-039"}, {"id": "stu_1SCIE_040", "code": "1SCIE-040", "name": "ASIEDU VANESSA SERWAA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-040"}, {"id": "stu_1SCIE_041", "code": "1SCIE-041", "name": "GERNAIL KWAME DUAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-041"}, {"id": "stu_1SCIE_042", "code": "1SCIE-042", "name": "SAMUEL YEBOAH ANTWI", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-042"}, {"id": "stu_1SCIE_043", "code": "1SCIE-043", "name": "DANIEL SEKYI", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-043"}, {"id": "stu_1SCIE_044", "code": "1SCIE-044", "name": "AKUTEI SAMUEL AMANOR", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-044"}, {"id": "stu_1SCIE_045", "code": "1SCIE-045", "name": "QUARMYNE DESMOND", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-045"}, {"id": "stu_1SCIE_046", "code": "1SCIE-046", "name": "ATTEH BENEDICTA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-046"}, {"id": "stu_1SCIE_047", "code": "1SCIE-047", "name": "OWUSU BENEDICTA KYEI", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-047"}, {"id": "stu_1SCIE_048", "code": "1SCIE-048", "name": "FRANKWAH ETHEL MAKU", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-048"}, {"id": "stu_1SCIE_049", "code": "1SCIE-049", "name": "ADAMAH JOHANNES TETTEY", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-049"}, {"id": "stu_1SCIE_050", "code": "1SCIE-050", "name": "ESSEL EMMANUELLA ODE AKUA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-050"}, {"id": "stu_1SCIE_051", "code": "1SCIE-051", "name": "NYARKO EDRICA KORYO", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-051"}, {"id": "stu_1SCIE_052", "code": "1SCIE-052", "name": "OFORI RICHMOND KOFI", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-052"}, {"id": "stu_1SCIE_053", "code": "1SCIE-053", "name": "LEKE GIFTY MAWUENA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-053"}, {"id": "stu_1SCIE_054", "code": "1SCIE-054", "name": "FABRA KAMAL YAHAYA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-054"}, {"id": "stu_1SCIE_055", "code": "1SCIE-055", "name": "DAWUD ARMAN", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-055"}, {"id": "stu_1H2A_001", "code": "1H2A-001", "name": "NARH BENEDICTA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-001"}, {"id": "stu_1H2A_002", "code": "1H2A-002", "name": "ASANTE PENIEL", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-002"}, {"id": "stu_1H2A_003", "code": "1H2A-003", "name": "KORGBETOR JUSTINA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-003"}, {"id": "stu_1H2A_004", "code": "1H2A-004", "name": "BONNEY MERCY", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-004"}, {"id": "stu_1H2A_005", "code": "1H2A-005", "name": "ANITA ELIKPLIM AHETO", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-005"}, {"id": "stu_1H2A_006", "code": "1H2A-006", "name": "GAKPO DORIS", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-006"}, {"id": "stu_1H2A_007", "code": "1H2A-007", "name": "OTUBUAH OFOEKWO PRISCILLA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-007"}, {"id": "stu_1H2A_008", "code": "1H2A-008", "name": "OFFEI JACKLYN", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-008"}, {"id": "stu_1H2A_009", "code": "1H2A-009", "name": "DORLEAGBENU MARY ETORNAM", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-009"}, {"id": "stu_1H2A_010", "code": "1H2A-010", "name": "TETTEH ANGELA KORKOR", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-010"}, {"id": "stu_1H2A_011", "code": "1H2A-011", "name": "TETTEH STEPHANIE PADIKOUR", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-011"}, {"id": "stu_1H2A_012", "code": "1H2A-012", "name": "KABUTEY LETICIA DEDE", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-012"}, {"id": "stu_1H2A_013", "code": "1H2A-013", "name": "TENGEY ANGELA MAWULAWOE", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-013"}, {"id": "stu_1H2A_014", "code": "1H2A-014", "name": "AMPONSAH HILLARY", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-014"}, {"id": "stu_1H2A_015", "code": "1H2A-015", "name": "PAPPOE GEORGETTE AKU", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-015"}, {"id": "stu_1H2A_016", "code": "1H2A-016", "name": "AYERTEY CHRISTABEL DOEKWOR", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-016"}, {"id": "stu_1H2A_017", "code": "1H2A-017", "name": "AMANING JOSELYN", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-017"}, {"id": "stu_1H2A_018", "code": "1H2A-018", "name": "ADDO PEPERTUAL", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-018"}, {"id": "stu_1H2A_019", "code": "1H2A-019", "name": "AKRONG NAA LAMILEY PRINCESS", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-019"}, {"id": "stu_1H2A_020", "code": "1H2A-020", "name": "GLEE SABINA MAKAFUI AMA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-020"}, {"id": "stu_1H2A_021", "code": "1H2A-021", "name": "AMANOR EMMANUELLA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-021"}, {"id": "stu_1H2A_022", "code": "1H2A-022", "name": "JEFFREY PATIENCE", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-022"}, {"id": "stu_1H2A_023", "code": "1H2A-023", "name": "MABELLE PATAMIA MANSAH", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-023"}, {"id": "stu_1H2A_024", "code": "1H2A-024", "name": "OKAI JUSTINA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-024"}, {"id": "stu_1H2A_025", "code": "1H2A-025", "name": "ADORKOR LETICIA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-025"}, {"id": "stu_1H2A_026", "code": "1H2A-026", "name": "MUMUNI SALIFU SAHADATU", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-026"}, {"id": "stu_1H2A_027", "code": "1H2A-027", "name": "NARTEY ANGELA MAKU", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-027"}, {"id": "stu_1H2A_028", "code": "1H2A-028", "name": "OPPONG REBECCA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-028"}, {"id": "stu_1H2A_029", "code": "1H2A-029", "name": "FORGIVE MAWUNYO GANYAGLO DOGLI", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-029"}, {"id": "stu_1H2A_030", "code": "1H2A-030", "name": "YAOKUMAH ELEMAWUSI EMELIA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-030"}, {"id": "stu_1H2A_031", "code": "1H2A-031", "name": "AVADZI BETTY FAFALI", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-031"}, {"id": "stu_1H2A_032", "code": "1H2A-032", "name": "TETTEH NAOMI AMI", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-032"}, {"id": "stu_1H2A_033", "code": "1H2A-033", "name": "TEYE EUGENIA LARYO", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-033"}, {"id": "stu_1H2A_034", "code": "1H2A-034", "name": "OBENG CYNTHIA PRECIOUS", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-034"}, {"id": "stu_1H2A_035", "code": "1H2A-035", "name": "AGBENEDE ANITA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-035"}, {"id": "stu_1H2A_036", "code": "1H2A-036", "name": "GBEKLI MARY", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-036"}, {"id": "stu_1H2A_037", "code": "1H2A-037", "name": "KWAO JUDITH ATAYO", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-037"}, {"id": "stu_1H2A_038", "code": "1H2A-038", "name": "GYINABA IBRAHIM", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-038"}, {"id": "stu_1H2A_039", "code": "1H2A-039", "name": "KOOMSON ELLEN", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-039"}, {"id": "stu_1H2A_040", "code": "1H2A-040", "name": "ANSAH-OWUSU FAITH", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-040"}, {"id": "stu_1H2A_041", "code": "1H2A-041", "name": "MAWUSUOR JOANA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-041"}, {"id": "stu_1H2A_042", "code": "1H2A-042", "name": "JESSICA DJAM AKU", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-042"}, {"id": "stu_1H2A_043", "code": "1H2A-043", "name": "ANSAH OPOKUA ISSABELLA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-043"}, {"id": "stu_1H2A_044", "code": "1H2A-044", "name": "BAFFOE DEBORAH", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-044"}, {"id": "stu_1H2A_045", "code": "1H2A-045", "name": "PHILBERTA KEKELI AGBOKA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-045"}, {"id": "stu_1H2A_046", "code": "1H2A-046", "name": "ESSANDOH EMMANUELLA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-046"}, {"id": "stu_1H2A_047", "code": "1H2A-047", "name": "NFUGMA GILIMA ERNESTINA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-047"}, {"id": "stu_1H2A_048", "code": "1H2A-048", "name": "NARTSU LYDIA DEWI", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-048"}, {"id": "stu_1H2A_049", "code": "1H2A-049", "name": "KUNAH FAITH MAWUENA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-049"}, {"id": "stu_1H2A_050", "code": "1H2A-050", "name": "AISHA ISSAH YARTEY", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-050"}, {"id": "stu_1H2A_051", "code": "1H2A-051", "name": "FIRDAUS IBRAHIM", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-051"}, {"id": "stu_1H2A_052", "code": "1H2A-052", "name": "KUDOHIA ABLA FAUSTINA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-052"}, {"id": "stu_1H2A_053", "code": "1H2A-053", "name": "GAMURY JENNIFER", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-053"}], "quizzes": [], "submissions": [], "components": [{"id": "exam", "name": "Examination", "weight": 70, "max": 100}, {"id": "class", "name": "Class Exercise", "weight": 10, "max": 100}, {"id": "assignment", "name": "Assignment", "weight": 10, "max": 100}, {"id": "project", "name": "Project Work", "weight": 10, "max": 100}], "scores": []};
+const SEEDED_DEFAULT_STATE = {"settings": {"adminPass": "@amest", "requireStudentPassword": false, "allowStudentPhotoUpload": true, "teacherName": "Sir Isaac Boahen", "school": "AKUSE METHODIST SENIOR HIGH TECHNICAL SCHOOL", "studentCode": "AMEST"}, "subjects": [{"name": "Additional Mathematics", "classes": ["1 AGRIC", "1 SCIENCE"]}, {"name": "Mathematics", "classes": ["1H2A", "1 G3B"]}], "classes": ["1 AGRIC", "1 SCIENCE", "1H2A", "1 G3B"], "students": [{"id": "stu_1AGRI_001", "code": "1AGRI-001", "name": "ABOAH TRACY", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-001"}, {"id": "stu_1AGRI_002", "code": "1AGRI-002", "name": "NKORNU SHARON KEZIA NAA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-002"}, {"id": "stu_1AGRI_003", "code": "1AGRI-003", "name": "OFUSU MAVIS EMEFA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-003"}, {"id": "stu_1AGRI_004", "code": "1AGRI-004", "name": "AMANKWAH PRINCESS OTUBEA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-004"}, {"id": "stu_1AGRI_005", "code": "1AGRI-005", "name": "OFOSU JENNIFER ANIMA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-005"}, {"id": "stu_1AGRI_006", "code": "1AGRI-006", "name": "COFFIE CHELSEA", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-006"}, {"id": "stu_1AGRI_007", "code": "1AGRI-007", "name": "ACQUAH JOSHUA KOFI", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-007"}, {"id": "stu_1AGRI_008", "code": "1AGRI-008", "name": "TETTEH TIMOTHY", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-008"}, {"id": "stu_1AGRI_009", "code": "1AGRI-009", "name": "TEYE ABBRAHAM", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-009"}, {"id": "stu_1AGRI_010", "code": "1AGRI-010", "name": "BAAKO JUDE KABU", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-010"}, {"id": "stu_1AGRI_011", "code": "1AGRI-011", "name": "TERKPERTEY HORACIOUS KWADJO", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-011"}, {"id": "stu_1AGRI_012", "code": "1AGRI-012", "name": "GODSON ELLIS SAMPAH JNR", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-012"}, {"id": "stu_1AGRI_013", "code": "1AGRI-013", "name": "ANTHONY ATULE", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-013"}, {"id": "stu_1AGRI_014", "code": "1AGRI-014", "name": "ANTWI EMMANUEL", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-014"}, {"id": "stu_1AGRI_015", "code": "1AGRI-015", "name": "RICHMOND IDUN", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-015"}, {"id": "stu_1AGRI_016", "code": "1AGRI-016", "name": "AYITEY MICHEAL", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-016"}, {"id": "stu_1AGRI_017", "code": "1AGRI-017", "name": "ERIC FIANU", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-017"}, {"id": "stu_1AGRI_018", "code": "1AGRI-018", "name": "WILSON ELIZABETH", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-018"}, {"id": "stu_1AGRI_019", "code": "1AGRI-019", "name": "QUAYE DUODU GIDEON", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-019"}, {"id": "stu_1AGRI_020", "code": "1AGRI-020", "name": "ACKAH BENEDICT OWUSU", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-020"}, {"id": "stu_1AGRI_021", "code": "1AGRI-021", "name": "ANNORKWAO MERCY BARNS", "className": "1 AGRIC", "status": "Active", "guardian": "", "phone": "", "password": "1AGRI-021"}, {"id": "stu_1SCIE_001", "code": "1SCIE-001", "name": "AWUKUTSE ABENA JOYCE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-001"}, {"id": "stu_1SCIE_002", "code": "1SCIE-002", "name": "INUSAH HAIDA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-002"}, {"id": "stu_1SCIE_003", "code": "1SCIE-003", "name": "MARY GIFTY MENSAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-003"}, {"id": "stu_1SCIE_004", "code": "1SCIE-004", "name": "PRISCILLA LAMKI ATTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-004"}, {"id": "stu_1SCIE_005", "code": "1SCIE-005", "name": "ARTHUR CASSANDRA AKUBA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-005"}, {"id": "stu_1SCIE_006", "code": "1SCIE-006", "name": "TEYE MARY MAKU", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-006"}, {"id": "stu_1SCIE_007", "code": "1SCIE-007", "name": "JEDIDIAH ADU SAWYER", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-007"}, {"id": "stu_1SCIE_008", "code": "1SCIE-008", "name": "AKUTEYE ADDO JOSEPH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-008"}, {"id": "stu_1SCIE_009", "code": "1SCIE-009", "name": "ASARE AFIA JOYCE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-009"}, {"id": "stu_1SCIE_010", "code": "1SCIE-010", "name": "ISSABELLA FATI ABUBAKAR KARIM", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-010"}, {"id": "stu_1SCIE_011", "code": "1SCIE-011", "name": "TSIKUDO DELIGHT", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-011"}, {"id": "stu_1SCIE_012", "code": "1SCIE-012", "name": "BRISTER OPHELIA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-012"}, {"id": "stu_1SCIE_013", "code": "1SCIE-013", "name": "ESTHER DEDE TETTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-013"}, {"id": "stu_1SCIE_014", "code": "1SCIE-014", "name": "BLAY AMA JACKLINE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-014"}, {"id": "stu_1SCIE_015", "code": "1SCIE-015", "name": "TEYE AGNES ABLAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-015"}, {"id": "stu_1SCIE_016", "code": "1SCIE-016", "name": "MATEY DOMINIC TETTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-016"}, {"id": "stu_1SCIE_017", "code": "1SCIE-017", "name": "AMOAH PRECIOUS", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-017"}, {"id": "stu_1SCIE_018", "code": "1SCIE-018", "name": "OFORI ESTHER POMAAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-018"}, {"id": "stu_1SCIE_019", "code": "1SCIE-019", "name": "AGBEKO URSULA WOELINAM", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-019"}, {"id": "stu_1SCIE_020", "code": "1SCIE-020", "name": "BOATENG BETTY", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-020"}, {"id": "stu_1SCIE_021", "code": "1SCIE-021", "name": "GABRIEL TETTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-021"}, {"id": "stu_1SCIE_022", "code": "1SCIE-022", "name": "NIPALE EUGENE AGYAPONG", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-022"}, {"id": "stu_1SCIE_023", "code": "1SCIE-023", "name": "PHILIP MENSAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-023"}, {"id": "stu_1SCIE_024", "code": "1SCIE-024", "name": "SUDEY JEREMIAH KWABLA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-024"}, {"id": "stu_1SCIE_025", "code": "1SCIE-025", "name": "HENRY AWAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-025"}, {"id": "stu_1SCIE_026", "code": "1SCIE-026", "name": "ESTHER TETTEH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-026"}, {"id": "stu_1SCIE_027", "code": "1SCIE-027", "name": "SODJI JOSHUA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-027"}, {"id": "stu_1SCIE_028", "code": "1SCIE-028", "name": "ABOAGYEWAA JESSICA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-028"}, {"id": "stu_1SCIE_029", "code": "1SCIE-029", "name": "BILLY JOHN ETONAM", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-029"}, {"id": "stu_1SCIE_030", "code": "1SCIE-030", "name": "AMINATU ISMAIL", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-030"}, {"id": "stu_1SCIE_031", "code": "1SCIE-031", "name": "NATHANIEL ASANTE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-031"}, {"id": "stu_1SCIE_032", "code": "1SCIE-032", "name": "SAMUEL AIDOO INKOOM", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-032"}, {"id": "stu_1SCIE_033", "code": "1SCIE-033", "name": "DZIWORNU TODA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-033"}, {"id": "stu_1SCIE_034", "code": "1SCIE-034", "name": "DASI SHADRACH ALIPUE", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-034"}, {"id": "stu_1SCIE_035", "code": "1SCIE-035", "name": "THEODORICK ARKU", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-035"}, {"id": "stu_1SCIE_036", "code": "1SCIE-036", "name": "ARTHUR BENEDICT", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-036"}, {"id": "stu_1SCIE_037", "code": "1SCIE-037", "name": "ATTABRAH BLESSING NANA YAA MENSAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-037"}, {"id": "stu_1SCIE_038", "code": "1SCIE-038", "name": "HAWA POKUA MALIK", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-038"}, {"id": "stu_1SCIE_039", "code": "1SCIE-039", "name": "FRIMPONG ALEXANDER", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-039"}, {"id": "stu_1SCIE_040", "code": "1SCIE-040", "name": "ASIEDU VANESSA SERWAA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-040"}, {"id": "stu_1SCIE_041", "code": "1SCIE-041", "name": "GERNAIL KWAME DUAH", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-041"}, {"id": "stu_1SCIE_042", "code": "1SCIE-042", "name": "SAMUEL YEBOAH ANTWI", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-042"}, {"id": "stu_1SCIE_043", "code": "1SCIE-043", "name": "DANIEL SEKYI", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-043"}, {"id": "stu_1SCIE_044", "code": "1SCIE-044", "name": "AKUTEI SAMUEL AMANOR", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-044"}, {"id": "stu_1SCIE_045", "code": "1SCIE-045", "name": "QUARMYNE DESMOND", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-045"}, {"id": "stu_1SCIE_046", "code": "1SCIE-046", "name": "ATTEH BENEDICTA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-046"}, {"id": "stu_1SCIE_047", "code": "1SCIE-047", "name": "OWUSU BENEDICTA KYEI", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-047"}, {"id": "stu_1SCIE_048", "code": "1SCIE-048", "name": "FRANKWAH ETHEL MAKU", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-048"}, {"id": "stu_1SCIE_049", "code": "1SCIE-049", "name": "ADAMAH JOHANNES TETTEY", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-049"}, {"id": "stu_1SCIE_050", "code": "1SCIE-050", "name": "ESSEL EMMANUELLA ODE AKUA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-050"}, {"id": "stu_1SCIE_051", "code": "1SCIE-051", "name": "NYARKO EDRICA KORYO", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-051"}, {"id": "stu_1SCIE_052", "code": "1SCIE-052", "name": "OFORI RICHMOND KOFI", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-052"}, {"id": "stu_1SCIE_053", "code": "1SCIE-053", "name": "LEKE GIFTY MAWUENA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-053"}, {"id": "stu_1SCIE_054", "code": "1SCIE-054", "name": "FABRA KAMAL YAHAYA", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-054"}, {"id": "stu_1SCIE_055", "code": "1SCIE-055", "name": "DAWUD ARMAN", "className": "1 SCIENCE", "status": "Active", "guardian": "", "phone": "", "password": "1SCIE-055"}, {"id": "stu_1H2A_001", "code": "1H2A-001", "name": "NARH BENEDICTA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-001"}, {"id": "stu_1H2A_002", "code": "1H2A-002", "name": "ASANTE PENIEL", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-002"}, {"id": "stu_1H2A_003", "code": "1H2A-003", "name": "KORGBETOR JUSTINA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-003"}, {"id": "stu_1H2A_004", "code": "1H2A-004", "name": "BONNEY MERCY", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-004"}, {"id": "stu_1H2A_005", "code": "1H2A-005", "name": "ANITA ELIKPLIM AHETO", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-005"}, {"id": "stu_1H2A_006", "code": "1H2A-006", "name": "GAKPO DORIS", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-006"}, {"id": "stu_1H2A_007", "code": "1H2A-007", "name": "OTUBUAH OFOEKWO PRISCILLA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-007"}, {"id": "stu_1H2A_008", "code": "1H2A-008", "name": "OFFEI JACKLYN", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-008"}, {"id": "stu_1H2A_009", "code": "1H2A-009", "name": "DORLEAGBENU MARY ETORNAM", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-009"}, {"id": "stu_1H2A_010", "code": "1H2A-010", "name": "TETTEH ANGELA KORKOR", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-010"}, {"id": "stu_1H2A_011", "code": "1H2A-011", "name": "TETTEH STEPHANIE PADIKOUR", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-011"}, {"id": "stu_1H2A_012", "code": "1H2A-012", "name": "KABUTEY LETICIA DEDE", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-012"}, {"id": "stu_1H2A_013", "code": "1H2A-013", "name": "TENGEY ANGELA MAWULAWOE", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-013"}, {"id": "stu_1H2A_014", "code": "1H2A-014", "name": "AMPONSAH HILLARY", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-014"}, {"id": "stu_1H2A_015", "code": "1H2A-015", "name": "PAPPOE GEORGETTE AKU", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-015"}, {"id": "stu_1H2A_016", "code": "1H2A-016", "name": "AYERTEY CHRISTABEL DOEKWOR", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-016"}, {"id": "stu_1H2A_017", "code": "1H2A-017", "name": "AMANING JOSELYN", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-017"}, {"id": "stu_1H2A_018", "code": "1H2A-018", "name": "ADDO PEPERTUAL", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-018"}, {"id": "stu_1H2A_019", "code": "1H2A-019", "name": "AKRONG NAA LAMILEY PRINCESS", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-019"}, {"id": "stu_1H2A_020", "code": "1H2A-020", "name": "GLEE SABINA MAKAFUI AMA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-020"}, {"id": "stu_1H2A_021", "code": "1H2A-021", "name": "AMANOR EMMANUELLA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-021"}, {"id": "stu_1H2A_022", "code": "1H2A-022", "name": "JEFFREY PATIENCE", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-022"}, {"id": "stu_1H2A_023", "code": "1H2A-023", "name": "MABELLE PATAMIA MANSAH", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-023"}, {"id": "stu_1H2A_024", "code": "1H2A-024", "name": "OKAI JUSTINA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-024"}, {"id": "stu_1H2A_025", "code": "1H2A-025", "name": "ADORKOR LETICIA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-025"}, {"id": "stu_1H2A_026", "code": "1H2A-026", "name": "MUMUNI SALIFU SAHADATU", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-026"}, {"id": "stu_1H2A_027", "code": "1H2A-027", "name": "NARTEY ANGELA MAKU", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-027"}, {"id": "stu_1H2A_028", "code": "1H2A-028", "name": "OPPONG REBECCA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-028"}, {"id": "stu_1H2A_029", "code": "1H2A-029", "name": "FORGIVE MAWUNYO GANYAGLO DOGLI", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-029"}, {"id": "stu_1H2A_030", "code": "1H2A-030", "name": "YAOKUMAH ELEMAWUSI EMELIA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-030"}, {"id": "stu_1H2A_031", "code": "1H2A-031", "name": "AVADZI BETTY FAFALI", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-031"}, {"id": "stu_1H2A_032", "code": "1H2A-032", "name": "TETTEH NAOMI AMI", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-032"}, {"id": "stu_1H2A_033", "code": "1H2A-033", "name": "TEYE EUGENIA LARYO", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-033"}, {"id": "stu_1H2A_034", "code": "1H2A-034", "name": "OBENG CYNTHIA PRECIOUS", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-034"}, {"id": "stu_1H2A_035", "code": "1H2A-035", "name": "AGBENEDE ANITA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-035"}, {"id": "stu_1H2A_036", "code": "1H2A-036", "name": "GBEKLI MARY", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-036"}, {"id": "stu_1H2A_037", "code": "1H2A-037", "name": "KWAO JUDITH ATAYO", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-037"}, {"id": "stu_1H2A_038", "code": "1H2A-038", "name": "GYINABA IBRAHIM", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-038"}, {"id": "stu_1H2A_039", "code": "1H2A-039", "name": "KOOMSON ELLEN", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-039"}, {"id": "stu_1H2A_040", "code": "1H2A-040", "name": "ANSAH-OWUSU FAITH", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-040"}, {"id": "stu_1H2A_041", "code": "1H2A-041", "name": "MAWUSUOR JOANA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-041"}, {"id": "stu_1H2A_042", "code": "1H2A-042", "name": "JESSICA DJAM AKU", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-042"}, {"id": "stu_1H2A_043", "code": "1H2A-043", "name": "ANSAH OPOKUA ISSABELLA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-043"}, {"id": "stu_1H2A_044", "code": "1H2A-044", "name": "BAFFOE DEBORAH", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-044"}, {"id": "stu_1H2A_045", "code": "1H2A-045", "name": "PHILBERTA KEKELI AGBOKA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-045"}, {"id": "stu_1H2A_046", "code": "1H2A-046", "name": "ESSANDOH EMMANUELLA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-046"}, {"id": "stu_1H2A_047", "code": "1H2A-047", "name": "NFUGMA GILIMA ERNESTINA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-047"}, {"id": "stu_1H2A_048", "code": "1H2A-048", "name": "NARTSU LYDIA DEWI", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-048"}, {"id": "stu_1H2A_049", "code": "1H2A-049", "name": "KUNAH FAITH MAWUENA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-049"}, {"id": "stu_1H2A_050", "code": "1H2A-050", "name": "AISHA ISSAH YARTEY", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-050"}, {"id": "stu_1H2A_051", "code": "1H2A-051", "name": "FIRDAUS IBRAHIM", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-051"}, {"id": "stu_1H2A_052", "code": "1H2A-052", "name": "KUDOHIA ABLA FAUSTINA", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-052"}, {"id": "stu_1H2A_053", "code": "1H2A-053", "name": "GAMURY JENNIFER", "className": "1H2A", "status": "Active", "guardian": "", "phone": "", "password": "1H2A-053"}], "quizzes": [], "submissions": [], "components": [{"id": "exam", "name": "Examination", "weight": 70, "max": 100}, {"id": "class", "name": "Class Exercise", "weight": 10, "max": 100}, {"id": "assignment", "name": "Assignment", "weight": 10, "max": 100}, {"id": "project", "name": "Project Work", "weight": 10, "max": 100}], "scores": []};
 function defaultState(){
   return JSON.parse(JSON.stringify(SEEDED_DEFAULT_STATE));
 }
@@ -30448,10 +30448,416 @@ async function initSupabase(){
 })();
 
 
+/* ===== PASSWORD DEFAULT-OFF + CLEAN FIRST-REFRESH ONLY + ASSIGNMENT SAFETY V6 =====
+   - Student portal is open by default without password.
+   - Old phone cache cannot keep password ON after admin turns it OFF.
+   - Admin can still turn password ON later; ON/OFF is timestamped and synced live.
+   - The first-open refresh gate remains, but all floating/manual refresh buttons are removed afterward.
+   - Existing submissions are preserved; no submission cleanup/removal is performed here.
+*/
+(function(){
+  const V6_BUILD = "password-assignment-sync-v6-2026-05-20";
+  const V6_FLAG = "passwordDefaultOffV6Applied";
+  const V6_STAMP = "2026-05-20T00:00:00.000Z";
+  const V6_REFRESH_DONE_KEY = "AMEST_FIRST_REFRESH_DONE_" + V6_BUILD;
+  let v6RemoteDefaultApplying = false;
+  let v6LastLivePull = 0;
+
+  function v6Now(){ return new Date().toISOString(); }
+  function v6Esc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? "").replace(/[&<>\"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[c])); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function v6Ts(obj){
+    const raw = obj && (obj.studentPasswordModeUpdatedAt || obj.passwordSettingsUpdatedAt || obj.passwordDefaultOffV6At || obj.updatedAt || obj.modifiedAt || "");
+    const t = raw ? Date.parse(raw) : 0;
+    return Number.isFinite(t) ? t : 0;
+  }
+  function v6EnsureSettings(){
+    state.settings = state.settings || {};
+    if(typeof state.settings.requireStudentPassword !== "boolean") state.settings.requireStudentPassword = false;
+  }
+  function v6MarkDefaultOffLocal(){
+    v6EnsureSettings();
+    if(state.settings[V6_FLAG] !== true){
+      state.settings.requireStudentPassword = false;
+      state.settings.passwordFreeUntil = "";
+      state.settings.passwordFreeStartedAt = "";
+      state.settings[V6_FLAG] = true;
+      state.settings.passwordDefaultOffV6At = state.settings.passwordDefaultOffV6At || V6_STAMP;
+      state.settings.studentPasswordModeUpdatedAt = state.settings.studentPasswordModeUpdatedAt || V6_STAMP;
+      state.settings.passwordSettingsUpdatedAt = state.settings.passwordSettingsUpdatedAt || V6_STAMP;
+    }
+  }
+  function v6SaveLocalOnly(){
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); else if(typeof KEY !== "undefined") localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  }
+  async function v6PushStateLive(){
+    v6EnsureSettings();
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+    try{
+      if(typeof sb !== "undefined" && sb && typeof stableWriteRemoteItems === "function"){
+        if(typeof stableStatus === "function") stableStatus("Saving student access setting live...", "warn");
+        await stableWriteRemoteItems();
+        try{
+          if(typeof stableCoreState === "function"){
+            await sb.from("app_state").upsert({id:"main_backup", data:stableCoreState(state), updated_at:new Date().toISOString()}, {onConflict:"id"});
+          }
+        }catch(e){}
+        if(typeof stableStatus === "function") stableStatus("Student access setting saved live", "live");
+      }else if(typeof pushRemote === "function") await pushRemote();
+      else if(typeof save === "function") save();
+    }catch(e){
+      console.warn("V6 password live save failed; local save preserved.", e);
+      try{ if(typeof save === "function") save(); }catch(x){}
+    }
+  }
+  async function v6PullLive(force=false){
+    const now = Date.now();
+    if(!force && now - v6LastLivePull < 1800) return;
+    try{
+      if(typeof sb !== "undefined" && sb && typeof stablePullRemote === "function") await stablePullRemote(true);
+      else if(typeof pullRemote === "function") await pullRemote();
+      v6LastLivePull = Date.now();
+    }catch(e){ console.warn("V6 live pull skipped", e); }
+  }
+  async function v6EnsureRemoteDefaultOff(){
+    if(v6RemoteDefaultApplying) return;
+    v6RemoteDefaultApplying = true;
+    try{
+      await v6PullLive(true);
+      v6EnsureSettings();
+      if(state.settings[V6_FLAG] !== true){
+        state.settings.requireStudentPassword = false;
+        state.settings.passwordFreeUntil = "";
+        state.settings.passwordFreeStartedAt = "";
+        state.settings[V6_FLAG] = true;
+        state.settings.passwordDefaultOffV6At = v6Now();
+        state.settings.studentPasswordModeUpdatedAt = v6Now();
+        state.settings.passwordSettingsUpdatedAt = v6Now();
+        await v6PushStateLive();
+      }else{
+        if(typeof state.settings.requireStudentPassword !== "boolean") state.settings.requireStudentPassword = false;
+        v6SaveLocalOnly();
+      }
+    }catch(e){ console.warn("V6 default password-off migration skipped", e); }
+    finally{ v6RemoteDefaultApplying = false; }
+  }
+
+  // Merge rule: the v6 password setting wins over old/non-v6 settings. After v6 is applied,
+  // normal teacher/admin timestamped ON/OFF changes win.
+  try{
+    if(typeof stableMergeStates === "function" && !stableMergeStates._v6PasswordDefaultOffPatched){
+      const oldMerge = stableMergeStates;
+      stableMergeStates = function(remoteState, localState){
+        const merged = oldMerge(remoteState, localState);
+        try{
+          merged.settings = merged.settings || {};
+          const r = (remoteState && remoteState.settings) || {};
+          const l = (localState && localState.settings) || {};
+          const rFlag = r[V6_FLAG] === true;
+          const lFlag = l[V6_FLAG] === true;
+          let chosen = null;
+          if(rFlag && !lFlag) chosen = r;
+          else if(lFlag && !rFlag) chosen = l;
+          else if(rFlag && lFlag) chosen = v6Ts(l) > v6Ts(r) ? l : r;
+          if(chosen){
+            ["requireStudentPassword","passwordFreeUntil","passwordFreeStartedAt","passwordFreeDurationHours","studentPasswordModeUpdatedAt","passwordSettingsUpdatedAt",V6_FLAG,"passwordDefaultOffV6At"].forEach(k=>{
+              if(Object.prototype.hasOwnProperty.call(chosen,k)) merged.settings[k] = chosen[k];
+            });
+            if(typeof merged.settings.requireStudentPassword !== "boolean") merged.settings.requireStudentPassword = false;
+          }else{
+            merged.settings.requireStudentPassword = false;
+            merged.settings.passwordFreeUntil = "";
+            merged.settings.passwordFreeStartedAt = "";
+            merged.settings[V6_FLAG] = true;
+            merged.settings.passwordDefaultOffV6At = V6_STAMP;
+            merged.settings.studentPasswordModeUpdatedAt = merged.settings.studentPasswordModeUpdatedAt || V6_STAMP;
+            merged.settings.passwordSettingsUpdatedAt = merged.settings.passwordSettingsUpdatedAt || V6_STAMP;
+          }
+        }catch(e){}
+        return merged;
+      };
+      stableMergeStates._v6PasswordDefaultOffPatched = true;
+      try{ window.stableMergeStates = stableMergeStates; }catch(e){}
+    }
+  }catch(e){ console.warn("V6 password merge patch failed", e); }
+
+  function v6PasswordFreeActive(){
+    try{
+      const raw = state.settings?.passwordFreeUntil || "";
+      const t = raw ? Date.parse(raw) : 0;
+      return Number.isFinite(t) && t > Date.now();
+    }catch(e){ return false; }
+  }
+  function v6Student(id){
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return (state.students || []).find(s => String(s.id) === String(id)) || null;
+  }
+  function v6CanOpenWithoutPassword(studentId){
+    try{
+      v6EnsureSettings();
+      if(state.settings.requireStudentPassword !== true) return true;
+      if(v6PasswordFreeActive()) return true;
+      if(typeof pwActiveShare === "function" && pwActiveShare(studentId)) return true;
+      if(typeof rgActiveShare === "function" && rgActiveShare(studentId)) return true;
+      if(typeof spActiveShare === "function" && spActiveShare(studentId)) return true;
+    }catch(e){}
+    return false;
+  }
+  function v6OpenStudent(studentId){
+    currentStudentId = studentId;
+    window.currentStudentId = studentId;
+    role = "student"; window.role = "student";
+    route = "studentHome"; window.route = "studentHome";
+    if(typeof renderShell === "function") renderShell();
+    else if(typeof render === "function") render();
+  }
+  async function v6RefreshAccessBeforeLogin(){
+    await v6EnsureRemoteDefaultOff();
+    await v6PullLive(false);
+  }
+
+  // Admin ON/OFF buttons: these now carry the v6 marker and timestamp, so all phones obey the latest teacher setting.
+  window.turnStudentPasswordOff = async function(){
+    v6EnsureSettings();
+    state.settings.requireStudentPassword = false;
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings[V6_FLAG] = true;
+    state.settings.passwordDefaultOffV6At = state.settings.passwordDefaultOffV6At || V6_STAMP;
+    state.settings.studentPasswordModeUpdatedAt = v6Now();
+    state.settings.passwordSettingsUpdatedAt = v6Now();
+    await v6PushStateLive();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Password is now OFF and has been pushed live. Students can open the portal without password after the first refresh gate.");
+  };
+  window.turnStudentPasswordOn = async function(){
+    v6EnsureSettings();
+    state.settings.requireStudentPassword = true;
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings[V6_FLAG] = true;
+    state.settings.passwordDefaultOffV6At = state.settings.passwordDefaultOffV6At || V6_STAMP;
+    state.settings.studentPasswordModeUpdatedAt = v6Now();
+    state.settings.passwordSettingsUpdatedAt = v6Now();
+    await v6PushStateLive();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Password is now ON and has been pushed live. Students will need their password.");
+  };
+  const oldStartPasswordFreeV6 = window.startPasswordFreeWindow;
+  window.startPasswordFreeWindow = async function(){
+    v6EnsureSettings();
+    const hours = Math.max(1, Math.min(24, parseInt(document.getElementById("passwordFreeHours")?.value || "1", 10)));
+    state.settings.requireStudentPassword = true;
+    state.settings.passwordFreeStartedAt = v6Now();
+    state.settings.passwordFreeUntil = new Date(Date.now() + hours * 3600000).toISOString();
+    state.settings.passwordFreeDurationHours = hours;
+    state.settings[V6_FLAG] = true;
+    state.settings.passwordDefaultOffV6At = state.settings.passwordDefaultOffV6At || V6_STAMP;
+    state.settings.studentPasswordModeUpdatedAt = v6Now();
+    state.settings.passwordSettingsUpdatedAt = v6Now();
+    await v6PushStateLive();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert(`Temporary no-password access has started for ${hours} hour${hours>1?"s":""}.`);
+  };
+  window.stopPasswordFreeWindow = async function(){
+    v6EnsureSettings();
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings[V6_FLAG] = true;
+    state.settings.studentPasswordModeUpdatedAt = v6Now();
+    state.settings.passwordSettingsUpdatedAt = v6Now();
+    await v6PushStateLive();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Temporary no-password access has been stopped.");
+  };
+
+  // Student login routes must check the live v6 setting before asking for password.
+  window.selectStudentLogin = async function(id){
+    currentStudentId = id; window.currentStudentId = id;
+    const s = v6Student(id);
+    if(!s) return alert("Student not found.");
+    await v6RefreshAccessBeforeLogin();
+    if(v6CanOpenWithoutPassword(id)) return v6OpenStudent(id);
+    const box = document.getElementById("studentPassBox");
+    if(box) box.innerHTML = `<div class="card"><h3>${v6Esc(s.name)}</h3><label class="label">Enter Password</label><input id="stuPass" class="input" type="password" onkeydown="if(event.key==='Enter')finishStudentLogin()"><button class="btn green full" onclick="finishStudentLogin()">Open Portal</button></div>`;
+  };
+  window.quickOpenStudentPortal = window.selectStudentLogin;
+  window.studentCardLogin = async function(studentId){
+    const s = v6Student(studentId);
+    if(!s) return alert("Student not found.");
+    currentStudentId = studentId; window.currentStudentId = studentId;
+    await v6RefreshAccessBeforeLogin();
+    if(v6CanOpenWithoutPassword(studentId)) return v6OpenStudent(studentId);
+    const input = document.getElementById("inlinePass_" + studentId) || document.getElementById("stuPass") || document.getElementById("studentPass");
+    const typed = (input?.value || "").trim();
+    if(!typed){ if(input) input.focus(); return alert("Please type your password first."); }
+    if(typed !== String(s.password || "")){ if(input){ input.value=""; input.focus(); } return alert("Wrong password. Please check the password and try again."); }
+    return v6OpenStudent(studentId);
+  };
+  window.finishStudentLogin = async function(){
+    const s = v6Student(currentStudentId);
+    if(!s) return alert("Student record not found.");
+    await v6RefreshAccessBeforeLogin();
+    if(v6CanOpenWithoutPassword(s.id)) return v6OpenStudent(s.id);
+    const input = document.getElementById("stuPass") || document.getElementById("studentPass") || document.getElementById("inlinePass_" + s.id);
+    if((input?.value || "").trim() !== String(s.password || "")) return alert("Wrong password.");
+    return v6OpenStudent(s.id);
+  };
+  window.openClassMemberPortal = async function(studentId){
+    const s = v6Student(studentId);
+    if(!s) return alert("Student record not found.");
+    currentStudentId = studentId; window.currentStudentId = studentId;
+    await v6RefreshAccessBeforeLogin();
+    if(v6CanOpenWithoutPassword(studentId)) return v6OpenStudent(studentId);
+    let box = document.getElementById("classMemberPasswordBox");
+    if(!box){
+      const view = document.getElementById("view");
+      if(view){ view.insertAdjacentHTML("afterbegin", `<div id="classMemberPasswordBox"></div>`); box = document.getElementById("classMemberPasswordBox"); }
+    }
+    if(!box) return alert("Enter your password from Student Login.");
+    box.innerHTML = `<div class="classMemberPasswordBox"><h3>${v6Esc(s.name)}</h3><p>Enter your password to open your portal.</p><div class="classMemberPasswordGrid"><input id="classMemberPassInput" type="password" placeholder="Type password here" onkeydown="if(event.key==='Enter')finishClassMemberPortalLogin()"><button class="green" onclick="finishClassMemberPortalLogin()">Open Portal</button></div></div>`;
+  };
+  window.finishClassMemberPortalLogin = async function(){
+    const s = v6Student(currentStudentId);
+    if(!s) return alert("Student record not found.");
+    await v6RefreshAccessBeforeLogin();
+    if(v6CanOpenWithoutPassword(s.id)) return v6OpenStudent(s.id);
+    const typed = document.getElementById("classMemberPassInput")?.value || "";
+    if(typed !== String(s.password || "")) return alert("Wrong password.");
+    return v6OpenStudent(s.id);
+  };
+
+  function v6AddStyle(){
+    if(document.getElementById("amestV6CleanRefreshStyle")) return;
+    document.head.insertAdjacentHTML("beforeend", `<style id="amestV6CleanRefreshStyle">
+      #fpFloatingRefreshBtn,#asFloatingRefreshBtn,#studentPortalRefreshBtn,.fpFloatingRefresh,.asFloatingRefresh,.studentRefreshBtn,.studentRefreshNotice,.studentQuickAssignmentButtons .refreshWork{display:none!important;visibility:hidden!important;pointer-events:none!important}
+      .v6OpenAccessNote{background:#ecfdf3;border:1px solid #bce8ce;color:#0f6b47;border-radius:14px;padding:10px 12px;margin:10px 0;font-weight:850;line-height:1.4}
+    </style>`);
+  }
+  function v6RemoveManualRefreshButtons(){
+    try{
+      document.querySelectorAll("#fpFloatingRefreshBtn,#asFloatingRefreshBtn,#studentPortalRefreshBtn,.fpFloatingRefresh,.asFloatingRefresh,.studentRefreshBtn,.studentRefreshNotice").forEach(el=>el.remove());
+      document.querySelectorAll("button").forEach(btn=>{
+        const t = String(btn.textContent || "").toLowerCase();
+        const isStudentArea = role === "student" || route === "studentLogin" || route === "studentHome" || route === "studentQuizzes";
+        if(isStudentArea && (t.includes("refresh assignment") || t.includes("refresh app") || t.includes("refresh my portal"))){ btn.style.display = "none"; btn.disabled = true; }
+      });
+    }catch(e){}
+  }
+  function v6CleanRefreshGateText(){
+    try{
+      const asGate = document.getElementById("asRefreshGate");
+      const fpGate = document.getElementById("fpRefreshGate");
+      if(asGate && fpGate) fpGate.remove();
+      const gate = asGate || fpGate;
+      if(!gate) return;
+      const h2 = gate.querySelector("h2");
+      const p = gate.querySelector("p");
+      const small = gate.querySelector("small");
+      if(h2) h2.textContent = "Refresh Latest Portal Before You Continue";
+      if(p) p.textContent = "This one-time refresh loads the latest password setting, assignments, reset permissions, submissions, and results before you enter the student portal.";
+      if(small) small.textContent = "After this refresh, the portal will open normally. No extra refresh button will remain on the student screen.";
+    }catch(e){}
+  }
+  async function v6ClearCaches(){
+    try{ if("caches" in window){ const keys = await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); } }catch(e){}
+  }
+  async function v6FirstRefresh(){
+    try{ sessionStorage.setItem(V6_REFRESH_DONE_KEY, "yes"); }catch(e){}
+    const btn = document.getElementById("asFirstRefreshBtn") || document.getElementById("fpFirstRefreshBtn");
+    if(btn) btn.textContent = "Refreshing latest portal...";
+    await v6ClearCaches();
+    await v6EnsureRemoteDefaultOff();
+    await v6PullLive(true);
+    const url = new URL(window.location.href);
+    url.searchParams.set("portalRefresh", Date.now().toString());
+    window.location.replace(url.toString());
+  }
+  window.confirmAssignmentAppRefresh = v6FirstRefresh;
+  window.confirmFirstAppRefresh = v6FirstRefresh;
+  window.studentPortalHardRefresh = async function(){
+    await v6PullLive(true);
+    v6RemoveManualRefreshButtons();
+    if(role === "student" && typeof renderShell === "function") renderShell();
+  };
+
+  function v6UpdatePasswordNotice(){
+    try{
+      const view = document.getElementById("view");
+      if(!view || role === "admin") return;
+      const old = document.getElementById("v6OpenAccessNote");
+      if(old) old.remove();
+      if(v6CanOpenWithoutPassword(currentStudentId || "")){
+        view.insertAdjacentHTML("afterbegin", `<div id="v6OpenAccessNote" class="v6OpenAccessNote"><b>Student portal is open.</b> Password is currently OFF unless Sir Isaac turns it ON.</div>`);
+        view.querySelectorAll(".studentInlineLoginBox input,.studentInlineLoginBox .inlineViewPassBtn,.studentInlineLoginHint,#studentPassBox input,#studentPassBox button").forEach(el=>{ el.style.display="none"; });
+        view.querySelectorAll(".openLine").forEach(el=>{ el.textContent = "Password is OFF. Click your name to open directly."; });
+      }
+    }catch(e){}
+  }
+
+  const oldRenderShellV6 = window.renderShell;
+  if(typeof oldRenderShellV6 === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellV6.apply(this, arguments);
+      setTimeout(()=>{ v6AddStyle(); v6RemoveManualRefreshButtons(); v6CleanRefreshGateText(); v6UpdatePasswordNotice(); }, 80);
+      setTimeout(()=>{ v6RemoveManualRefreshButtons(); v6UpdatePasswordNotice(); }, 500);
+      return result;
+    };
+  }
+  const oldStudentLoginV6 = window.studentLogin;
+  if(typeof oldStudentLoginV6 === "function"){
+    window.studentLogin = function(){
+      const result = oldStudentLoginV6.apply(this, arguments);
+      setTimeout(()=>{ v6RemoveManualRefreshButtons(); v6UpdatePasswordNotice(); }, 80);
+      setTimeout(()=>v6PullLive(false).then(v6UpdatePasswordNotice), 300);
+      return result;
+    };
+  }
+
+  window.amestV6AfterLocalLoad = function(){
+    v6AddStyle();
+    v6MarkDefaultOffLocal();
+    v6SaveLocalOnly();
+    setTimeout(()=>{ v6RemoveManualRefreshButtons(); v6CleanRefreshGateText(); }, 200);
+  };
+  window.amestV6AfterSupabaseReady = async function(){
+    v6AddStyle();
+    await v6EnsureRemoteDefaultOff();
+    v6RemoveManualRefreshButtons();
+    v6CleanRefreshGateText();
+  };
+
+  try{
+    eval("turnStudentPasswordOff=window.turnStudentPasswordOff; turnStudentPasswordOn=window.turnStudentPasswordOn; startPasswordFreeWindow=window.startPasswordFreeWindow; stopPasswordFreeWindow=window.stopPasswordFreeWindow; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; studentCardLogin=window.studentCardLogin; finishStudentLogin=window.finishStudentLogin; openClassMemberPortal=window.openClassMemberPortal; finishClassMemberPortalLogin=window.finishClassMemberPortalLogin; confirmAssignmentAppRefresh=window.confirmAssignmentAppRefresh; confirmFirstAppRefresh=window.confirmFirstAppRefresh; studentPortalHardRefresh=window.studentPortalHardRefresh; renderShell=window.renderShell; studentLogin=window.studentLogin;");
+  }catch(e){}
+
+  document.addEventListener("DOMContentLoaded", function(){
+    v6AddStyle();
+    setTimeout(()=>{ v6RemoveManualRefreshButtons(); v6CleanRefreshGateText(); v6UpdatePasswordNotice(); }, 350);
+    setTimeout(()=>{ v6RemoveManualRefreshButtons(); v6CleanRefreshGateText(); }, 1200);
+  });
+  let v6CleanCount = 0;
+  const v6CleanTimer = setInterval(function(){
+    v6CleanCount++;
+    v6AddStyle(); v6RemoveManualRefreshButtons(); v6CleanRefreshGateText();
+    if(v6CleanCount > 20) clearInterval(v6CleanTimer);
+  }, 700);
+})();
+
+
 loadLocal();
+if(window.amestV6AfterLocalLoad){ try{ window.amestV6AfterLocalLoad(); }catch(e){ console.warn("V6 local setup skipped", e); } }
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
-initSupabase().then(render);
+initSupabase().then(async function(){
+  if(window.amestV6AfterSupabaseReady){ try{ await window.amestV6AfterSupabaseReady(); }catch(e){ console.warn("V6 online setup skipped", e); } }
+  render();
+});
 render();
+setTimeout(function(){ if(window.amestV6AfterSupabaseReady){ window.amestV6AfterSupabaseReady().catch(function(e){ console.warn("V6 delayed online setup skipped", e); }); } }, 2500);
 </script>
 </body>
 </html>
