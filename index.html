@@ -30849,15 +30849,691 @@ async function initSupabase(){
 })();
 
 
+
+/* ===== SIMPLE STUDENT ENTRY + NON-BLOCKING LIVE SYNC + PASSWORD DEFAULT-OFF V7 =====
+   - Fixes student name / Open Portal clicks that looked unresponsive on phones.
+   - Simplifies the student entry screen: class + name search + clear Open Portal buttons.
+   - Removes confusing password-status messages from the student entry view.
+   - Makes password OFF the default for this build; later admin ON/OFF still works.
+   - Pulls latest assignments/settings silently before/after opening without blocking students when password is OFF.
+   - Preserves all existing submissions and reset permissions.
+*/
+(function(){
+  const V7_BUILD = "student-click-simple-password-default-off-v7-2026-05-20";
+  const V7_FLAG = "passwordDefaultOffV7Applied";
+  const V7_EXPLICIT = "studentPasswordExplicitV7";
+  const V7_STAMP = "2026-05-20T00:00:00.000Z";
+  let v7LastPull = 0;
+  let v7Opening = false;
+
+  function v7Now(){ return new Date().toISOString(); }
+  function v7Esc(v){
+    try{ return typeof esc === "function" ? esc(v) : String(v ?? "").replace(/[&<>\"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[c])); }
+    catch(e){ return String(v ?? ""); }
+  }
+  function v7Attr(v){ return String(v ?? "").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ").replace(/\r/g," "); }
+  function v7ById(id){ return document.getElementById(id); }
+  function v7EnsureArrays(){
+    state.students = Array.isArray(state.students) ? state.students : [];
+    state.classes = Array.isArray(state.classes) ? state.classes : [];
+    state.subjects = Array.isArray(state.subjects) ? state.subjects : [];
+    state.settings = state.settings || {};
+  }
+  function v7Ts(obj){
+    const raw = obj && (obj.studentPasswordModeUpdatedAt || obj.passwordSettingsUpdatedAt || obj.passwordDefaultOffV7At || obj.updatedAt || obj.modifiedAt || "");
+    const t = raw ? Date.parse(raw) : 0;
+    return Number.isFinite(t) ? t : 0;
+  }
+  function v7ApplyDefaultOffLocal(){
+    v7EnsureArrays();
+    if(state.settings[V7_FLAG] !== true && state.settings[V7_EXPLICIT] !== true){
+      state.settings.requireStudentPassword = false;
+      state.settings.passwordFreeUntil = "";
+      state.settings.passwordFreeStartedAt = "";
+      state.settings[V7_FLAG] = true;
+      state.settings[V7_EXPLICIT] = false;
+      state.settings.passwordDefaultOffV7At = v7Now();
+      state.settings.studentPasswordModeUpdatedAt = v7Now();
+      state.settings.passwordSettingsUpdatedAt = v7Now();
+    }
+    if(typeof state.settings.requireStudentPassword !== "boolean") state.settings.requireStudentPassword = false;
+  }
+  function v7SaveLocal(){
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); else if(typeof KEY !== "undefined") localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  }
+  async function v7Timeout(promise, ms){
+    let timer;
+    const timeout = new Promise(resolve => { timer = setTimeout(()=>resolve(false), ms); });
+    try{ const result = await Promise.race([promise, timeout]); clearTimeout(timer); return result; }
+    catch(e){ clearTimeout(timer); return false; }
+  }
+  async function v7PushLive(){
+    v7ApplyDefaultOffLocal();
+    v7SaveLocal();
+    try{
+      if(typeof sb !== "undefined" && sb && typeof stableWriteRemoteItems === "function"){
+        await stableWriteRemoteItems();
+        try{
+          if(typeof stableCoreState === "function"){
+            await sb.from("app_state").upsert({id:"main_backup", data:stableCoreState(state), updated_at:new Date().toISOString()}, {onConflict:"id"});
+          }
+        }catch(e){}
+      }else if(typeof pushRemote === "function") await pushRemote();
+      else if(typeof save === "function") save();
+    }catch(e){ console.warn("V7 live save skipped; local copy kept.", e); }
+  }
+  async function v7PullLive(force=false, timeoutMs=2200){
+    const now = Date.now();
+    if(!force && now - v7LastPull < 1500) return true;
+    const work = (async()=>{
+      if(typeof sb !== "undefined" && sb && typeof stablePullRemote === "function") return await stablePullRemote(true);
+      if(typeof pullRemote === "function") return await pullRemote();
+      return true;
+    })();
+    const ok = await v7Timeout(work, timeoutMs);
+    v7LastPull = Date.now();
+    try{ v7ApplyDefaultOffLocal(); v7SaveLocal(); }catch(e){}
+    return ok;
+  }
+
+  // Password merge: a later explicit v7 admin ON/OFF wins. Without an explicit v7 admin decision, default is OFF.
+  try{
+    if(typeof stableMergeStates === "function" && !stableMergeStates._v7SimplePasswordPatched){
+      const oldMerge = stableMergeStates;
+      stableMergeStates = function(remoteState, localState){
+        const merged = oldMerge(remoteState, localState);
+        try{
+          merged.settings = merged.settings || {};
+          const r = (remoteState && remoteState.settings) || {};
+          const l = (localState && localState.settings) || {};
+          const rExplicit = r[V7_EXPLICIT] === true;
+          const lExplicit = l[V7_EXPLICIT] === true;
+          let chosen = null;
+          if(rExplicit && !lExplicit) chosen = r;
+          else if(lExplicit && !rExplicit) chosen = l;
+          else if(rExplicit && lExplicit) chosen = v7Ts(l) > v7Ts(r) ? l : r;
+          if(chosen){
+            ["requireStudentPassword","passwordFreeUntil","passwordFreeStartedAt","passwordFreeDurationHours","studentPasswordModeUpdatedAt","passwordSettingsUpdatedAt",V7_FLAG,V7_EXPLICIT,"passwordDefaultOffV7At"].forEach(k=>{
+              if(Object.prototype.hasOwnProperty.call(chosen,k)) merged.settings[k] = chosen[k];
+            });
+            if(typeof merged.settings.requireStudentPassword !== "boolean") merged.settings.requireStudentPassword = false;
+          }else{
+            merged.settings.requireStudentPassword = false;
+            merged.settings.passwordFreeUntil = "";
+            merged.settings.passwordFreeStartedAt = "";
+            merged.settings[V7_FLAG] = true;
+            merged.settings[V7_EXPLICIT] = false;
+            merged.settings.passwordDefaultOffV7At = merged.settings.passwordDefaultOffV7At || V7_STAMP;
+            merged.settings.studentPasswordModeUpdatedAt = merged.settings.studentPasswordModeUpdatedAt || V7_STAMP;
+            merged.settings.passwordSettingsUpdatedAt = merged.settings.passwordSettingsUpdatedAt || V7_STAMP;
+          }
+        }catch(e){}
+        return merged;
+      };
+      stableMergeStates._v7SimplePasswordPatched = true;
+      try{ window.stableMergeStates = stableMergeStates; }catch(e){}
+    }
+  }catch(e){ console.warn("V7 merge patch skipped", e); }
+
+  window.turnStudentPasswordOff = async function(){
+    v7EnsureArrays();
+    state.settings.requireStudentPassword = false;
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings[V7_FLAG] = true;
+    state.settings[V7_EXPLICIT] = true;
+    state.settings.passwordDefaultOffV7At = state.settings.passwordDefaultOffV7At || V7_STAMP;
+    state.settings.studentPasswordModeUpdatedAt = v7Now();
+    state.settings.passwordSettingsUpdatedAt = v7Now();
+    await v7PushLive();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Student password is now OFF. Students can open the portal directly after the first refresh screen.");
+  };
+  window.turnStudentPasswordOn = async function(){
+    v7EnsureArrays();
+    state.settings.requireStudentPassword = true;
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings[V7_FLAG] = true;
+    state.settings[V7_EXPLICIT] = true;
+    state.settings.passwordDefaultOffV7At = state.settings.passwordDefaultOffV7At || V7_STAMP;
+    state.settings.studentPasswordModeUpdatedAt = v7Now();
+    state.settings.passwordSettingsUpdatedAt = v7Now();
+    await v7PushLive();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Student password is now ON. Students will need their password.");
+  };
+
+  function v7PasswordFreeActive(){
+    try{ const t = Date.parse(state.settings?.passwordFreeUntil || ""); return Number.isFinite(t) && t > Date.now(); }catch(e){ return false; }
+  }
+  function v7Student(id){
+    v7EnsureArrays();
+    try{ if(typeof student === "function") return student(id); }catch(e){}
+    return state.students.find(s => String(s.id) === String(id)) || null;
+  }
+  function v7PasswordRequiredFor(studentId){
+    v7EnsureArrays();
+    if(state.settings.requireStudentPassword !== true) return false;
+    if(v7PasswordFreeActive()) return false;
+    try{ if(typeof pwActiveShare === "function" && pwActiveShare(studentId)) return false; }catch(e){}
+    try{ if(typeof rgActiveShare === "function" && rgActiveShare(studentId)) return false; }catch(e){}
+    try{ if(typeof spActiveShare === "function" && spActiveShare(studentId)) return false; }catch(e){}
+    return true;
+  }
+  function v7OpenStudentNow(studentId){
+    const s = v7Student(studentId);
+    if(!s) return alert("Student record not found. Please refresh and try again.");
+    currentStudentId = s.id; window.currentStudentId = s.id;
+    role = "student"; window.role = "student";
+    route = "studentHome"; window.route = "studentHome";
+    try{ if(typeof saveLocal === "function") saveLocal(); }catch(e){}
+    if(typeof renderShell === "function") renderShell(); else if(typeof render === "function") render();
+    // Pull fresh assignments/results silently after opening, then refresh the student home once.
+    setTimeout(async()=>{
+      try{
+        await v7PullLive(true, 2600);
+        if(role === "student" && String(currentStudentId) === String(s.id) && route === "studentHome" && typeof renderShell === "function") renderShell();
+      }catch(e){}
+    }, 150);
+  }
+  function v7SetOpening(id, isOpening){
+    try{
+      document.querySelectorAll(".v7StudentCard").forEach(b=>b.disabled = !!isOpening);
+      const btn = document.getElementById("v7OpenBtn_" + String(id).replace(/[^a-zA-Z0-9_-]/g,"_"));
+      if(btn) btn.textContent = isOpening ? "Opening..." : "Open Portal";
+    }catch(e){}
+  }
+  function v7ShowPasswordBox(s){
+    const host = v7ById("v7PasswordHost");
+    if(!host) return alert("Password is required. Please refresh and try again.");
+    host.innerHTML = `<div class="v7PasswordBox"><h3>${v7Esc(s.name)}</h3><p>Password is required because the teacher has turned it ON.</p><div class="v7PasswordRow"><input id="v7StudentPass" class="input" type="password" placeholder="Type your password" onkeydown="if(event.key==='Enter')finishStudentLogin()"><button class="btn green" onclick="finishStudentLogin()">Open Portal</button></div></div>`;
+    setTimeout(()=>v7ById("v7StudentPass")?.focus(),50);
+  }
+  async function v7HandleStudentClick(studentId){
+    if(v7Opening) return;
+    v7Opening = true;
+    v7SetOpening(studentId, true);
+    const s = v7Student(studentId);
+    if(!s){ v7Opening=false; v7SetOpening(studentId,false); return alert("Student record not found. Please refresh and try again."); }
+    currentStudentId = s.id; window.currentStudentId = s.id;
+    // If local access is open, do not block the student; open immediately and sync silently.
+    if(!v7PasswordRequiredFor(s.id)){
+      v7Opening = false;
+      return v7OpenStudentNow(s.id);
+    }
+    // If local says password is required, quickly check live setting in case admin has turned it OFF.
+    await v7PullLive(true, 1800);
+    if(!v7PasswordRequiredFor(s.id)){
+      v7Opening = false;
+      return v7OpenStudentNow(s.id);
+    }
+    v7Opening = false;
+    v7SetOpening(studentId, false);
+    v7ShowPasswordBox(s);
+  }
+  window.selectStudentLogin = function(id){ return v7HandleStudentClick(id); };
+  window.quickOpenStudentPortal = function(id){ return v7HandleStudentClick(id); };
+  window.studentCardLogin = function(id){ return v7HandleStudentClick(id); };
+  window.openSimpleStudentPortal = function(id){ return v7HandleStudentClick(id); };
+  window.finishStudentLogin = async function(){
+    const s = v7Student(currentStudentId);
+    if(!s) return alert("Student record not found.");
+    await v7PullLive(true, 1600);
+    if(!v7PasswordRequiredFor(s.id)) return v7OpenStudentNow(s.id);
+    const input = v7ById("v7StudentPass") || v7ById("stuPass") || v7ById("studentPass") || v7ById("inlinePass_" + s.id) || v7ById("classMemberPassInput");
+    const typed = (input?.value || "").trim();
+    if(typed !== String(s.password || "")){
+      if(input){ input.value=""; input.focus(); }
+      return alert("Wrong password.");
+    }
+    return v7OpenStudentNow(s.id);
+  };
+  window.openClassMemberPortal = function(studentId){ return v7HandleStudentClick(studentId); };
+  window.finishClassMemberPortalLogin = window.finishStudentLogin;
+
+  function v7ClassOptions(selected){
+    v7EnsureArrays();
+    const cls = [...new Set((state.classes && state.classes.length ? state.classes : state.students.map(s=>s.className)).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true}));
+    return [`<option value="ALL" ${selected==="ALL"?"selected":""}>All Classes</option>`, ...cls.map(c=>`<option value="${v7Esc(c)}" ${selected===c?"selected":""}>${v7Esc(c)}</option>`)].join("");
+  }
+  function v7StudentPhoto(s){
+    try{ if(typeof photoHTML === "function") return photoHTML(s); }catch(e){}
+    const initials = String(s.name||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase() || "ST";
+    return `<div class="photo">${v7Esc(initials)}</div>`;
+  }
+  function v7FilteredStudents(){
+    v7EnsureArrays();
+    const cls = v7ById("v7LoginClass")?.value || "ALL";
+    const q = String(v7ById("v7LoginSearch")?.value || "").trim().toLowerCase();
+    return state.students.filter(s=>{
+      const classOk = cls === "ALL" || String(s.className||"") === String(cls);
+      const hay = `${s.name||""} ${s.code||""} ${s.className||""} ${s.phone||""}`.toLowerCase();
+      const qOk = !q || hay.includes(q);
+      return classOk && qOk;
+    }).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+  }
+  function v7StudentListHTML(list){
+    if(!list.length) return `<div class="empty">No student found. Select the correct class or check the spelling of your name.</div>`;
+    return list.slice(0, 160).map(s=>{
+      const safe = v7Attr(s.id);
+      const bid = "v7OpenBtn_" + String(s.id).replace(/[^a-zA-Z0-9_-]/g,"_");
+      return `<button type="button" class="v7StudentCard" onclick="selectStudentLogin('${safe}')">
+        ${v7StudentPhoto(s)}
+        <span class="v7StudentInfo"><b>${v7Esc(s.name)}</b><small>${v7Esc(s.className || "")} ${s.code ? "• " + v7Esc(s.code) : ""}</small></span>
+        <span id="${bid}" class="v7OpenPill">Open Portal</span>
+      </button>`;
+    }).join("") + (list.length>160 ? `<div class="notice">Showing the first 160 matching names. Type more of your name to narrow the list.</div>` : "");
+  }
+  window.studentLoginSearchFilter = function(){
+    const host = v7ById("v7StudentResults");
+    if(host) host.innerHTML = v7StudentListHTML(v7FilteredStudents());
+  };
+  window.studentLogin = function(){
+    v7EnsureArrays();
+    const selectedClass = v7ById("v7LoginClass")?.value || "ALL";
+    const search = v7ById("v7LoginSearch")?.value || "";
+    const view = v7ById("view");
+    if(!view) return;
+    view.innerHTML = `<div class="v7StudentLoginPage">
+      <div class="v7StudentLoginHero">
+        <h2>Student Portal</h2>
+        <p>Select your class, search your name, then click <b>Open Portal</b>.</p>
+      </div>
+      <div class="v7StudentLoginControls">
+        <div><label class="label">Class</label><select id="v7LoginClass" class="select" onchange="studentLoginSearchFilter()">${v7ClassOptions(selectedClass)}</select></div>
+        <div><label class="label">Search Name</label><input id="v7LoginSearch" class="input" value="${v7Esc(search)}" placeholder="Type your name here" oninput="studentLoginSearchFilter()" autocomplete="off"></div>
+      </div>
+      <div id="v7PasswordHost"></div>
+      <div id="v7StudentResults" class="v7StudentResults">${v7StudentListHTML(v7FilteredStudents())}</div>
+    </div>`;
+    setTimeout(()=>v7ById("v7LoginSearch")?.focus(),80);
+    setTimeout(v7CleanStudentEntry, 90);
+  };
+  window.openStudentPortal = function(){
+    role = "guest"; window.role = "guest";
+    route = "studentLogin"; window.route = "studentLogin";
+    try{ v7ApplyDefaultOffLocal(); v7SaveLocal(); }catch(e){}
+    if(typeof renderShell === "function") renderShell(); else if(typeof render === "function") render();
+    setTimeout(()=>v7PullLive(false, 1800).then(()=>{ if(route === "studentLogin") window.studentLogin(); }), 120);
+  };
+
+  function v7CleanStudentEntry(){
+    try{
+      if(role === "admin") return;
+      ["fpFloatingRefreshBtn","asFloatingRefreshBtn","studentPortalRefreshBtn","v6OpenAccessNote","passwordShareNotice"].forEach(id=>{ const el=v7ById(id); if(el) el.remove(); });
+      document.querySelectorAll(".fpFloatingRefresh,.asFloatingRefresh,.studentRefreshBtn,.studentRefreshNotice,.v6OpenAccessNote,.passwordShareNotice,.passwordShareStatus,.studentInlineLoginHint,.passwordAdminPanel,.passwordShareNotice").forEach(el=>el.remove());
+      document.querySelectorAll("button").forEach(btn=>{
+        const t=String(btn.textContent||"").toLowerCase();
+        if((route === "studentLogin" || role === "student" || role === "guest") && (t.includes("refresh assignment") || t.includes("refresh app") || t.includes("refresh my portal"))){
+          btn.style.display="none"; btn.disabled=true;
+        }
+      });
+    }catch(e){}
+  }
+  function v7Style(){
+    if(v7ById("amestV7SimpleStudentStyle")) return;
+    document.head.insertAdjacentHTML("beforeend", `<style id="amestV7SimpleStudentStyle">
+      #fpFloatingRefreshBtn,#asFloatingRefreshBtn,#studentPortalRefreshBtn,.fpFloatingRefresh,.asFloatingRefresh,.studentRefreshBtn,.studentRefreshNotice,#v6OpenAccessNote,.v6OpenAccessNote{display:none!important;visibility:hidden!important;pointer-events:none!important}
+      .v7StudentLoginPage{max-width:980px;margin:0 auto;display:grid;gap:14px}
+      .v7StudentLoginHero{background:linear-gradient(135deg,#071f3d,#041225);color:#fff;border-radius:24px;padding:22px;box-shadow:0 14px 34px rgba(7,31,61,.16)}
+      .v7StudentLoginHero h2{margin:0 0 6px;font-size:28px;line-height:1.1}.v7StudentLoginHero p{margin:0;color:#d9e7f3;line-height:1.45}
+      .v7StudentLoginControls{display:grid;grid-template-columns:220px minmax(0,1fr);gap:12px;background:#fff;border:1px solid #d9e7f3;border-radius:20px;padding:14px;box-shadow:0 8px 24px rgba(7,31,61,.07)}
+      .v7StudentResults{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+      .v7StudentCard{width:100%;display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;border:1px solid #d9e7f3;background:#fff;border-radius:18px;padding:12px;box-shadow:0 8px 22px rgba(7,31,61,.06);cursor:pointer;transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease}
+      .v7StudentCard:hover{transform:translateY(-2px);border-color:#f4c430;box-shadow:0 12px 28px rgba(7,31,61,.12)}.v7StudentCard:disabled{opacity:.72;cursor:wait;transform:none}
+      .v7StudentInfo b{display:block;color:#071f3d;font-size:15px;line-height:1.2;overflow-wrap:anywhere}.v7StudentInfo small{display:block;color:#667085;margin-top:3px;font-size:12px;overflow-wrap:anywhere}
+      .v7OpenPill{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 10px;border-radius:999px;background:#0f7b4f;color:#fff;font-weight:950;font-size:12px;white-space:nowrap}
+      .v7PasswordBox{border:2px solid #f4c430;border-left:8px solid #071f3d;background:#fffdf0;border-radius:18px;padding:13px;margin:4px 0}.v7PasswordBox h3{margin:0 0 5px;color:#071f3d}.v7PasswordBox p{margin:0 0 9px;color:#475467;font-weight:800}.v7PasswordRow{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:8px}
+      @media(max-width:760px){.v7StudentLoginControls,.v7StudentCard,.v7PasswordRow{grid-template-columns:1fr}.v7OpenPill{width:100%}.v7StudentLoginHero{padding:18px;border-radius:20px}.v7StudentLoginHero h2{font-size:24px}}
+    </style>`);
+  }
+  const oldRenderShellV7 = window.renderShell;
+  if(typeof oldRenderShellV7 === "function"){
+    window.renderShell = function(){
+      const result = oldRenderShellV7.apply(this, arguments);
+      setTimeout(()=>{ v7Style(); v7CleanStudentEntry(); }, 80);
+      setTimeout(()=>{ v7CleanStudentEntry(); }, 400);
+      return result;
+    };
+  }
+  window.amestV7AfterLocalLoad = function(){
+    v7Style();
+    v7ApplyDefaultOffLocal();
+    v7SaveLocal();
+    setTimeout(v7CleanStudentEntry, 200);
+  };
+  window.amestV7AfterSupabaseReady = async function(){
+    v7Style();
+    // Push the default OFF setting once for this v7 build unless admin has already made an explicit v7 ON/OFF decision.
+    const beforeExplicit = !!state.settings?.[V7_EXPLICIT];
+    v7ApplyDefaultOffLocal();
+    if(!beforeExplicit){ await v7PushLive(); }
+    v7CleanStudentEntry();
+  };
+  try{
+    eval("turnStudentPasswordOff=window.turnStudentPasswordOff; turnStudentPasswordOn=window.turnStudentPasswordOn; selectStudentLogin=window.selectStudentLogin; quickOpenStudentPortal=window.quickOpenStudentPortal; studentCardLogin=window.studentCardLogin; openSimpleStudentPortal=window.openSimpleStudentPortal; finishStudentLogin=window.finishStudentLogin; openClassMemberPortal=window.openClassMemberPortal; finishClassMemberPortalLogin=window.finishClassMemberPortalLogin; studentLoginSearchFilter=window.studentLoginSearchFilter; studentLogin=window.studentLogin; openStudentPortal=window.openStudentPortal; renderShell=window.renderShell;");
+  }catch(e){ console.warn("V7 global assignment skipped", e); }
+  document.addEventListener("DOMContentLoaded", function(){ v7Style(); setTimeout(v7CleanStudentEntry, 250); });
+  let v7CleanRuns = 0;
+  const v7Timer = setInterval(()=>{ v7CleanRuns++; v7Style(); v7CleanStudentEntry(); if(v7CleanRuns>12) clearInterval(v7Timer); }, 800);
+})();
+
+
+/* ===== DIRECT STUDENT PORTAL CLICK FIX V8 =====
+   Purpose:
+   1. Make student names and Open Portal buttons genuinely clickable on phones.
+   2. Stop older student-login/password functions from blocking the click.
+   3. Keep the student entry page very simple: Class, Search Name, Open Portal.
+   4. Keep password OFF by default for this v8 build unless admin explicitly turns it ON in v8.
+   5. Preserve all submissions, reset requests, assignments, and results.
+*/
+(function(){
+  const V8_FLAG = "studentPortalDirectClickV8Applied";
+  const V8_EXPLICIT = "studentPasswordExplicitV8";
+  const V8_STAMP = "2026-05-20T12:00:00.000Z";
+  let v8DelegationReady = false;
+  let v8SilentPullTimer = null;
+
+  function v8Esc(v){
+    return String(v ?? "").replace(/[&<>\"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+  }
+  function v8Attr(v){
+    return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+  function v8Id(v){ return String(v ?? "").replace(/[^a-zA-Z0-9_-]/g,"_"); }
+  function v8Norm(v){ return String(v ?? "").trim().replace(/\s+/g," ").toUpperCase(); }
+  function v8Ensure(){
+    state = state || {};
+    state.settings = state.settings || {};
+    state.students = Array.isArray(state.students) ? state.students : [];
+    state.classes = Array.isArray(state.classes) ? state.classes : [];
+    state.quizzes = Array.isArray(state.quizzes) ? state.quizzes : [];
+    state.submissions = Array.isArray(state.submissions) ? state.submissions : [];
+  }
+  function v8SaveLocal(){
+    try{ if(typeof normalize === "function") normalize(); }catch(e){}
+    try{ if(typeof saveLocal === "function") saveLocal(); else if(typeof KEY !== "undefined") localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  }
+  function v8ApplyDefaultOpen(){
+    v8Ensure();
+    // Important: old v4/v5/v6/v7 password settings must not force password in this build.
+    // Only a v8 explicit admin decision can make password required.
+    if(state.settings[V8_EXPLICIT] !== true){
+      state.settings.requireStudentPassword = false;
+      state.settings.passwordFreeUntil = "";
+      state.settings.passwordFreeStartedAt = "";
+      state.settings[V8_FLAG] = true;
+      state.settings[V8_EXPLICIT] = false;
+      state.settings.studentPasswordModeUpdatedAt = state.settings.studentPasswordModeUpdatedAt || V8_STAMP;
+      state.settings.passwordSettingsUpdatedAt = state.settings.passwordSettingsUpdatedAt || V8_STAMP;
+    }
+    if(typeof state.settings.requireStudentPassword !== "boolean") state.settings.requireStudentPassword = false;
+  }
+  async function v8PushSettings(){
+    v8SaveLocal();
+    try{
+      if(typeof stableWriteRemoteItems === "function") await stableWriteRemoteItems();
+      else if(typeof pushRemote === "function") await pushRemote();
+      else if(typeof save === "function") save();
+    }catch(e){ console.warn("V8 settings live save skipped", e); }
+  }
+  async function v8SilentPull(timeoutMs=2600){
+    try{
+      const work = (async()=>{
+        if(typeof stablePullRemote === "function") return await stablePullRemote(true);
+        if(typeof pullRemote === "function") return await pullRemote();
+        return true;
+      })();
+      await Promise.race([work, new Promise(resolve=>setTimeout(resolve, timeoutMs))]);
+      v8ApplyDefaultOpen();
+      v8SaveLocal();
+    }catch(e){ console.warn("V8 silent live refresh skipped", e); }
+  }
+  function v8PasswordRequired(){
+    v8Ensure();
+    // Password is required only when the admin has explicitly turned it ON in v8.
+    return state.settings[V8_EXPLICIT] === true && state.settings.requireStudentPassword === true;
+  }
+  function v8FindStudent(studentId){
+    v8Ensure();
+    return state.students.find(s => String(s.id) === String(studentId)) || null;
+  }
+  function v8Photo(s){
+    try{ if(typeof photoHTML === "function") return photoHTML(s); }catch(e){}
+    const initials = String(s.name || "ST").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase() || "ST";
+    return `<div class="photo">${v8Esc(initials)}</div>`;
+  }
+  function v8Classes(){
+    v8Ensure();
+    const fromClasses = state.classes.filter(Boolean);
+    const fromStudents = state.students.map(s=>s.className).filter(Boolean);
+    return [...new Set([...fromClasses, ...fromStudents])].sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true}));
+  }
+  function v8Options(selected){
+    const opts = [`<option value="ALL" ${selected==="ALL"?"selected":""}>All Classes</option>`];
+    for(const c of v8Classes()) opts.push(`<option value="${v8Attr(c)}" ${String(selected)===String(c)?"selected":""}>${v8Esc(c)}</option>`);
+    return opts.join("");
+  }
+  function v8Filtered(){
+    v8Ensure();
+    const cls = document.getElementById("v8LoginClass")?.value || "ALL";
+    const q = String(document.getElementById("v8LoginSearch")?.value || "").trim().toLowerCase();
+    const nCls = v8Norm(cls);
+    return state.students.filter(s=>{
+      const classOk = cls === "ALL" || v8Norm(s.className) === nCls;
+      const hay = `${s.name||""} ${s.code||""} ${s.className||""} ${s.phone||""}`.toLowerCase();
+      return classOk && (!q || hay.includes(q));
+    }).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+  }
+  function v8StudentCards(list){
+    if(!list.length) return `<div class="empty">No student found. Select your correct class or type your name again.</div>`;
+    return list.slice(0,180).map(s=>{
+      const sid = v8Attr(s.id);
+      return `<div class="v8StudentCard" role="button" tabindex="0" data-student-id="${sid}" aria-label="Open portal for ${v8Attr(s.name)}">
+        ${v8Photo(s)}
+        <div class="v8StudentInfo"><b>${v8Esc(s.name)}</b><small>${v8Esc(s.className || "")} ${s.code ? "• " + v8Esc(s.code) : ""}</small></div>
+        <button type="button" class="v8OpenBtn" data-student-id="${sid}">Open Portal</button>
+      </div>`;
+    }).join("") + (list.length > 180 ? `<div class="notice">Many names matched. Type more of your name to narrow the list.</div>` : "");
+  }
+  function v8RenderResults(){
+    const box = document.getElementById("v8StudentResults");
+    if(box) box.innerHTML = v8StudentCards(v8Filtered());
+  }
+  window.studentLoginSearchFilter = v8RenderResults;
+
+  function v8ShowPassword(studentId){
+    const s = v8FindStudent(studentId);
+    const host = document.getElementById("v8PasswordHost");
+    if(!s || !host) return;
+    host.innerHTML = `<div class="v8PasswordBox">
+      <h3>${v8Esc(s.name)}</h3>
+      <p>Type your password to open your portal.</p>
+      <div class="v8PasswordRow"><input id="v8StudentPass" class="input" type="password" placeholder="Password" autocomplete="current-password"><button type="button" class="btn green" id="v8PasswordOpenBtn">Open Portal</button></div>
+    </div>`;
+    const input = document.getElementById("v8StudentPass");
+    const btn = document.getElementById("v8PasswordOpenBtn");
+    if(btn) btn.onclick = ()=>v8FinishPassword(studentId);
+    if(input){ input.onkeydown = ev=>{ if(ev.key === "Enter") v8FinishPassword(studentId); }; setTimeout(()=>input.focus(),50); }
+  }
+  function v8OpenStudent(studentId){
+    const s = v8FindStudent(studentId);
+    if(!s){ alert("Student record not found. Please reload and try again."); return; }
+    currentStudentId = s.id;
+    role = "student";
+    route = "studentHome";
+    try{ window.currentStudentId = s.id; window.role = role; window.route = route; }catch(e){}
+    v8SaveLocal();
+    try{ renderShell(); }catch(e){ try{ render(); }catch(err){ console.error(err); } }
+    clearTimeout(v8SilentPullTimer);
+    v8SilentPullTimer = setTimeout(async()=>{
+      await v8SilentPull(3000);
+      if(role === "student" && String(currentStudentId) === String(s.id)){
+        try{ renderShell(); }catch(e){ try{ render(); }catch(err){} }
+      }
+    }, 250);
+  }
+  function v8FinishPassword(studentId){
+    const s = v8FindStudent(studentId);
+    if(!s) return alert("Student record not found.");
+    const input = document.getElementById("v8StudentPass");
+    const typed = String(input?.value || "").trim();
+    if(typed !== String(s.password || "")){
+      if(input){ input.value = ""; input.focus(); }
+      return alert("Wrong password.");
+    }
+    v8OpenStudent(studentId);
+  }
+  function v8HandleOpen(studentId){
+    const s = v8FindStudent(studentId);
+    if(!s) return alert("Student record not found. Please reload and try again.");
+    // Direct and immediate when password is OFF. No waiting for live sync.
+    if(!v8PasswordRequired()) return v8OpenStudent(studentId);
+    return v8ShowPassword(studentId);
+  }
+  window.v8OpenStudentPortalNow = v8HandleOpen;
+  window.selectStudentLogin = v8HandleOpen;
+  window.quickOpenStudentPortal = v8HandleOpen;
+  window.studentCardLogin = v8HandleOpen;
+  window.openSimpleStudentPortal = v8HandleOpen;
+  window.finishStudentLogin = function(){
+    const sid = currentStudentId || document.querySelector(".v8StudentCard[data-student-id]")?.getAttribute("data-student-id");
+    if(sid) return v8FinishPassword(sid);
+  };
+  window.openClassMemberPortal = v8HandleOpen;
+  window.finishClassMemberPortalLogin = window.finishStudentLogin;
+
+  window.turnStudentPasswordOff = async function(){
+    v8Ensure();
+    state.settings.requireStudentPassword = false;
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings[V8_FLAG] = true;
+    state.settings[V8_EXPLICIT] = true;
+    state.settings.studentPasswordModeUpdatedAt = new Date().toISOString();
+    state.settings.passwordSettingsUpdatedAt = new Date().toISOString();
+    await v8PushSettings();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Student password is OFF. Students can enter directly.");
+  };
+  window.turnStudentPasswordOn = async function(){
+    v8Ensure();
+    state.settings.requireStudentPassword = true;
+    state.settings.passwordFreeUntil = "";
+    state.settings.passwordFreeStartedAt = "";
+    state.settings[V8_FLAG] = true;
+    state.settings[V8_EXPLICIT] = true;
+    state.settings.studentPasswordModeUpdatedAt = new Date().toISOString();
+    state.settings.passwordSettingsUpdatedAt = new Date().toISOString();
+    await v8PushSettings();
+    try{ if(typeof settings === "function") settings(); }catch(e){}
+    alert("Student password is ON. Students will need their password.");
+  };
+
+  window.studentLogin = function(){
+    v8ApplyDefaultOpen();
+    const selectedClass = document.getElementById("v8LoginClass")?.value || "ALL";
+    const search = document.getElementById("v8LoginSearch")?.value || "";
+    const view = document.getElementById("view");
+    if(!view) return;
+    view.innerHTML = `<section class="v8StudentLoginPage">
+      <div class="v8SimpleHeader"><h2>Student Portal</h2><p>Select your class, type your name, then tap <b>Open Portal</b>.</p></div>
+      <div class="v8SimpleControls">
+        <div><label class="label">Class</label><select id="v8LoginClass" class="select">${v8Options(selectedClass)}</select></div>
+        <div><label class="label">Search Name</label><input id="v8LoginSearch" class="input" value="${v8Attr(search)}" placeholder="Type your name" autocomplete="off"></div>
+      </div>
+      <div id="v8PasswordHost"></div>
+      <div id="v8StudentResults" class="v8StudentResults">${v8StudentCards(v8Filtered())}</div>
+    </section>`;
+    const cls = document.getElementById("v8LoginClass");
+    const input = document.getElementById("v8LoginSearch");
+    if(cls) cls.onchange = v8RenderResults;
+    if(input){ input.oninput = v8RenderResults; setTimeout(()=>input.focus(),80); }
+    v8InstallDelegation();
+  };
+  window.openStudentPortal = function(){
+    v8ApplyDefaultOpen();
+    role = "guest";
+    route = "studentLogin";
+    try{ window.role = role; window.route = route; }catch(e){}
+    v8SaveLocal();
+    try{ renderShell(); }catch(e){ try{ render(); }catch(err){} }
+    // Non-blocking live refresh after the page is already usable.
+    clearTimeout(v8SilentPullTimer);
+    v8SilentPullTimer = setTimeout(async()=>{
+      await v8SilentPull(3000);
+      if(role === "guest" && route === "studentLogin") window.studentLogin();
+    }, 300);
+  };
+
+  function v8InstallDelegation(){
+    if(v8DelegationReady) return;
+    v8DelegationReady = true;
+    document.addEventListener("click", function(ev){
+      const el = ev.target && ev.target.closest && ev.target.closest("[data-student-id]");
+      if(!el) return;
+      const insideV8 = el.closest && el.closest(".v8StudentLoginPage");
+      if(!insideV8) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      v8HandleOpen(el.getAttribute("data-student-id"));
+    }, true);
+    document.addEventListener("keydown", function(ev){
+      if(ev.key !== "Enter" && ev.key !== " ") return;
+      const el = ev.target && ev.target.closest && ev.target.closest(".v8StudentCard[data-student-id]");
+      if(!el) return;
+      ev.preventDefault();
+      v8HandleOpen(el.getAttribute("data-student-id"));
+    }, true);
+  }
+  function v8AddStyle(){
+    if(document.getElementById("amestV8DirectClickStyle")) return;
+    document.head.insertAdjacentHTML("beforeend", `<style id="amestV8DirectClickStyle">
+      #fpFloatingRefreshBtn,#asFloatingRefreshBtn,#studentPortalRefreshBtn,.fpFloatingRefresh,.asFloatingRefresh,.studentRefreshBtn,.studentRefreshNotice,#v6OpenAccessNote,.v6OpenAccessNote,.passwordShareNotice,.passwordShareStatus,.studentInlineLoginHint{display:none!important;visibility:hidden!important;pointer-events:none!important}
+      .v8StudentLoginPage{max-width:980px;margin:0 auto;display:grid;gap:14px}.v8SimpleHeader{background:linear-gradient(135deg,#071f3d,#041225);color:#fff;border-radius:22px;padding:20px;box-shadow:0 12px 30px rgba(7,31,61,.15)}.v8SimpleHeader h2{margin:0 0 6px;font-size:27px}.v8SimpleHeader p{margin:0;color:#d9e7f3;line-height:1.45}.v8SimpleControls{display:grid;grid-template-columns:220px minmax(0,1fr);gap:12px;background:#fff;border:1px solid #d9e7f3;border-radius:18px;padding:14px;box-shadow:0 8px 22px rgba(7,31,61,.07)}.v8StudentResults{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}.v8StudentCard{display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid #d9e7f3;background:#fff;border-radius:18px;padding:12px;box-shadow:0 8px 22px rgba(7,31,61,.06);cursor:pointer;min-height:78px}.v8StudentCard:active{transform:scale(.99)}.v8StudentCard:focus{outline:3px solid rgba(244,196,48,.55)}.v8StudentInfo b{display:block;color:#071f3d;font-size:15px;line-height:1.2;overflow-wrap:anywhere}.v8StudentInfo small{display:block;color:#667085;font-size:12px;margin-top:3px;overflow-wrap:anywhere}.v8OpenBtn{border:0;border-radius:999px;background:#0f7b4f;color:#fff;font-weight:950;padding:8px 11px;min-height:36px;cursor:pointer;white-space:nowrap}.v8PasswordBox{border:2px solid #f4c430;border-left:8px solid #071f3d;background:#fffdf0;border-radius:18px;padding:13px}.v8PasswordBox h3{margin:0 0 5px;color:#071f3d}.v8PasswordBox p{margin:0 0 9px;color:#475467;font-weight:800}.v8PasswordRow{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:8px}@media(max-width:760px){.v8SimpleControls,.v8StudentCard,.v8PasswordRow{grid-template-columns:1fr}.v8OpenBtn{width:100%}.v8SimpleHeader{padding:18px}.v8SimpleHeader h2{font-size:24px}}
+    </style>`);
+  }
+
+  const oldRenderShellV8 = renderShell;
+  renderShell = function(){
+    const result = oldRenderShellV8.apply(this, arguments);
+    v8AddStyle();
+    v8InstallDelegation();
+    if(role === "guest" && route === "studentLogin"){
+      window.studentLogin();
+    }
+    return result;
+  };
+  window.renderShell = renderShell;
+
+  const oldRenderV8 = render;
+  render = function(){
+    v8ApplyDefaultOpen();
+    return oldRenderV8.apply(this, arguments);
+  };
+  window.render = render;
+
+  document.addEventListener("DOMContentLoaded", function(){
+    v8AddStyle();
+    v8InstallDelegation();
+    try{ v8ApplyDefaultOpen(); v8SaveLocal(); }catch(e){}
+  });
+  try{ v8ApplyDefaultOpen(); }catch(e){}
+})();
+
 loadLocal();
 if(window.amestV6AfterLocalLoad){ try{ window.amestV6AfterLocalLoad(); }catch(e){ console.warn("V6 local setup skipped", e); } }
+if(window.amestV7AfterLocalLoad){ try{ window.amestV7AfterLocalLoad(); }catch(e){ console.warn("V7 local setup skipped", e); } }
 if(window.importOldPortalDataIfNeeded){ importOldPortalDataIfNeeded(); }
 initSupabase().then(async function(){
   if(window.amestV6AfterSupabaseReady){ try{ await window.amestV6AfterSupabaseReady(); }catch(e){ console.warn("V6 online setup skipped", e); } }
+  if(window.amestV7AfterSupabaseReady){ try{ await window.amestV7AfterSupabaseReady(); }catch(e){ console.warn("V7 online setup skipped", e); } }
   render();
 });
 render();
-setTimeout(function(){ if(window.amestV6AfterSupabaseReady){ window.amestV6AfterSupabaseReady().catch(function(e){ console.warn("V6 delayed online setup skipped", e); }); } }, 2500);
+setTimeout(function(){ if(window.amestV6AfterSupabaseReady){ window.amestV6AfterSupabaseReady().catch(function(e){ console.warn("V6 delayed online setup skipped", e); }); } if(window.amestV7AfterSupabaseReady){ window.amestV7AfterSupabaseReady().catch(function(e){ console.warn("V7 delayed online setup skipped", e); }); } }, 2500);
 </script>
 </body>
 </html>
