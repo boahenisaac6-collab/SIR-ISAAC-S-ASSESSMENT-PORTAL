@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/timetable-pdf", "destination": "/api/pdf" },
+    { "source": "/akuse-methodist-class-monitoring-application", "destination": "/api/app" },
     { "source": "/(.*)", "destination": "/api" }
   ]
 }
