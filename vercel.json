@@ -1,8 +1,6 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api"
-    }
+    { "source": "/timetable-pdf", "destination": "/api/pdf" },
+    { "source": "/(.*)", "destination": "/api" }
   ]
 }
